@@ -149,6 +149,138 @@ class BuildSelectionTest(TempDirCase):
             flash.resolve_build(self.tmp / "out")
 
 
+FEATS = [{"id": "10-ptbr-sao-paulo", "name": "PT-BR", "order": 10},
+         {"id": "20-controle-posicional", "name": "Controle", "order": 20}]
+OLD, NEW = "20261013-101231", "20261013-124416"
+
+
+def mk_build(root, ts, features=(), raw=None):
+    d = root / ts
+    d.mkdir()
+    manifest = {"timestamp": ts, "card_size_mib": 15000, "features": list(features)}
+    (d / "manifest.json").write_text(raw if raw is not None else json.dumps(manifest))
+    return d
+
+
+class BuildInfoTest(TempDirCase):
+    """Linha de cada build e --list-builds sobre um out/ temporário."""
+
+    def mk(self, ts, features=(), raw=None):
+        return mk_build(self.tmp, ts, features, raw)
+
+    def test_line_with_features(self):
+        line = flash.build_line(self.mk(NEW, FEATS))
+        self.assertEqual(line, f"{NEW}  15000 MiB  10-ptbr-sao-paulo, 20-controle-posicional")
+
+    def test_line_without_features(self):
+        self.assertEqual(flash.build_line(self.mk(OLD)), f"{OLD}  15000 MiB  sem features")
+
+    def test_line_corrupted_manifest(self):
+        d = self.mk(OLD, raw="{nada")
+        self.assertEqual(flash.build_line(d), f"{OLD}  manifest ilegível")
+        self.assertFalse(flash.build_readable(d))
+        self.assertEqual(flash.build_line(self.mk(NEW, raw="{}")), f"{NEW}  manifest ilegível")
+
+    def test_list_builds_args_need_no_target(self):
+        a = args("--list-builds")
+        self.assertTrue(a.list_builds)
+        self.assertIsNone(a.device)
+
+    def test_list_builds_newest_first(self):
+        self.mk(OLD)
+        self.mk(NEW, FEATS)
+        rc, out = quiet(flash.flash, args("--list-builds"), out_root=self.tmp,
+                        input_fn=lambda _p: self.fail("não deveria perguntar"))
+        self.assertEqual(rc, 0)
+        self.assertIn(f"1) {NEW}  15000 MiB  10-ptbr-sao-paulo", out)
+        self.assertIn(f"2) {OLD}  15000 MiB  sem features", out)
+        self.assertLess(out.index(NEW), out.index(OLD))
+
+    def test_list_builds_empty(self):
+        rc, out = quiet(flash.flash, args("--list-builds"), out_root=self.tmp / "out")
+        self.assertEqual(rc, 0)
+        self.assertIn("Nenhum build", out)
+        self.assertIn("./build.sh", out)
+
+
+class BuildMenuTest(TempDirCase):
+    """Menu de escolha do build, com a digitação simulada por input_fn."""
+
+    def setUp(self):
+        super().setUp()
+        mk_build(self.tmp, OLD)
+        mk_build(self.tmp, NEW, FEATS)
+        self.prompts = []
+
+    def answers(self, *seq):
+        it = iter(seq)
+
+        def fn(prompt):
+            self.prompts.append(prompt)
+            ans = next(it)
+            if ans is EOFError:
+                raise EOFError
+            return ans
+        return fn
+
+    def select(self, *seq, ts=None, interactive=True):
+        return quiet(flash.select_build, self.tmp, ts, interactive=interactive, input_fn=self.answers(*seq))
+
+    def test_choose_second(self):
+        d, out = self.select("2")
+        self.assertEqual(d.name, OLD)
+        self.assertIn(f"1) {NEW}  15000 MiB  10-ptbr-sao-paulo, 20-controle-posicional  (mais recente)", out)
+        self.assertIn(f"2) {OLD}  15000 MiB  sem features", out)
+
+    def test_enter_picks_newest(self):
+        d, _ = self.select("")
+        self.assertEqual(d.name, NEW)
+
+    def test_invalid_asks_again(self):
+        d, out = self.select("9", "1")
+        self.assertEqual(d.name, NEW)
+        self.assertEqual(len(self.prompts), 2)
+        self.assertIn("'9' não existe", out)
+
+    def test_unreadable_cannot_be_chosen(self):
+        (self.tmp / OLD / "manifest.json").write_text("{nada")
+        d, out = self.select("2", "1")
+        self.assertEqual(d.name, NEW)
+        self.assertIn("manifest ilegível", out)
+
+    def test_eof_cancels(self):
+        d, _ = self.select(EOFError)
+        self.assertIsNone(d)
+
+    def test_single_build_no_menu(self):
+        shutil.rmtree(self.tmp / OLD)
+        d, out = self.select()
+        self.assertEqual(d.name, NEW)
+        self.assertEqual(self.prompts, [])
+        self.assertEqual(out, "")
+
+    def test_explicit_build_no_menu(self):
+        d, _ = self.select(ts=OLD)
+        self.assertEqual(d.name, OLD)
+        self.assertEqual(self.prompts, [])
+
+    def test_not_interactive_uses_newest(self):
+        d, _ = self.select(interactive=False)
+        self.assertEqual(d.name, NEW)
+        self.assertEqual(self.prompts, [])
+
+    def test_flash_eof_writes_nothing_before_touching_target(self):
+        card = self.tmp / "cartao.img"
+        card.write_bytes(b"")
+        card.chmod(0o444)
+        a = args("--target-file", str(card), "--all", "--wipe-roms", "--wipe-storage")
+        rc, out = quiet(flash.flash, a, out_root=self.tmp, input_fn=self.answers(EOFError), interactive=True)
+        self.assertEqual(rc, 1)
+        self.assertIn("nada foi escrito", out)
+        self.assertEqual(len(self.prompts), 1)
+        self.assertNotIn("Alvo:", out)
+
+
 @needs_base
 @slow
 class FlashWithBuildTest(TempDirCase):
@@ -296,6 +428,14 @@ class FlashWithBuildTest(TempDirCase):
         self.assertIn("Regiões a escrever", log)
         self.assertIn("Dados que serão apagados", log)
         self.assertEqual(os.stat(card).st_blocks, 0)
+
+    def test_dry_run_plan_shows_build_line(self):
+        rc, log = self.run_flash("--target-file", str(self.card()), "--all", "--wipe-roms", "--wipe-storage",
+                                 "--dry-run", answer="NUNCA")
+        self.assertEqual(rc, 0, log)
+        size = self.manifest["card_size_mib"]
+        self.assertIn(f"Build: {TS}  {size} MiB  sem features", log)
+        self.assertLess(log.index("Build:"), log.index("Regiões a escrever"))
 
     def test_unmount_device_uses_udisksctl_then_umount(self):
         calls = []
