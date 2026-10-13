@@ -50,3 +50,15 @@ gid = 0
 # layer = "storage"
 # path = ".config/emuelec/configs/emuelec.conf"
 # feature = "10-outra-feature"
+
+# Conteúdo externo (arquivo grande que não entra no git, ex.: um tema). O build
+# baixa a URL, confere o sha256, guarda em work/cache/external/ e aplica o
+# conteúdo na camada, sob "dest". ./build.sh --offline usa só o cache.
+# budget_mib = 400              # opcional: falha se o conteúdo extraído passar disso
+# [[external]]
+# layer = "storage"
+# dest = ".config/emulationstation/themes/Crystal"
+# url = "https://codeload.github.com/dm2912/Crystal/tar.gz/<commit>"   # fixe um commit
+# sha256 = "<sha256 do .tar.gz>"
+# strip = 1                     # remove "Crystal-<commit>/" do início dos caminhos
+# exclude = ["*.md"]            # opcional

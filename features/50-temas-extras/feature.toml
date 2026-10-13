@@ -1,0 +1,71 @@
+# Temas extras do EmulationStation, instalados na p8 ao lado do NES-BOX (que
+# continua sendo o tema padrão). O build baixa cada tema de um commit fixo,
+# confere o sha256 e guarda em work/cache/external/. Os temas não entram no git.
+# Escolha no aparelho: Menu > Configurações da interface > Tema.
+# Ficam no /storage, então só chegam com --wipe-storage.
+#
+# Fora da lista por estourar os 400 MiB (16:9, a validar em 4:3): PokemonUno,
+# KirbyUno e YoshiUno, de RetroHursty69 (es-theme-<nome>).
+
+schema = 1
+name = "Temas extras"
+description = "Temas Mario, Sonic, Crash, Minimal, Switch, Graphite e Crystal para o EmulationStation."
+order = 50
+enabled = true
+budget_mib = 400
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Mario (GPi)"
+url = "https://codeload.github.com/RetroHursty69/es-theme-GPi_Mario/tar.gz/d64fa52e0b5c775c0de6493ddb8dc0d41cb1e59a"
+sha256 = "b0e64a8104c09e5c48fce3368e2cc55c8b10834af896c0723f36799688139065"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Sonic (GPi)"
+url = "https://codeload.github.com/RetroHursty69/es-theme-GPi_Sonic/tar.gz/8623e7ae6c92682c8ca0e312bef68e25ddfa5fe9"
+sha256 = "df3c999122e06db14357eecf90c1ee352c91c485e3dd9c31fec1734582092ad0"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Crash (GPi)"
+url = "https://codeload.github.com/RetroHursty69/es-theme-GPi_Crash/tar.gz/ee31d9c8094a556591623f96191d48ec562ee801"
+sha256 = "b8d3d7887cbb07b922813c9f2c0f5446d39a2956bcc7c38c1099aab6882911ce"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Minimal EmuELEC"
+url = "https://codeload.github.com/EmuELEC/es-theme-minimal-EmuELEC/tar.gz/628546bade3c08a3904c4105fab35c8d1ae49432"
+sha256 = "31ebe08db71bc1a8ab30ee387acbc01617fc2e257dedfa9095cc87c92b48724d"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Switch"
+url = "https://codeload.github.com/Jetup13/es-theme-switch/tar.gz/2066a6e21569590fc94ab875921e575c798785fa"
+sha256 = "7ea436d346da1a0d8f9ae3a0bffcfd20276a7906ba157219d4e8bb22c92a24c7"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Graphite OGA"
+url = "https://codeload.github.com/mtoensing/es-theme-Graphite-OGA/tar.gz/88d5c479f97f5f592d6dab861ebca23b0bbb830d"
+sha256 = "b124fbe13f091c7041ca5634943d65229c5485caa9a8f36aaf2dd5481e362e75"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "storage"
+dest = ".config/emulationstation/themes/Crystal"
+url = "https://codeload.github.com/dm2912/Crystal/tar.gz/8f1fca3b8b673f5c8211b34329d974a727b10930"
+sha256 = "c8275150f585afe6941b050e91de30152b9b5ede0dd475751bb38b0f33823c31"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]

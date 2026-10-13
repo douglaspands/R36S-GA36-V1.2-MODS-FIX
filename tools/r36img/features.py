@@ -2,6 +2,7 @@
 
 import os
 import posixpath
+import re
 import stat
 import tomllib
 from dataclasses import dataclass, field, replace
@@ -17,7 +18,10 @@ SCHEMA = 1
 DESCRIPTOR = "feature.toml"
 RESIZE_MARKER = ".please_resize_me"
 
-_TOP_KEYS = {"schema", "name", "description", "order", "enabled", "remove", "meta", "override"}
+_TOP_KEYS = {"schema", "name", "description", "order", "enabled", "remove", "meta", "override",
+             "external", "budget_mib"}
+_EXTERNAL_KEYS = {"layer", "dest", "url", "sha256", "strip", "exclude"}
+_SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
 @dataclass(frozen=True)
@@ -27,6 +31,17 @@ class Meta:
     mode: int | None
     uid: int | None
     gid: int | None
+
+
+@dataclass(frozen=True)
+class External:
+    """Arquivo .tar.gz remoto, fixado por sha256, aplicado numa camada sob `dest`."""
+    layer: str
+    dest: str
+    url: str
+    sha256: str
+    strip: int = 0
+    exclude: tuple = ()
 
 
 @dataclass
@@ -40,6 +55,9 @@ class Feature:
     removes: list = field(default_factory=list)  # [(layer, path)]
     metas: list = field(default_factory=list)  # [Meta]
     overrides: set = field(default_factory=set)  # {(layer, path_key, feature_id)}
+    externals: list = field(default_factory=list)  # [External]
+    budget_mib: int | None = None  # limite dos bytes extraídos dos externos
+    staged: list = field(default_factory=list)  # [(External, Path)] preenchido por external.prepare
 
     def layer_dir(self, layer):
         return self.dir / layer
@@ -86,6 +104,32 @@ def _layer(v, where, allowed=LAYERS):
     if v not in allowed:
         raise R36Error(f"{where}: camada {v!r} inválida; válidas: {', '.join(allowed)}")
     return v
+
+
+def _parse_external(x, w):
+    if not isinstance(x, dict):
+        raise R36Error(f"{w}: entrada inválida")
+    unknown = set(x) - _EXTERNAL_KEYS
+    if unknown:
+        raise R36Error(f"{w}: campo(s) desconhecido(s): {', '.join(sorted(unknown))}")
+    for k in ("layer", "dest", "url", "sha256"):
+        if k not in x:
+            raise R36Error(f"{w}: campo '{k}' faltando")
+    layer = _layer(x["layer"], w)
+    dest = norm_path(x["dest"], w)
+    url = x["url"]
+    if not isinstance(url, str) or not re.match(r"(https?|file)://", url):
+        raise R36Error(f"{w}: 'url' deve começar com http://, https:// ou file://")
+    sha = x["sha256"]
+    if not isinstance(sha, str) or not _SHA256_RE.fullmatch(sha):
+        raise R36Error(f"{w}: 'sha256' deve ter 64 dígitos hexadecimais minúsculos")
+    strip = x.get("strip", 0)
+    if isinstance(strip, bool) or not isinstance(strip, int) or strip < 0:
+        raise R36Error(f"{w}: 'strip' deve ser inteiro ≥ 0")
+    exclude = x.get("exclude", [])
+    if not isinstance(exclude, list) or not all(isinstance(e, str) and e for e in exclude):
+        raise R36Error(f"{w}: 'exclude' deve ser uma lista de padrões (texto)")
+    return External(layer, dest, url, sha, strip, tuple(exclude))
 
 
 def load_feature(fdir: Path) -> Feature:
@@ -147,6 +191,16 @@ def load_feature(fdir: Path) -> Feature:
         if not isinstance(other, str) or not other:
             raise R36Error(f"{w}: campo 'feature' faltando (diretório da feature substituída)")
         f.overrides.add((layer, key_for(layer, norm_path(o.get("path"), w)), other))
+
+    for i, x in enumerate(data.get("external", [])):
+        f.externals.append(_parse_external(x, f"{where} [[external]] #{i + 1}"))
+    if "budget_mib" in data:
+        b = data["budget_mib"]
+        if isinstance(b, bool) or not isinstance(b, int) or b <= 0:
+            raise R36Error(f"{where}: 'budget_mib' deve ser inteiro > 0")
+        if not f.externals:
+            raise R36Error(f"{where}: 'budget_mib' só vale para features com [[external]]")
+        f.budget_mib = b
 
     for child in sorted(fdir.iterdir()):
         if child.name == DESCRIPTOR:
@@ -225,8 +279,21 @@ def _new_entry(kind, src: Path):
 
 
 def _walk_layer(feature: Feature, layer: str):
-    """(caminho relativo, tipo, origem) da árvore da camada, pais antes dos filhos."""
-    root = feature.layer_dir(layer)
+    """(caminho relativo, tipo, origem) da árvore da camada, pais antes dos filhos.
+    Inclui o conteúdo externo já extraído (`feature.staged`) sob o destino declarado."""
+    out = _walk_tree(feature, layer, feature.layer_dir(layer), "")
+    for ext, tree, _size in feature.staged:
+        if ext.layer != layer:
+            continue
+        parts = ext.dest.split("/")
+        for i in range(1, len(parts) + 1):
+            out.append(("/".join(parts[:i]), "dir", tree))
+        out += _walk_tree(feature, layer, tree, ext.dest + "/")
+    return out
+
+
+def _walk_tree(feature: Feature, layer: str, root, prefix: str):
+    root = Path(root)
     if not root.is_dir():
         return []
     out = []
@@ -235,7 +302,7 @@ def _walk_layer(feature: Feature, layer: str):
         rel_dir = os.path.relpath(dirpath, root)
         for name in sorted(dirnames + filenames):
             src = Path(dirpath) / name
-            rel = name if rel_dir == "." else f"{rel_dir}/{name}"
+            rel = prefix + (name if rel_dir == "." else f"{rel_dir}/{name}")
             st = os.lstat(src)
             if stat.S_ISLNK(st.st_mode):
                 kind = "symlink"
@@ -402,6 +469,17 @@ def report(plans: dict, features: list) -> str:
         lines.append("Features aplicadas (em ordem):")
         for f in features:
             lines.append(f"  {f.order:>4}  {f.id}  —  {f.name}")
+    if any(f.staged for f in features):
+        lines.append("")
+        lines.append("Conteúdo externo (baixado e conferido por sha256):")
+        for f in features:
+            for ext, _tree, size in f.staged:
+                lines.append(f"  {size / 1048576:8.1f} MiB  {ext.layer}:/{ext.dest}  feature={f.id}")
+                lines.append(f"                {ext.url}")
+            if f.staged:
+                total = sum(s for _x, _t, s in f.staged) / 1048576
+                limit = f" (limite {f.budget_mib} MiB)" if f.budget_mib else ""
+                lines.append(f"  {total:8.1f} MiB  total de {f.id}{limit}")
     op_pt = {"added": "adicionado", "replaced": "substituído", "removed": "removido", "meta": "metadados"}
     for layer in LAYERS:
         plan = plans.get(layer)
