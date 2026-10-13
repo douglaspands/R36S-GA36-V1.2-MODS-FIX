@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import base as basemod
-from . import config, deps, ext4, features, image, layout, mtools, parts, squash
+from . import config, deps, ext4, external, features, image, layout, mtools, parts, squash
 from .cli import PtParser, positive_int
 from .errors import R36Error
 from .util import extract_region, fmt_mib, log, run, sha256_file
@@ -30,6 +30,7 @@ exemplos:
   ./build.sh --no-features            build igual à base (teste de referência)
   ./build.sh --size-mib 7400          cartão de "8 GB" (meça com: lsblk -b)
   ./build.sh --features 00-exemplo    só a feature 00-exemplo (mesmo desabilitada)
+  ./build.sh --offline                usa só o cache de downloads das features
 """
 
 
@@ -43,6 +44,9 @@ def parse_args(argv):
                         "inclusive as desabilitadas")
     p.add_argument("--no-features", action="store_true",
                    help="não aplica nenhuma feature (imagem equivalente à base)")
+    p.add_argument("--offline", action="store_true",
+                   help="não acessa a rede: usa só o cache de conteúdo externo (work/cache/external) "
+                        "e falha se faltar algum arquivo")
     p.add_argument("--fast", action="store_true",
                    help="pula a verificação de conteúdo (sha256) do SYSTEM; "
                         "a verificação de metadados continua")
@@ -72,11 +76,19 @@ def build_info_text(ts, image_name, size_mib, feats):
     return "\n".join(lines) + "\n"
 
 
+def _feature_manifest(f):
+    d = {"id": f.id, "name": f.name, "order": f.order}
+    if f.staged:
+        d["external"] = [{"layer": x.layer, "dest": x.dest, "url": x.url, "sha256": x.sha256, "bytes": size}
+                         for x, _tree, size in f.staged]
+    return d
+
+
 def _step(msg):
     log(f"==> {msg}")
 
 
-def build(cfg, *, size_mib=None, names=None, none=False, fast=False, timestamp=None,
+def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=False, timestamp=None,
           features_dir=None, out_root=None, work_root=None, compress=True):
     """Executa o build completo. Devolve o diretório de saída.
     `compress=False` (só para testes) pula o .img.xz; parts/ e manifest são gerados igual."""
@@ -103,7 +115,8 @@ def build(cfg, *, size_mib=None, names=None, none=False, fast=False, timestamp=N
     work.mkdir(parents=True)
     ok = False
     try:
-        _build_into(cfg, out_dir, work, ts, image_name, size, feats, fast, compress)
+        _build_into(cfg, out_dir, work, ts, image_name, size, feats, fast, compress, offline,
+                    external.cache_dir(work_root))
         ok = True
     finally:
         if ok:
@@ -121,7 +134,8 @@ def _rmtree(path):
         shutil.rmtree(path)
 
 
-def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compress=True):
+def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compress=True, offline=False,
+                cache=None):
     base = cfg.base_path
     card_sectors = size_mib * 2048
     card_bytes = card_sectors * 512
@@ -144,6 +158,10 @@ def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compr
     }
     for layer, entries in base_lists.items():
         features.check_resize_marker(layer, entries, "a imagem base")
+
+    if any(f.externals for f in feats):
+        _step("Conteúdo externo das features (download, sha256, extração)")
+        external.prepare(feats, cache, work / "external", offline=offline)
 
     _step("Planejando as features")
     plans = {layer: features.plan_layer(layer, feats, base_lists[layer]) for layer in features.LAYERS}
@@ -231,7 +249,7 @@ def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compr
         },
         "card_size_mib": size_mib,
         "base": {"file": cfg.base_path.name, "sha256": cfg.base_sha256},
-        "features": [{"id": f.id, "name": f.name, "order": f.order} for f in feats],
+        "features": [_feature_manifest(f) for f in feats],
         "overrides": [
             {"layer": c.layer, "path": c.path, "feature": c.feature, "replaces": c.overrode}
             for plan in plans.values() for c in plan.changes if c.overrode
@@ -263,7 +281,8 @@ def main(argv=None):
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
         cfg = config.load()
-        build(cfg, size_mib=args.size_mib, names=args.features, none=args.no_features, fast=args.fast)
+        build(cfg, size_mib=args.size_mib, names=args.features, none=args.no_features, fast=args.fast,
+              offline=args.offline)
         return 0
     except R36Error as e:
         print(f"ERRO: {e}", file=sys.stderr)

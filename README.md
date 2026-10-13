@@ -55,6 +55,7 @@ A pasta `base/` e todas as imagens ficam fora do git.
 ```bash
 ./build.sh                    # cartão de 16 GB (15000 MiB), features habilitadas
 ./build.sh --no-features      # imagem equivalente à de fábrica (teste de referência)
+./build.sh --offline          # usa só o cache de downloads das features (sem rede)
 ./build.sh --help             # todas as opções
 ```
 
@@ -234,6 +235,21 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
 `systemctl is-active lircd eventlircd cron` (`inactive`) e
 `grep /storage/roms /proc/mounts` (`noatime`).
 
+- **`50-temas-extras`**: sete temas do EmulationStation instalados na p8 ao lado
+  do NES-BOX, que continua sendo o padrão: **Mario (GPi)**, **Sonic (GPi)** e
+  **Crash (GPi)** (infantis, feitos para telas 4:3), **Minimal EmuELEC**,
+  **Switch**, **Graphite OGA** e **Crystal**. Somam cerca de 381 MiB (limite de
+  400 MiB, conferido pelo build). Não entram no git: o build baixa cada um de um
+  commit fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira
+  vez precisa de rede; depois, `./build.sh --offline` basta.
+  - Para escolher: no EmulationStation, Start > Configurações da interface > Tema.
+  - Ficam no `/storage`, então só chegam com `--wipe-storage`.
+  - Com `--keep-storage`, copie pelo PC: monte a partição ext4 `R36-STORAGE` do
+    cartão e copie os diretórios de `.config/emulationstation/themes/` de um
+    cartão (ou de um build) para o mesmo caminho dela.
+  - PokemonUno, KirbyUno e YoshiUno (16:9) ficaram de fora por falta de espaço no
+    orçamento; para testá-los, acrescente um `[[external]]` no `feature.toml`.
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 
@@ -265,7 +281,27 @@ Uma feature é um diretório em `features/`. Veja o exemplo comentado em
    path = "usr/config/emuelec/bin/put_user_bins_here"
    ```
 
-5. Gere e confira:
+5. Para conteúdo grande que não deve entrar no git (temas, por exemplo), declare
+   um `.tar.gz` externo. O build baixa a URL, confere o sha256, guarda em
+   `work/cache/external/<sha256>.tar.gz` e aplica o conteúdo na camada, sob `dest`,
+   como se estivesse no diretório da feature:
+
+   ```toml
+   budget_mib = 400                  # opcional: o build falha se o extraído passar disso
+
+   [[external]]
+   layer = "storage"
+   dest = ".config/emulationstation/themes/Crystal"
+   url = "https://codeload.github.com/dm2912/Crystal/tar.gz/<commit>"   # use um commit, não um branch
+   sha256 = "<sha256 do .tar.gz>"    # sha256sum arquivo.tar.gz
+   strip = 1                         # níveis de diretório removidos do início (opcional)
+   exclude = ["*.md"]                # padrões de caminho a ignorar (opcional)
+   ```
+
+   A extração recusa caminhos absolutos, `..`, dispositivos, hard links e links
+   simbólicos para fora do destino. A primeira vez precisa de rede; depois o cache
+   basta, e `./build.sh --offline` falha listando o que faltar nele.
+6. Gere e confira:
 
    ```bash
    ./build.sh --features 10-minha-feature    # só ela
