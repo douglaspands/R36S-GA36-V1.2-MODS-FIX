@@ -1,0 +1,2 @@
+# Telas em RGB24 cru: sem conversão de fim de linha nem diff de texto.
+*.raw binary

@@ -187,9 +187,26 @@ que em muitos sistemas é um tmpfs pequeno.
 | Select + direita  | FPS                   |
 | Select + Start    | sair                  |
 
-Os arquivos ficam no `/storage`, então o efeito só aparece num cartão gravado com
-`--wipe-storage` (com `--keep-storage` nada muda). Para desligar uma feature,
-ponha `enabled = false` no `feature.toml` e gere a imagem de novo.
+Os arquivos dessas duas ficam no `/storage`, então o efeito só aparece num cartão
+gravado com `--wipe-storage` (com `--keep-storage` nada muda).
+
+- **`30-splash-padrao-emuelec`**: no boot, antes do EmulationStation, aparece a
+  tela da distribuição EmuELEC (logo e a palavra EMUELEC), e ao abrir um jogo, um
+  ícone de controle sem texto. As duas substituem a arte de fábrica ("R36S /
+  Please Wait.....").
+  - A tela de boot fica no SYSTEM e muda com qualquer gravação dele, inclusive
+    `--part system` ou `--all --keep-storage`.
+  - A tela de jogo é lida do `/storage`, então só muda com `--wipe-storage`.
+  - Uma tela própria em `/storage/roms/splash/` (por exemplo `nes.png`) continua
+    tendo prioridade sobre o ícone.
+  - Para trocar as telas, edite e rode `features/30-splash-padrao-emuelec/gerar.sh`
+    (precisa do ImageMagick 7) e atualize os sha256 do `LEIA-ME.txt` da feature.
+    O build não precisa do ImageMagick.
+  - O logo é marca do EmuELEC: não venda imagens com essa tela (veja o
+    `LEIA-ME.txt`).
+
+Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
+imagem de novo.
 
 ## Criar uma feature
 
