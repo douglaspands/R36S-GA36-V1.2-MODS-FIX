@@ -1,0 +1,95 @@
+Feature 51-gameboy-fiel: Game Boy e Game Boy Color como no console
+==================================================================
+
+Nos jogos das pastas gb e gbc (core Gambatte), a imagem do jogo (160x144) ocupa
+a altura toda da tela, 534x480 (proporção 10:9), e as duas faixas laterais de
+53 px, que ficariam pretas, recebem a moldura do console.
+
+  GB   lente do DMG (#5d6070), LED vermelho e "BATTERY" à esquerda, direita lisa;
+       core em cinza (gambatte_gb_colorization = disabled) e shader gameboy.glslp
+       (5 passadas: 4 verdes do DMG, grade de pixels, sombra e "fantasma").
+  GBC  Atomic Purple (#4b3b8f), LED e "POWER" à esquerda, direita lisa;
+       gambatte_gbc_color_correction = "GBC only" e grade leve (zfast_lcd_standard).
+
+Se o GB ficar abaixo de 60 fps no aparelho, a alternativa é gambatte_gb_colorization
+= "internal" com gambatte_gb_internal_palette = "GB - DMG" e o preset de 1 passada
+do GBC (design.md, decisão 4).
+
+
+Geometria (640x480)
+-------------------
+
+  jogo          x=53..586, y=0..479   534x480, transparente
+  faixa esq.    x=0..52               53x480, opaca, com LED e texto
+  faixa dir.    x=587..639            53x480, opaca e lisa (só varia em x)
+  LED           centro em (26,172); texto 9 px logo abaixo (y=190)
+  sombra        4 px junto ao jogo (x=49..52 e x=587..590)
+
+Os custom_viewport_* dos overrides batem com o retângulo do jogo:
+width 534, height 480, x 53, y 0. A escala é 3,33x (não inteira); a grade do
+shader é calculada na resolução da tela e disfarça a irregularidade.
+
+
+Arquivos
+--------
+
+  system/usr/share/retroarch-overlays/r36-gameboy/   (visível em /tmp/overlays/r36-gameboy/)
+    gb-dmg.png, gb-dmg.cfg
+    gbc-atomic-purple.png, gbc-atomic-purple.cfg
+  storage/.config/retroarch/config/Gambatte/
+    gb.cfg, gbc.cfg    overrides de vídeo e overlay por pasta de ROM
+    gb.opt, gbc.opt    opções do core
+  storage/shaders/presets/Gambatte/
+    gb.glslp, gbc.glslp   presets automáticos (caminhos absolutos em /usr/share/common-shaders/rpi)
+
+Os arquivos do storage só chegam com --wipe-storage. Os overrides têm prioridade
+sobre o retroarch.cfg global, então o bezels.sh de fábrica não os desfaz. Nenhum
+outro sistema é afetado: o RetroArch escolhe os arquivos pelo nome da pasta.
+
+Conferido na base e no RetroArch v1.17.0:
+  - corename em usr/lib/libretro/gambatte_libretro.info: "Gambatte" (nome da
+    pasta de override);
+  - aspect_ratio_index "Custom" = 23 (enum aspect_ratio em gfx/video_defines.h,
+    tag v1.17.0: 4_3 = 0 ... 32_9 = 19, CONFIG, SQUARE, CORE, CUSTOM = 23).
+
+Desligar a moldura: no menu do RetroArch (Select + X), Ajustes > Tela > Overlay,
+desligue "Exibir overlay"; para o viewport, Vídeo > Escala > Proporção.
+
+
+Origem
+------
+
+fonte-barlow-semibold.ttf
+  Fonte:       Barlow SemiBold (Barlow Project Authors)
+  Repositório: https://github.com/google/fonts
+  Commit:      66928797f271fed5ee428544e7229685e2d90127
+  URL:         https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/barlow/Barlow-SemiBold.ttf
+  Licença:     SIL Open Font License 1.1 (fonte-barlow-OFL.txt, do mesmo commit)
+
+Cores calibradas por fotos de referência (só URL, não versionadas): carcaça e lente
+do DMG e GBC Atomic Purple em fotos de venda e de museu; aprovadas pelo usuário
+numa prévia antes da gravação. Os shaders e paletas são os de fábrica do
+RetroArch da base (common-shaders/rpi).
+
+Gerado com ImageMagick 7.1.2-32 Q16-HDRI (x86_64), pelo gerar.sh desta pasta.
+
+
+Regerar
+-------
+
+  features/51-gameboy-fiel/gerar.sh
+
+Precisa do ImageMagick 7. Com a versão acima, os arquivos saem com os mesmos
+sha256 abaixo; o teste tests/test_gameboy.py confere os arquivos contra esta
+lista.
+
+
+sha256
+------
+
+86577cb32f8abe3673db53ca0f4221e6856751a4f6730c867e00f720f8bb1fc5  fonte-barlow-semibold.ttf
+186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f  fonte-barlow-OFL.txt
+3b7c0fdc21f1e740c44104d00f9762b6d7025ed610f52727754f39839e332443  system/usr/share/retroarch-overlays/r36-gameboy/gb-dmg.png
+1694934a1f2ccc19ac4a2e5e86e1cc064e3a38e281d14d4f3680b7850a866bcf  system/usr/share/retroarch-overlays/r36-gameboy/gb-dmg.cfg
+40eb9cf3e4868e5e7551c46dc13aa723ee57dca3c583bd2964e2549c6f56defe  system/usr/share/retroarch-overlays/r36-gameboy/gbc-atomic-purple.png
+b0b4657cfdb913bfe2c851e8bc02ce6969bbeceeeb8fa44f00cf88d6667cb260  system/usr/share/retroarch-overlays/r36-gameboy/gbc-atomic-purple.cfg

@@ -1,0 +1,5 @@
+schema = 1
+name = "Telas com o ícone de controle"
+description = "Ícone de controle do boot ao jogo e no carregamento do EmulationStation, no lugar da arte de fábrica."
+order = 30
+enabled = true

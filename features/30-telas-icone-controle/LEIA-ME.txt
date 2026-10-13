@@ -1,0 +1,117 @@
+Feature 30-telas-icone-controle: o ícone de controle do boot ao jogo
+===================================================================
+
+Troca a arte de fábrica ("R36S / Please Wait.....", o God of War) por uma única
+imagem em todas as telas: o ícone de controle gamepad-2 do Lucide, cinza claro
+(#d8dce6), 190x190, centrado num gradiente radial de #2b2f36 para #0b0c0f, em
+640x480.
+
+Ela aparece:
+
+- no boot (splash do lsb_release, que desenha o .raw no framebuffer);
+- no carregamento do EmulationStation (logo.png, sem texto de progresso);
+- ao abrir um jogo (loading-game.png) e na volta dele.
+
+Como o framebuffer guarda o ícone desde o boot, o intervalo entre o mpv sair e o
+RetroArch desenhar mostra o próprio ícone.
+
+Os arquivos ficam iguais nas duas camadas:
+
+  system/usr/config/                      (/usr/config, lido no boot)
+  storage/.config/                        (/storage/.config, lido pelo ES e pelo show_splash.sh)
+
+  splash/splash-std.png, splash-1080.png, retroarch.png   tela de boot
+  splash/splash-1080.raw                                  tela de boot em RGB24 cru
+  splash/loading-game-std.png, loading-game.png           tela de jogo
+  emulationstation/resources/logo.png                     fundo do carregamento do ES
+  emulationstation/resources/splash.xml                   layout do carregamento do ES
+
+O logo.png do storage só chega ao cartão com --wipe-storage. Num cartão gravado
+com --keep-storage, o ES continua lendo o logo.png antigo do /storage.
+
+Os arquivos soltos nesta pasta (este LEIA-ME, gerar.sh e as fontes) não vão
+para o cartão: o build só copia o que está nas camadas.
+
+
+splash.xml
+----------
+
+Escrito à mão (não sai do gerar.sh). Segue o formato de tema do ES, conferido no
+batocera-emulationstation, commit e0c0633e74aeda1ed59e686567016b6676c31857
+(es-core/src/Splash.cpp e es-core/src/ThemeData.cpp). O ES desenha o texto de
+progresso sempre que ele não está vazio e a barra sempre que há percentual, sem
+opção para desligá-los; por isso o layout deixa o texto transparente
+(color 00000000) e a barra transparente, de tamanho zero e fora da tela, tanto a
+barra quanto a barra ativa. O fundo é o próprio logo.png, em tela cheia.
+
+Se o texto aparecer no aparelho, a próxima saída é tirar o elemento "label" do
+layout; é preciso validar no aparelho.
+
+
+Origem
+------
+
+fonte-gamepad-2.svg
+  Pacote:      lucide-static 0.460.0 (https://lucide.dev)
+  URL:         https://unpkg.com/lucide-static@0.460.0/icons/gamepad-2.svg
+
+Gerado com ImageMagick 7.1.2-32 Q16-HDRI (x86_64), pelo gerar.sh desta pasta.
+
+
+Licença
+-------
+
+Lucide (ícone gamepad-2), licença ISC:
+
+  ISC License
+
+  Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part
+  of Feather (MIT). All other copyright (c) for Lucide are held by Lucide
+  Contributors 2022.
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+Regerar
+-------
+
+  features/30-telas-icone-controle/gerar.sh
+
+Precisa do ImageMagick 7 (comando magick). Com a versão acima, os arquivos saem
+com os mesmos sha256 abaixo. Se as telas mudarem (ou a versão do ImageMagick),
+atualize esta seção: o teste tests/test_splash.py confere os arquivos contra ela.
+
+
+sha256
+------
+
+c3bc06860ec4013cb9ec3a2931f9e87c3dca05437ba2ba57a8b1dfb705e5e3eb  fonte-gamepad-2.svg
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  system/usr/config/splash/splash-std.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  system/usr/config/splash/splash-1080.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  system/usr/config/splash/retroarch.png
+48131e1ef079ebca61db359c3824c8bb46d4e17e9427286aaad06c637df5dbd0  system/usr/config/splash/splash-1080.raw
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  system/usr/config/splash/loading-game-std.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  system/usr/config/splash/loading-game.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  system/usr/config/emulationstation/resources/logo.png
+93668880d6be7b7d6b34f0e53a193f0b25ab6d85011b746aafd373eeed50a0a8  system/usr/config/emulationstation/resources/splash.xml
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/splash/splash-std.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/splash/splash-1080.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/splash/retroarch.png
+48131e1ef079ebca61db359c3824c8bb46d4e17e9427286aaad06c637df5dbd0  storage/.config/splash/splash-1080.raw
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/splash/loading-game-std.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/splash/loading-game.png
+a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/emulationstation/resources/logo.png
+93668880d6be7b7d6b34f0e53a193f0b25ab6d85011b746aafd373eeed50a0a8  storage/.config/emulationstation/resources/splash.xml
+
+Arte de fábrica substituída (não deve aparecer em nenhum arquivo da feature):
+f7e623e694d72afb240ead6250a05ba8409d607fa9dbc4a6ae6a40a612ad2bff

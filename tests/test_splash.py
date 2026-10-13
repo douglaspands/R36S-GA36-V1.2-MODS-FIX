@@ -2,15 +2,19 @@ import hashlib
 import re
 import struct
 import unittest
+import xml.etree.ElementTree as ET
 import zlib
 
-from context import ROOT
+from context import CFG, ROOT, TempDirCase, needs_base, slow
+from r36img import build, mtools, squash
+from r36img.util import run
 
-F30 = ROOT / "features" / "30-splash-padrao-emuelec"
+F30 = ROOT / "features" / "30-telas-icone-controle"
 LEIA_ME = F30 / "LEIA-ME.txt"
-CAMADAS = ("system/usr/config/splash", "storage/.config/splash")
-TELAS = ("splash-std.png", "splash-1080.png", "retroarch.png", "splash-1080.raw",
-         "loading-game-std.png", "loading-game.png")
+CAMADAS = ("system/usr/config", "storage/.config")
+TELAS = ("splash/splash-std.png", "splash/splash-1080.png", "splash/retroarch.png",
+         "splash/splash-1080.raw", "splash/loading-game-std.png", "splash/loading-game.png",
+         "emulationstation/resources/logo.png", "emulationstation/resources/splash.xml")
 PNG_SIG = b"\x89PNG\r\n\x1a\n"
 
 
@@ -74,11 +78,10 @@ def pixels_rgb8(path):
     return bytes(out)
 
 
-class SplashPadraoEmuelec(unittest.TestCase):
+class TelasIconeControle(unittest.TestCase):
     def test_sha256_contra_leia_me(self):
         pares, _ = registrados()
-        esperados = {f"{c}/{n}" for c in CAMADAS for n in TELAS}
-        esperados |= {"fonte-splash-distribuicao-1080.png", "fonte-gamepad-2.svg"}
+        esperados = {f"{c}/{n}" for c in CAMADAS for n in TELAS} | {"fonte-gamepad-2.svg"}
         self.assertEqual(set(pares), esperados)
         for caminho, h in pares.items():
             self.assertEqual(sha256(F30 / caminho), h, caminho)
@@ -86,10 +89,9 @@ class SplashPadraoEmuelec(unittest.TestCase):
     def test_camadas_so_com_as_telas(self):
         for c in CAMADAS:
             raiz = c.split("/")[0]
-            achados = {p.relative_to(F30 / raiz).as_posix()
+            achados = {p.relative_to(F30 / c).as_posix()
                        for p in (F30 / raiz).rglob("*") if p.is_file()}
-            prefixo = c.split("/", 1)[1]
-            self.assertEqual(achados, {f"{prefixo}/{n}" for n in TELAS}, raiz)
+            self.assertEqual(achados, set(TELAS), raiz)
 
     def test_ihdr_640x480_rgb8(self):
         for c in CAMADAS:
@@ -97,17 +99,109 @@ class SplashPadraoEmuelec(unittest.TestCase):
                 if n.endswith(".png"):
                     self.assertEqual(ihdr(F30 / c / n), (640, 480, 8, 2, 0), f"{c}/{n}")
 
-    def test_raw_igual_ao_png_de_boot(self):
+    def test_todas_as_telas_iguais_ao_icone(self):
+        icone = (F30 / CAMADAS[0] / "splash/loading-game.png").read_bytes()
         for c in CAMADAS:
-            raw = (F30 / c / "splash-1080.raw").read_bytes()
+            for n in TELAS:
+                if n.endswith(".png"):
+                    self.assertEqual((F30 / c / n).read_bytes(), icone, f"{c}/{n}")
+
+    def test_raw_igual_ao_png(self):
+        for c in CAMADAS:
+            raw = (F30 / c / "splash/splash-1080.raw").read_bytes()
             self.assertEqual(len(raw), 921600, c)
-            self.assertEqual(raw, pixels_rgb8(F30 / c / "splash-std.png"), c)
+            self.assertEqual(raw, pixels_rgb8(F30 / c / "splash/loading-game.png"), c)
+
+    def test_logo_nas_duas_camadas(self):
+        for c in CAMADAS:
+            self.assertTrue((F30 / c / "emulationstation/resources/logo.png").is_file(), c)
+
+    def test_splash_xml_valido_e_sem_texto(self):
+        for c in CAMADAS:
+            raiz = ET.parse(F30 / c / "emulationstation/resources/splash.xml").getroot()
+            self.assertEqual(raiz.tag, "theme", c)
+            texto = raiz.find("./view[@name='splash']/text[@name='label']/color")
+            self.assertEqual(texto.text, "00000000", c)
 
     def test_sem_arte_de_fabrica(self):
         _, arte = registrados()
         for p in F30.rglob("*"):
             if p.is_file():
                 self.assertNotEqual(sha256(p), arte, p.relative_to(F30))
+
+
+
+
+FORA_DO_ESCOPO = ("blank.png", "emuelec_intro_1080p.mp4", "twitch-1080.png", "youtube-1080.png")
+
+
+def hashes_system(parts_dir, tmp):
+    """sha256 de todos os arquivos do SYSTEM (squashfs) de um build."""
+    sq = tmp / "SYSTEM"
+    run(["mcopy", "-n", "-i", parts_dir / "system.img", "::/SYSTEM", sq], env=mtools.ENV)
+    tree = tmp / "system-tree"
+    squash.extract(sq, tree)
+    try:
+        return squash.tree_hashes(tree)
+    finally:
+        run(["chmod", "-R", "u+rwX", tree])
+        run(["rm", "-rf", tree, sq])
+
+
+def hashes_boot(parts_dir, tmp):
+    """sha256 dos arquivos do BOOT (FAT): o .img em si muda a cada build (datas)."""
+    tree = tmp / "boot-tree"
+    tree.mkdir()
+    mtools.copy_tree_out(parts_dir / "boot.img", tree)
+    try:
+        return squash.tree_hashes(tree)
+    finally:
+        run(["rm", "-rf", tree])
+
+
+def hashes_storage(parts_dir, tmp):
+    """sha256 de todos os arquivos do STORAGE (ext4) de um build."""
+    tree = tmp / "storage-tree"
+    tree.mkdir()
+    run(["debugfs", "-R", f"rdump / {tree}", parts_dir / "storage.img"])
+    try:
+        return squash.tree_hashes(tree)
+    finally:
+        run(["chmod", "-R", "u+rwX", tree])
+        run(["rm", "-rf", tree])
+
+
+@needs_base
+@slow
+class SemArteDeFabricaNaImagem(TempDirCase):
+    """1.6: varre o SYSTEM e o STORAGE de imagens reais atrás da arte de fábrica."""
+
+    def build(self, nome, **kw):
+        return build.build(CFG, size_mib=7000, timestamp="20261013-153045", compress=False,
+                           out_root=self.tmp / nome, work_root=self.tmp / f"work-{nome}", **kw) / "parts"
+
+    def test_arte_de_fabrica(self):
+        _, arte = registrados()
+        base = self.build("base", none=True)
+        feitas = self.build("feitas", names=["30-telas-icone-controle"])
+
+        # a base tem o God of War, senão o teste não provaria nada
+        base_sys, base_sto = hashes_system(base, self.tmp), hashes_storage(base, self.tmp)
+        achados = [p for p, h in {**base_sys, **{"storage/" + k: v for k, v in base_sto.items()}}.items()
+                   if h == arte]
+        self.assertTrue(achados, "a arte de fábrica sumiu da imagem sem features")
+
+        sys_, sto = hashes_system(feitas, self.tmp), hashes_storage(feitas, self.tmp)
+        self.assertEqual([p for p, h in sys_.items() if h == arte], [])
+        self.assertEqual([p for p, h in sto.items() if h == arte], [])
+
+        # fora do escopo: vídeo de introdução, logo do U-Boot e tela de bateria
+        for nome in FORA_DO_ESCOPO:
+            caminho = f"usr/config/splash/{nome}"
+            self.assertEqual(sys_[caminho], base_sys[caminho], caminho)
+        for parte in ("bootarea", "env", "kernel"):
+            self.assertEqual(sha256(feitas / f"{parte}.img"), sha256(base / f"{parte}.img"), parte)
+        self.assertEqual(hashes_boot(feitas, self.tmp), hashes_boot(base, self.tmp))
 
 
 if __name__ == "__main__":

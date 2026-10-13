@@ -191,20 +191,23 @@ que em muitos sistemas é um tmpfs pequeno.
 Os arquivos dessas duas ficam no `/storage`, então o efeito só aparece num cartão
 gravado com `--wipe-storage` (com `--keep-storage` nada muda).
 
-- **`30-splash-padrao-emuelec`**: no boot, antes do EmulationStation, aparece a
-  tela da distribuição EmuELEC (logo e a palavra EMUELEC), e ao abrir um jogo, um
-  ícone de controle sem texto. As duas substituem a arte de fábrica ("R36S /
-  Please Wait.....").
+- **`30-telas-icone-controle`**: uma única imagem, o ícone de controle sem
+  texto, do boot até o jogo: no boot (antes do EmulationStation), no carregamento
+  do EmulationStation, ao abrir um jogo e na volta dele. Ela substitui a arte de
+  fábrica ("R36S / Please Wait.....", o God of War, que também aparecia como
+  fundo do carregamento do ES com a lista de collections por cima). A tela de
+  boot da distribuição EmuELEC saiu da imagem.
   - A tela de boot fica no SYSTEM e muda com qualquer gravação dele, inclusive
     `--part system` ou `--all --keep-storage`.
-  - A tela de jogo é lida do `/storage`, então só muda com `--wipe-storage`.
+  - A tela de jogo, o `logo.png` e o `splash.xml` do EmulationStation também
+    estão no `/storage`, que o ES lê primeiro, então o carregamento do ES só
+    muda com `--wipe-storage`. Com `--keep-storage`, o ES continua mostrando a
+    arte antiga no carregamento.
   - Uma tela própria em `/storage/roms/splash/` (por exemplo `nes.png`) continua
     tendo prioridade sobre o ícone.
-  - Para trocar as telas, edite e rode `features/30-splash-padrao-emuelec/gerar.sh`
+  - Para trocar as telas, edite e rode `features/30-telas-icone-controle/gerar.sh`
     (precisa do ImageMagick 7) e atualize os sha256 do `LEIA-ME.txt` da feature.
     O build não precisa do ImageMagick.
-  - O logo é marca do EmuELEC: não venda imagens com essa tela (veja o
-    `LEIA-ME.txt`).
 
 As três seguintes são otimizações do sistema, cada uma desligável sozinha:
 
@@ -249,6 +252,23 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     cartão (ou de um build) para o mesmo caminho dela.
   - PokemonUno, KirbyUno e YoshiUno (16:9) ficaram de fora por falta de espaço no
     orçamento; para testá-los, acrescente um `[[external]]` no `feature.toml`.
+
+- **`51-gameboy-fiel`**: nos jogos das pastas `gb` e `gbc` (core Gambatte), a
+  imagem ocupa a altura toda da tela (534x480, proporção 10:9) e as faixas
+  laterais de 53 px recebem a moldura do console, em vez de ficarem pretas.
+  - **GB:** lente cinza-azulada do DMG, com o LED e "BATTERY" à esquerda e a
+    direita lisa; verdes do DMG e grade de pixels (`gameboy.glslp`).
+  - **GBC:** Atomic Purple, com o LED e "POWER" à esquerda e a direita lisa;
+    correção de cor do LCD do GBC e grade leve.
+  - Os overrides do RetroArch ficam no `/storage`, então só chegam com
+    `--wipe-storage`. Com `--keep-storage`, o GB continua sem moldura. As
+    molduras em si ficam no SYSTEM. Outros sistemas não mudam.
+  - Para desligar a moldura num jogo, use o menu do RetroArch (Select + X) e
+    desligue o overlay; para desligar a feature, ponha `enabled = false` no
+    `feature.toml`.
+  - Para regerar as artes, rode `features/51-gameboy-fiel/gerar.sh` (precisa do
+    ImageMagick 7) e atualize os sha256 do `LEIA-ME.txt` da feature. Origem e
+    licença da fonte (Barlow, OFL) estão no mesmo arquivo.
 
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.

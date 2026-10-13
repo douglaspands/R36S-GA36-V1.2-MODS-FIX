@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tela de carregamento do EmulationStation só com o logo.png (o ícone de
+     controle): texto de progresso e barra ficam invisíveis. Sintaxe conferida
+     em batocera-emulationstation e0c0633e (Splash.cpp, ThemeData.cpp). -->
+<theme>
+	<formatVersion>7</formatVersion>
+	<view name="splash">
+		<splash name="splash">
+			<backgroundColor>000000FF</backgroundColor>
+		</splash>
+		<text name="label">
+			<color>00000000</color>
+			<visible>false</visible>
+		</text>
+		<image name="progressbar">
+			<pos>-1 -1</pos>
+			<size>0 0</size>
+			<color>00000000</color>
+			<colorEnd>00000000</colorEnd>
+			<visible>false</visible>
+		</image>
+		<image name="progressbar:active">
+			<pos>-1 -1</pos>
+			<size>0 0</size>
+			<color>00000000</color>
+			<colorEnd>00000000</colorEnd>
+			<visible>false</visible>
+		</image>
+	</view>
+</theme>
