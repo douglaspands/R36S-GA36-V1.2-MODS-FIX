@@ -1,0 +1,5 @@
+schema = 1
+name = "ROMs sem atime"
+description = "Remonta /storage/roms (FAT32 da p1) com noatime depois do autostart, para ler ROMs sem escrever no cartão."
+order = 42
+enabled = true

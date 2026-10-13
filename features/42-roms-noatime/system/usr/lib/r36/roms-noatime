@@ -1,0 +1,18 @@
+#!/bin/sh
+# Remonta /storage/roms com noatime, mantendo as demais opções. Roda depois do
+# emuelec-autostart (e do mount_romfs.sh). Nunca falha: o boot segue como está.
+
+TAG=r36-roms-noatime
+ROMS=/storage/roms
+
+if ! mountpoint -q "$ROMS"; then
+  logger -t "$TAG" "$ROMS não é ponto de montagem; nada a fazer"
+  exit 0
+fi
+
+if mount -o remount,noatime "$ROMS" 2>/dev/null; then
+  logger -t "$TAG" "$ROMS remontado com noatime"
+else
+  logger -t "$TAG" "falha ao remontar $ROMS com noatime"
+fi
+exit 0

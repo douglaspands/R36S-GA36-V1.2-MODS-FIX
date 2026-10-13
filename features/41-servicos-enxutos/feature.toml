@@ -1,0 +1,28 @@
+schema = 1
+name = "Serviços enxutos"
+description = "Não sobe no boot o controle remoto IR (lircd, eventlircd) nem o cron, que o R36S não usa."
+order = 41
+enabled = true
+
+# Só os links de ativação saem; as units e os binários ficam, então qualquer
+# serviço pode ser religado depois.
+
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/sockets.target.wants/lircd.socket"
+
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/multi-user.target.wants/lircd.service"
+
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/multi-user.target.wants/lircd-uinput.service"
+
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/multi-user.target.wants/eventlircd.service"
+
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/multi-user.target.wants/cron.service"
