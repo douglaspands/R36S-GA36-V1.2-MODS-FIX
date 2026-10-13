@@ -31,11 +31,17 @@ partições do sistema montadas ou menor que a imagem, exige digitar o nome do
 dispositivo, nunca grava mais de 16 MiB na p2 e exige escolha explícita antes
 de apagar ROMs (p1) ou saves (p8). Use --dry-run para só ver o plano.
 
+Escolha do build: com --build, usa o timestamp indicado. Sem --build, num
+terminal e com mais de um build em out/, mostra um menu (Enter = o mais
+recente); fora de um terminal, usa o mais recente sem perguntar. Use
+--list-builds para ver os builds com tamanho do cartão e features.
+
 Rode num terminal normal: o script pede a senha do sudo para acessar o cartão.
 """
 
 EPILOG = """\
 exemplos:
+  ./flash.sh --list-builds
   ./flash.sh --device /dev/sdc --all --wipe-roms --wipe-storage --dry-run
   ./flash.sh --device /dev/sdc --all --keep-roms --keep-storage
   ./flash.sh --device /dev/sdc --part system
@@ -62,9 +68,11 @@ def parse_args(argv):
     p.add_argument("--dry-run", action="store_true",
                    help="simulação: faz as verificações e mostra o plano, sem escrever nada")
     p.add_argument("--build", metavar="TIMESTAMP",
-                   help="build a gravar (AAAAMMDD-HHMMSS); padrão: o mais recente em out/")
+                   help="build a gravar (AAAAMMDD-HHMMSS); padrão: menu no terminal ou o mais recente em out/")
+    p.add_argument("--list-builds", action="store_true",
+                   help="só lista os builds de out/ (tamanho do cartão e features) e sai")
     args = p.parse_args(argv)
-    errs = validate_args(args)
+    errs = [] if args.list_builds else validate_args(args)
     if errs:
         p.error(errs[0])
     args.part = sorted(set(args.part or ()), key=PARTS.index)
@@ -118,6 +126,59 @@ def resolve_build(out_root, ts=None) -> Path:
 
 def load_manifest(build_dir) -> dict:
     return json.loads((Path(build_dir) / "manifest.json").read_text(encoding="utf-8"))
+
+
+def build_line(build_dir, manifest=None) -> str:
+    """Linha usada no menu, no --list-builds e no plano: timestamp, tamanho do cartão e features."""
+    name = Path(build_dir).name
+    try:
+        m = load_manifest(build_dir) if manifest is None else manifest
+        feats = ", ".join(f["id"] for f in m["features"]) or "sem features"
+        return f"{name}  {int(m['card_size_mib'])} MiB  {feats}"
+    except (OSError, ValueError, KeyError, TypeError):
+        return f"{name}  manifest ilegível"
+
+
+def build_readable(build_dir) -> bool:
+    return not build_line(build_dir).endswith("manifest ilegível")
+
+
+def list_builds(out_root) -> int:
+    builds = available_builds(out_root)[::-1]
+    if not builds:
+        log(f"Nenhum build encontrado em {out_root}; rode ./build.sh primeiro.")
+        return 0
+    log(f"Builds em {out_root} (do mais recente para o mais antigo):")
+    for i, ts in enumerate(builds, 1):
+        log(f"  {i}) {build_line(Path(out_root) / ts)}")
+    return 0
+
+
+def choose_build(out_root, input_fn=input):
+    """Menu numerado (1 = mais recente). Devolve o diretório escolhido ou None em EOF."""
+    builds = [Path(out_root) / ts for ts in available_builds(out_root)[::-1]]
+    log(f"Builds em {out_root}:")
+    for i, d in enumerate(builds, 1):
+        log(f"  {i}) {build_line(d)}" + ("  (mais recente)" if i == 1 else ""))
+    while True:
+        try:
+            ans = input_fn(f"Build a gravar [1-{len(builds)}, Enter = 1]: ").strip()
+        except EOFError:
+            return None
+        n = int(ans) if ans.isdigit() else (1 if not ans else 0)
+        if not 1 <= n <= len(builds):
+            warn(f"a opção {ans!r} não existe; responda um número de 1 a {len(builds)}")
+        elif not build_readable(builds[n - 1]):
+            warn(f"o build {builds[n - 1].name} tem o manifest ilegível; escolha outro")
+        else:
+            return builds[n - 1]
+
+
+def select_build(out_root, ts=None, *, interactive=False, input_fn=input):
+    """--build vence; sem ele, menu só em terminal e com 2 ou mais builds; senão, o mais recente."""
+    if ts is None and interactive and len(available_builds(out_root)) > 1:
+        return choose_build(out_root, input_fn)
+    return resolve_build(out_root, ts)
 
 
 def verify_artifacts(build_dir, manifest, names) -> None:
@@ -487,8 +548,8 @@ def make_plan(args, build_dir, manifest, card: CardState, target_size) -> Plan:
 
 
 def show_plan(target, build_dir, manifest, card, plan, args):
-    log(f"Build: {Path(build_dir).name}  ({manifest['image']['file']})")
-    log(f"Features: {', '.join(f['id'] for f in manifest['features']) or '(nenhuma)'}")
+    log(f"Build: {build_line(build_dir, manifest)}")
+    log(f"Imagem: {manifest['image']['file']}")
     log(f"Alvo: {target.describe()}")
     log(f"Layout atual do cartão: {'compatível' if card.compatible else 'incompatível'}"
         + ("" if card.compatible else f" ({'; '.join(card.reasons)})"))
@@ -535,9 +596,16 @@ def write_plan(target, plan) -> None:
         raise R36Error(f"verificação pós-gravação falhou em: {', '.join(failed)}")
 
 
-def flash(args, *, out_root=None, input_fn=input, lsblk=None) -> int:
+def flash(args, *, out_root=None, input_fn=input, lsblk=None, interactive=None) -> int:
     out_root = Path(out_root or REPO_ROOT / "out")
-    build_dir = resolve_build(out_root, args.build)
+    if args.list_builds:
+        return list_builds(out_root)
+    if interactive is None:
+        interactive = sys.stdin.isatty()
+    build_dir = select_build(out_root, args.build, interactive=interactive, input_fn=input_fn)
+    if build_dir is None:
+        log("Escolha cancelada; nada foi escrito.")
+        return 1
     manifest = load_manifest(build_dir)
     if args.target_file:
         target = FileTarget(args.target_file)

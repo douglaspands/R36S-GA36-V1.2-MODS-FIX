@@ -96,8 +96,23 @@ escrever nada:
 ./flash.sh --device /dev/sdc --all --wipe-roms --wipe-storage --dry-run
 ```
 
-Sem `--build`, o script usa o build mais recente de `out/`. Para escolher outro:
-`--build 20261013-153045`.
+### Escolher o build
+
+Para ver os builds de `out/`, com o tamanho do cartão e as features de cada um
+(não pede sudo nem precisa do cartão):
+
+```bash
+./flash.sh --list-builds
+```
+
+Sem `--build`, num terminal e com mais de um build em `out/`, o script mostra um
+menu numerado antes de acessar o cartão. A opção 1 é o build mais recente, e Enter
+escolhe essa opção. Ctrl+D cancela sem gravar. Com um só build, ou fora de um
+terminal (scripts, pipe), ele usa o mais recente sem perguntar.
+
+Para pular o menu, indique o build: `--build 20261013-153045`. O plano mostrado
+antes da confirmação traz o timestamp, o tamanho do cartão e as features do build
+escolhido.
 
 ### Gravação completa
 
