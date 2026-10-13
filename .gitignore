@@ -1,0 +1,9 @@
+# Imagens e saídas nunca entram no git
+base/
+work/
+out/
+*.img*
+
+# Python
+__pycache__/
+*.pyc
