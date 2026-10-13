@@ -154,6 +154,28 @@ truncate -s 15000M work/cartao-teste.img
 O arquivo é esparso (ocupa só o que foi gravado, cerca de 2,4 GB). Evite `/tmp`,
 que em muitos sistemas é um tmpfs pequeno.
 
+## Features habilitadas
+
+- **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema, no EmulationStation e no
+  RetroArch, fuso `America/Sao_Paulo` e menu RGUI no RetroArch.
+- **`20-controle-posicional`**: no RetroArch, os botões de face seguem a posição
+  física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o Select.
+
+| Atalho (no jogo)  | Ação                  |
+|-------------------|-----------------------|
+| Select + X        | menu do RetroArch     |
+| Select + Y        | screenshot            |
+| Select + L / R    | carregar / salvar estado |
+| Select + L2       | câmera lenta          |
+| Select + R2       | avanço rápido         |
+| Select + baixo    | pausa                 |
+| Select + direita  | FPS                   |
+| Select + Start    | sair                  |
+
+Os arquivos ficam no `/storage`, então o efeito só aparece num cartão gravado com
+`--wipe-storage` (com `--keep-storage` nada muda). Para desligar uma feature,
+ponha `enabled = false` no `feature.toml` e gere a imagem de novo.
+
 ## Criar uma feature
 
 Uma feature é um diretório em `features/`. Veja o exemplo comentado em
