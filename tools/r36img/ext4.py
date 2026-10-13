@@ -102,7 +102,9 @@ def apply_plan(image, plan) -> None:
                 else:
                     lines.append(f'write "{c.src}" {q}')
                     mt = int(os.stat(c.src).st_mtime)
-                    lines.append(f"sif {q} mtime {mt}")
+                    # "@" = segundos desde a época; sem ele o debugfs tenta ler o número
+                    # como data (ex.: 1791918978 vira 2472)
+                    lines.append(f"sif {q} mtime @{mt}")
         e = final.get(c.path)
         if e is None:
             continue
