@@ -269,6 +269,23 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   - Para regerar as artes, rode `features/51-gameboy-fiel/gerar.sh` (precisa do
     ImageMagick 7) e atualize os sha256 do `LEIA-ME.txt` da feature. Origem e
     licença da fonte (Barlow, OFL) estão no mesmo arquivo.
+- **`52-psp-desempenho`**: o `ppsspp.ini` global (PPSSPP standalone) fica mais
+  leve para o A33 (4x Cortex-A7, Mali-400 MP2), valendo para qualquer jogo de
+  PSP sem ini próprio. Seis chaves mudam, o resto é igual ao de fábrica:
+  - `InternalResolution` 2 → 1 (resolução nativa, 480x272);
+  - `CPUSpeed` 666 → 0 (o jogo escolhe a frequência, sem overclock);
+  - `NumWorkerThreads` 8 → 4 (um por núcleo);
+  - `SkipGPUReadbackMode` 0 → 1 (pula leituras de volta da GPU);
+  - `SplineBezierQuality` 1 → 0 (curvas em qualidade baixa);
+  - `ShowFPSCounter` 2 → 0 (sem contador na tela).
+  - O PPSSPP lê a cópia do `/storage`
+    (`.config/ppsspp/PSP/SYSTEM/ppsspp.ini`), então só chega com
+    `--wipe-storage`. Com `--keep-storage`, ajuste pelo menu do PPSSPP.
+  - Para religar o contador de FPS, entre no menu do PPSSPP e vá em
+    Configurações > Gráficos > Mostrar contador de FPS.
+  - Os inis por jogo de fábrica (God of War, Ridge Racer e outros, em
+    `*_ppsspp.ini`) continuam valendo sobre o global. Pular quadros automático
+    segue ligado.
 
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.

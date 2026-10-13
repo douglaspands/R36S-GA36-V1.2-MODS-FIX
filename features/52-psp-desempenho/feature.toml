@@ -1,0 +1,11 @@
+# Ajusta o ppsspp.ini global para o A33 (4x Cortex-A7, Mali-400 MP2): renderiza
+# na resolução nativa do PSP, sem overclock da CPU emulada, 4 threads, sem
+# leitura de volta da GPU, curvas em qualidade baixa e sem contador de FPS.
+# Os inis por jogo de fábrica continuam valendo sobre o global.
+# O PPSSPP lê a cópia do /storage, então só chega com --wipe-storage.
+
+schema = 1
+name = "PSP desempenho"
+description = "ppsspp.ini global leve para o A33: resolução 1x, CPU sem overclock, 4 threads e sem contador de FPS."
+order = 52
+enabled = true
