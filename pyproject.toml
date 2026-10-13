@@ -1,0 +1,10 @@
+[project]
+name = "r36img"
+version = "0.1.0"
+description = "Build e gravação de imagens de cartão SD para o R36S (GA36-MB V1.2)"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+# O pacote vive em tools/ e é carregado pelos wrappers; não há o que instalar.
+package = false

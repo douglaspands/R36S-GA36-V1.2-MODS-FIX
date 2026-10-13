@@ -1,0 +1,201 @@
+{
+   "blockdevices": [
+      {
+         "name": "sda",
+         "type": "disk",
+         "rm": false,
+         "size": 480103981056,
+         "model": "KINGSTON SA400S37480G",
+         "tran": "sata",
+         "mountpoints": [],
+         "children": [
+            {
+               "name": "sda1",
+               "type": "part",
+               "rm": false,
+               "size": 629145600,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/boot/efi"
+               ]
+            },{
+               "name": "sda2",
+               "type": "part",
+               "rm": false,
+               "size": 2147483648,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/boot"
+               ]
+            },{
+               "name": "sda3",
+               "type": "part",
+               "rm": false,
+               "size": 477325426688,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/home", "/"
+               ]
+            }
+         ]
+      },{
+         "name": "sdb",
+         "type": "disk",
+         "rm": false,
+         "size": 1000204886016,
+         "model": "SanDisk SSD PLUS 1000GB",
+         "tran": "sata",
+         "mountpoints": [],
+         "children": [
+            {
+               "name": "sdb1",
+               "type": "part",
+               "rm": false,
+               "size": 16759808,
+               "model": null,
+               "tran": null,
+               "mountpoints": []
+            },{
+               "name": "sdb2",
+               "type": "part",
+               "rm": false,
+               "size": 1000186314752,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/mnt/backup"
+               ]
+            }
+         ]
+      },{
+         "name": "sdc",
+         "type": "disk",
+         "rm": true,
+         "size": 15728640000,
+         "model": "Storage Device",
+         "tran": "usb",
+         "mountpoints": [],
+         "children": [
+            {
+               "name": "sdc1",
+               "type": "part",
+               "rm": true,
+               "size": 12494831616,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/run/media/douglas/EEROMS"
+               ]
+            },{
+               "name": "sdc2",
+               "type": "part",
+               "rm": true,
+               "size": 134217728,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/run/media/douglas/R36S_BOOT"
+               ]
+            },{
+               "name": "sdc3",
+               "type": "part",
+               "rm": true,
+               "size": 1024,
+               "model": null,
+               "tran": null,
+               "mountpoints": []
+            },{
+               "name": "sdc5",
+               "type": "part",
+               "rm": true,
+               "size": 16777216,
+               "model": null,
+               "tran": null,
+               "mountpoints": []
+            },{
+               "name": "sdc6",
+               "type": "part",
+               "rm": true,
+               "size": 33554432,
+               "model": null,
+               "tran": null,
+               "mountpoints": []
+            },{
+               "name": "sdc7",
+               "type": "part",
+               "rm": true,
+               "size": 805306368,
+               "model": null,
+               "tran": null,
+               "mountpoints": [
+                   "/run/media/douglas/EMUELEC"
+               ]
+            },{
+               "name": "sdc8",
+               "type": "part",
+               "rm": true,
+               "size": 1610612736,
+               "model": null,
+               "tran": null,
+               "mountpoints": []
+            }
+         ]
+      },{
+         "name": "zram0",
+         "type": "disk",
+         "rm": false,
+         "size": 8589934592,
+         "model": null,
+         "tran": null,
+         "mountpoints": [
+             "[SWAP]"
+         ]
+      },{
+         "name": "nvme0n1",
+         "type": "disk",
+         "rm": false,
+         "size": 1000204886016,
+         "model": "KINGSTON SNV2S1000G",
+         "tran": "nvme",
+         "mountpoints": [],
+         "children": [
+            {
+               "name": "nvme0n1p1",
+               "type": "part",
+               "rm": false,
+               "size": 104857600,
+               "model": null,
+               "tran": "nvme",
+               "mountpoints": []
+            },{
+               "name": "nvme0n1p2",
+               "type": "part",
+               "rm": false,
+               "size": 16777216,
+               "model": null,
+               "tran": "nvme",
+               "mountpoints": []
+            },{
+               "name": "nvme0n1p3",
+               "type": "part",
+               "rm": false,
+               "size": 999137738752,
+               "model": null,
+               "tran": "nvme",
+               "mountpoints": []
+            },{
+               "name": "nvme0n1p4",
+               "type": "part",
+               "rm": false,
+               "size": 942669824,
+               "model": null,
+               "tran": "nvme",
+               "mountpoints": []
+            }
+         ]
+      }
+   ]
+}

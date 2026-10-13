@@ -1,0 +1,2 @@
+Arquivo de exemplo da feature 00-exemplo (camada roms).
+No aparelho: /storage/roms/r36-exemplo.txt  -  no PC: partição R36-ROMS

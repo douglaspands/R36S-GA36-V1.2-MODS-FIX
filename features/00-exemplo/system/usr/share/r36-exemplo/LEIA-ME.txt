@@ -1,0 +1,2 @@
+Arquivo de exemplo da feature 00-exemplo (camada system).
+No aparelho: /usr/share/r36-exemplo/LEIA-ME.txt

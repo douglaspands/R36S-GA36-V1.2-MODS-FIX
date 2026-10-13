@@ -1,0 +1,2 @@
+Arquivo de exemplo da feature 00-exemplo (camada storage).
+No aparelho: /storage/.config/r36-exemplo.txt

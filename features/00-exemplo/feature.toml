@@ -1,0 +1,52 @@
+# Feature de exemplo: documenta o formato. Fica DESABILITADA, então o build
+# padrão a ignora. Para testá-la: ./build.sh --features 00-exemplo
+#
+# Estrutura de uma feature (o nome do diretório é o identificador usado em
+# --features e em [[override]]):
+#
+#   features/<NN-nome>/
+#     feature.toml   este descritor (obrigatório)
+#     system/        arquivos copiados para a raiz "/" do SYSTEM (squashfs da p7)
+#     storage/       arquivos copiados para /storage (ext4 da p8)
+#     roms/          arquivos copiados para /storage/roms (FAT32 da p1)
+#     boot/          arquivos copiados para a p2 (FAT16 lida pelo U-Boot)
+#
+# Qualquer outro subdiretório (ex.: kernel/) faz o build falhar.
+#
+# Regras de metadados (camadas system e storage):
+#   - arquivo novo: dono 0:0, modo 0755 se for executável no repositório, senão 0644;
+#   - diretório novo: 0:0, 0755;
+#   - arquivo que substitui um da base: herda dono e modo do original
+#     (ex.: substituir usr/bin/busybox mantém -rwsr-xr-x 0/0);
+#   - [[meta]] sobrescreve dono, grupo e modo (inclusive setuid).
+# Nas camadas FAT (roms e boot) não há dono nem modo; nomes não diferenciam
+# maiúsculas de minúsculas.
+#
+# NUNCA inclua ".please_resize_me": ele faz o aparelho formatar a p1 e a p8 no
+# boot. O build recusa.
+
+schema = 1                       # versão do formato; o build recusa versões desconhecidas
+name = "Exemplo"                 # nome legível (aparece no manifest e no R36-BUILD.txt)
+description = "Mostra o formato de uma feature com um arquivo em cada camada."
+order = 0                        # ordem de aplicação (menor primeiro)
+enabled = false                  # false: o build padrão ignora; --features a aplica mesmo assim
+
+# Remoção de um caminho da base (precisa existir; senão o build falha):
+# [[remove]]
+# layer = "system"
+# path = "usr/config/emuelec/bin/put_user_bins_here"
+
+# Metadados explícitos (só camadas system e storage):
+[[meta]]
+layer = "system"
+path = "usr/share/r36-exemplo/LEIA-ME.txt"
+mode = "0644"
+uid = 0
+gid = 0
+
+# Se duas features escreverem o mesmo caminho na mesma camada, o build falha,
+# a não ser que a feature posterior declare que substitui a anterior:
+# [[override]]
+# layer = "storage"
+# path = ".config/emuelec/configs/emuelec.conf"
+# feature = "10-outra-feature"

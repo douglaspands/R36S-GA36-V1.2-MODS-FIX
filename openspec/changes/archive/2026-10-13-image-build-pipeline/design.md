@@ -45,7 +45,7 @@ Fatos levantados na imagem base, que restringem o design:
 ## Decisions
 
 ### D1. Python 3 (só biblioteca padrão) para a lógica, com wrappers shell
-Os comandos ficam como `./build.sh` e `./flash.sh`, que chamam `python3 -I -m r36img.build` e `r36img.flash` dentro de `tools/`. Toda a lógica binária fica em Python: editar a entrada da p1 no MBR, ler a softw411, verificar a alocação da FAT16 da p2, comparar metadados e gerar o manifest. As ferramentas externas (mksquashfs, mtools, debugfs, mkfs.fat) entram via `subprocess` com argumentos em lista, sem shell.
+Os comandos ficam como `./build.sh` e `./flash.sh`, que chamam `r36img.build` e `r36img.flash` dentro de `tools/` com `uv run python -I` (o Python e as dependências do projeto são geridos pelo uv: `pyproject.toml`, `.python-version`, `uv.lock`). Toda a lógica binária fica em Python: editar a entrada da p1 no MBR, ler a softw411, verificar a alocação da FAT16 da p2, comparar metadados e gerar o manifest. As ferramentas externas (mksquashfs, mtools, debugfs, mkfs.fat) entram via `subprocess` com argumentos em lista, sem shell.
 - *Alternativa:* só Bash. Rejeitada porque parsear MBR, FAT e listagens em Bash é frágil e difícil de testar.
 - *Por que só a stdlib:* não exige virtualenv, e `tomllib` resolve os descritores.
 

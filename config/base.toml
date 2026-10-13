@@ -1,0 +1,73 @@
+# Configuração da imagem base e do layout esperado do cartão.
+# A imagem base nunca é modificada: o build confere o sha256 antes de tudo.
+# Origem: https://www.reddit.com/r/R36S/comments/1w2i8em/r36s_ga36mb_v1220260416_emuelec_no_roms/
+# Setores são de 512 bytes.
+
+[base]
+path = "base/R36S GA36-MB V1.2-20260416 - Emuelec - No ROMS.img"
+sha256 = "550e071d117929ddc373572964bc544c18f03f510a06bda01832089e41eba9ad"
+size_bytes = 2628861440
+
+[output]
+image_prefix = "r36s_ga36-mb_v1.2-20260416"
+
+[card]
+default_size_mib = 15000   # cartão de "16 GB" atual
+min_size_mib = 7000        # cartões vendidos como "8 GB"
+align_mib = 4
+
+[layout]
+sector_size = 512
+bootarea_sectors = 73728   # setores 0..73727: MBR, EBRs, boot0, U-Boot, softw411
+softw411_sector = 40960
+mbr_disk_id = 0x815d9b77
+
+# Estendida (p3), copiada da base sem alteração.
+[layout.extended]
+number = 3
+start = 1
+sectors = 4956160
+
+# Partições graváveis. "sectors" é o tamanho no MBR da base.
+# "write_sectors" (quando existe) limita o que o build gera e o flash grava.
+
+[partitions.boot]
+number = 2
+start = 73728
+sectors = 262144           # o MBR e a FAT dizem 128 MiB...
+write_sectors = 32768      # ...mas só os primeiros 16 MiB são da p2 (o resto sobrepõe env/boot/SYSTEM)
+fs = "fat16"
+label = "R36-BOOT"
+
+[partitions.env]
+number = 5
+start = 139264
+sectors = 32768
+fs = "raw"
+
+[partitions.kernel]
+number = 6
+start = 172032
+sectors = 65536
+fs = "raw"
+
+[partitions.system]
+number = 7
+start = 237568
+sectors = 1572864
+fs = "fat16"
+label = "R36-SYSTEM"
+
+[partitions.storage]
+number = 8
+start = 1810432
+sectors = 3145728
+fs = "ext4"
+label = "R36-STORAGE"
+
+[partitions.roms]
+number = 1
+start = 4956160
+sectors = 178335           # tamanho na base; o build expande até o fim do cartão
+fs = "fat32"
+label = "R36-ROMS"

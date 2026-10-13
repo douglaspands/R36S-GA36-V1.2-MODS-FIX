@@ -1,0 +1,2 @@
+Arquivo de exemplo da feature 00-exemplo (camada boot).
+No PC: partição R36-BOOT (p2). Mantenha a p2 pequena: só 16 MiB são seguros.
