@@ -62,6 +62,17 @@ class StorageTest(TempDirCase):
         self.assertEqual(ext4.get_label(self.img), "R36-STORAGE")
         run("e2fsck", "-fn", self.img)
 
+    def test_mtime_preservado(self):
+        write_feature(self.feats, "10-a", desc(), {"storage/a.txt": "x"})
+        mt = 1791918978  # 2026-10-13; sem "@" o debugfs gravava 2472
+        os.utime(self.feats / "10-a" / "storage" / "a.txt", (mt, mt))
+        plan = F.plan_layer("storage", F.discover(self.feats), ext4.listing(self.img))
+        parts.finish_storage(self.img, plan, "R36-STORAGE")
+        st = run("debugfs", "-R", "stat /a.txt", self.img).stdout
+        self.assertIn(f"mtime: 0x{mt:08x}:00000000", st)
+        p = subprocess.run(["e2fsck", "-fn", str(self.img)], capture_output=True, text=True)
+        self.assertNotIn("1970", p.stdout + p.stderr)
+
     def test_remove(self):
         write_feature(self.feats, "10-a", desc(extra='[[remove]]\nlayer = "storage"\npath = ".config/emuelec"\n'))
         plan = F.plan_layer("storage", F.discover(self.feats), ext4.listing(self.img))
