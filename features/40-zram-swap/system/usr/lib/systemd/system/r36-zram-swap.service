@@ -1,0 +1,19 @@
+[Unit]
+Description=Swap em zram (R36S)
+DefaultDependencies=no
+
+Before=swap.target swap.service shutdown.target
+Conflicts=shutdown.target
+Wants=swap.target
+
+ConditionPathExists=/proc/swaps
+ConditionKernelCommandLine=!noswap
+ConditionKernelCommandLine=!installer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/zram-swap
+RemainAfterExit=yes
+
+[Install]
+WantedBy=basic.target

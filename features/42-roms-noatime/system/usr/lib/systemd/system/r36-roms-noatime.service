@@ -1,0 +1,11 @@
+[Unit]
+Description=ROMs sem atime (R36S)
+After=emuelec-autostart.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/roms-noatime
+RemainAfterExit=yes
+
+[Install]
+WantedBy=emuelec.target

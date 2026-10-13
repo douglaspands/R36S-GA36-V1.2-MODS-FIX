@@ -1,0 +1,11 @@
+schema = 1
+name = "Swap em zram"
+description = "Swap comprimido em RAM (zram, metade da RAM, prioridade máxima) no lugar do swapfile de 300 MB no cartão."
+order = 40
+enabled = true
+
+# O swapfile da base ocupa 300 MB da p8. O swap.conf desta feature desliga a
+# recriação dele pelo mount-swap. Só chega ao cartão com --wipe-storage.
+[[remove]]
+layer = "storage"
+path = ".cache/swapfile"

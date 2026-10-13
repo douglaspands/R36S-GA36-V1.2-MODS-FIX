@@ -205,6 +205,35 @@ gravado com `--wipe-storage` (com `--keep-storage` nada muda).
   - O logo é marca do EmuELEC: não venda imagens com essa tela (veja o
     `LEIA-ME.txt`).
 
+As três seguintes são otimizações do sistema, cada uma desligável sozinha:
+
+- **`40-zram-swap`**: o swap passa a ser um zram (memória comprimida em RAM) com
+  metade da RAM e prioridade 32767, acima do swapfile do LibreELEC (10000). O
+  swapfile de 300 MB sai da p8 e o `/storage/.config/swap.conf` desliga a
+  recriação dele.
+- **`41-servicos-enxutos`**: deixam de subir no boot o controle remoto IR
+  (`lircd.socket`, `lircd`, `lircd-uinput`, `eventlircd`) e o `cron`. Só os links
+  de ativação saem; as units continuam no SYSTEM.
+- **`42-roms-noatime`**: depois do autostart, `/storage/roms` (FAT32 da p1) é
+  remontada com `noatime`, para ler ROMs sem escrever a data de acesso no cartão.
+  Se `/storage/roms` não for ponto de montagem, nada acontece.
+
+O zram, os serviços e o `noatime` ficam no SYSTEM e valem com qualquer gravação
+dele, inclusive `--part system` ou `--all --keep-storage`. A remoção do swapfile e
+o `swap.conf` ficam no `/storage`, então só chegam com `--wipe-storage`. Com
+`--keep-storage`, o swapfile antigo continua lá, mas só é usado se o zram encher.
+Para apagá-lo à mão (por SSH ou no terminal do aparelho):
+
+```bash
+echo 'SWAP_ENABLED="no"' > /storage/.config/swap.conf   # senão o boot recria o swapfile
+swapoff /storage/.cache/swapfile
+rm /storage/.cache/swapfile
+```
+
+Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
+`systemctl is-active lircd eventlircd cron` (`inactive`) e
+`grep /storage/roms /proc/mounts` (`noatime`).
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 
