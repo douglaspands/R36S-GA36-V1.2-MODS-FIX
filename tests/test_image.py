@@ -118,7 +118,8 @@ class FullBuildTest(TempDirCase):
         txt = subprocess.run(["mtype", "-i", str(out_dir / "parts/system.img"), "::/R36-BUILD.txt"],
                              capture_output=True, text=True, check=True, env=dict(os.environ, **mtools.ENV)).stdout
         self.assertEqual(txt, manifest["build_info"]["text"])
-        self.assertIn(f"timestamp: {ts}", txt)
+        self.assertIn(f"imagem: r36s_ga36-mb_v1.2-20260416_build_{ts}.img.xz", txt)
+        self.assertNotIn("timestamp:", txt)
         self.assertIn("00-exemplo", txt)
         self.assertEqual([f["id"] for f in manifest["features"]], ["00-exemplo"])
         changes = (out_dir / "changes.txt").read_text()

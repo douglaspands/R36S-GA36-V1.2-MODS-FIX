@@ -12,13 +12,6 @@ A imagem gerada SHALL trazer, além do NES-BOX, os temas extras declarados pela 
 - **WHEN** o cartão é gravado com `--wipe-storage` e o usuário abre a lista de temas do EmulationStation
 - **THEN** a lista mostra o NES-BOX e cada tema extra, e escolher um deles aplica o tema depois do reinício do EmulationStation
 
-### Requirement: Temas com personagens de jogos infantis
-O conjunto de temas extras SHALL incluir pelo menos três temas com personagens de jogos infantis, como Mario, Sonic, Pokémon, Kirby ou Yoshi.
-
-#### Scenario: Temas infantis na lista
-- **WHEN** o usuário abre a lista de temas
-- **THEN** pelo menos três temas da lista têm personagens de jogos infantis
-
 ### Requirement: Temas legíveis na tela do aparelho
 Cada tema extra SHALL mostrar a lista de sistemas e a lista de jogos na tela de 640x480 sem texto cortado a ponto de impedir a navegação. Um tema que falhar nessa validação SHALL sair do conjunto.
 

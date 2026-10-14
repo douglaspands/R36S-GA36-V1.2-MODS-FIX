@@ -1,5 +1,0 @@
-schema = 1
-name = "Game Boy fiel"
-description = "GB e GBC na altura toda da tela, com a moldura do console nas laterais, paleta verde do DMG e grade de LCD."
-order = 51
-enabled = true

@@ -64,7 +64,6 @@ def parse_args(argv):
 def build_info_text(ts, image_name, size_mib, feats):
     lines = [
         "R36S GA36-MB V1.2 - registro do build",
-        f"timestamp: {ts}",
         f"imagem: {image_name}",
         f"tamanho_cartao_mib: {size_mib}",
         "features:",

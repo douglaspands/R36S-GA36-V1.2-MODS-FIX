@@ -133,6 +133,11 @@ então leva bem menos que gravar 15 GB).
   `--wipe-roms` (apaga).
 - `--keep-roms` e `--keep-storage` exigem um cartão já gravado por este
   repositório.
+- Se o cartão já tinha a antiga moldura do Game Boy (feature removida) e foi
+  gravado com `--keep-storage`, apague pelo PC na `R36-STORAGE`:
+  `.config/retroarch/config/Gambatte/gb.cfg`, `gb.opt`, `gbc.cfg`, `gbc.opt` e
+  `shaders/presets/Gambatte/gb.glslp`, `gbc.glslp`. Com `--wipe-storage` não há
+  nada a fazer.
 
 ### Gravação parcial
 
@@ -238,37 +243,22 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
 `systemctl is-active lircd eventlircd cron` (`inactive`) e
 `grep /storage/roms /proc/mounts` (`noatime`).
 
-- **`50-temas-extras`**: sete temas do EmulationStation instalados na p8 ao lado
-  do NES-BOX, que continua sendo o padrão: **Mario (GPi)**, **Sonic (GPi)** e
-  **Crash (GPi)** (infantis, feitos para telas 4:3), **Minimal EmuELEC**,
-  **Switch**, **Graphite OGA** e **Crystal**. Somam cerca de 381 MiB (limite de
-  400 MiB, conferido pelo build). Não entram no git: o build baixa cada um de um
-  commit fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira
-  vez precisa de rede; depois, `./build.sh --offline` basta.
+- **`50-temas-extras`**: quatro temas do EmulationStation instalados na p8 ao lado
+  do NES-BOX, que continua sendo o padrão: **Minimal EmuELEC**, **Switch**,
+  **Graphite OGA** e **Crystal**. Somam cerca de 348 MiB (limite de 400 MiB,
+  conferido pelo build). Não entram no git: o build baixa cada um de um commit
+  fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira vez
+  precisa de rede; depois, `./build.sh --offline` basta.
   - Para escolher: no EmulationStation, Start > Configurações da interface > Tema.
   - Ficam no `/storage`, então só chegam com `--wipe-storage`.
   - Com `--keep-storage`, copie pelo PC: monte a partição ext4 `R36-STORAGE` do
     cartão e copie os diretórios de `.config/emulationstation/themes/` de um
     cartão (ou de um build) para o mesmo caminho dela.
-  - PokemonUno, KirbyUno e YoshiUno (16:9) ficaram de fora por falta de espaço no
-    orçamento; para testá-los, acrescente um `[[external]]` no `feature.toml`.
+  - Se o cartão já tinha os temas antigos (versões anteriores do projeto) e foi
+    gravado com `--keep-storage`, troque de tema se um GPi estiver ativo e depois
+    apague pelo PC os três diretórios `Mario (GPi)`, `Sonic (GPi)` e
+    `Crash (GPi)` de `.config/emulationstation/themes/`.
 
-- **`51-gameboy-fiel`**: nos jogos das pastas `gb` e `gbc` (core Gambatte), a
-  imagem ocupa a altura toda da tela (534x480, proporção 10:9) e as faixas
-  laterais de 53 px recebem a moldura do console, em vez de ficarem pretas.
-  - **GB:** lente cinza-azulada do DMG, com o LED e "BATTERY" à esquerda e a
-    direita lisa; verdes do DMG e grade de pixels (`gameboy.glslp`).
-  - **GBC:** Atomic Purple, com o LED e "POWER" à esquerda e a direita lisa;
-    correção de cor do LCD do GBC e grade leve.
-  - Os overrides do RetroArch ficam no `/storage`, então só chegam com
-    `--wipe-storage`. Com `--keep-storage`, o GB continua sem moldura. As
-    molduras em si ficam no SYSTEM. Outros sistemas não mudam.
-  - Para desligar a moldura num jogo, use o menu do RetroArch (Select + X) e
-    desligue o overlay; para desligar a feature, ponha `enabled = false` no
-    `feature.toml`.
-  - Para regerar as artes, rode `features/51-gameboy-fiel/gerar.sh` (precisa do
-    ImageMagick 7) e atualize os sha256 do `LEIA-ME.txt` da feature. Origem e
-    licença da fonte (Barlow, OFL) estão no mesmo arquivo.
 - **`52-psp-desempenho`**: o `ppsspp.ini` global (PPSSPP standalone) fica mais
   leve para o A33 (4x Cortex-A7, Mali-400 MP2), valendo para qualquer jogo de
   PSP sem ini próprio. Seis chaves mudam, o resto é igual ao de fábrica:
@@ -357,8 +347,9 @@ Regras importantes:
 
 ## Onde ver qual build está no cartão
 
-O arquivo `R36-BUILD.txt` traz o timestamp, o nome da imagem, o tamanho do cartão
-e as features:
+O arquivo `R36-BUILD.txt` traz o nome da imagem, o tamanho do cartão e as
+features. A versão é o timestamp no fim do nome da imagem, registrado na linha
+`imagem:` (`..._build_<timestamp>.img.xz`):
 
 - no PC: na partição **R36-SYSTEM**;
 - no aparelho: `/flash/R36-BUILD.txt`.

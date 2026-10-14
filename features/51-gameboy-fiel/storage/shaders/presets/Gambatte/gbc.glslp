@@ -1,7 +1,0 @@
-shaders = "1"
-shader0 = "/usr/share/common-shaders/rpi/shaders/zfast_lcd_standard.glsl"
-filter_linear0 = "true"
-wrap_mode0 = "clamp_to_border"
-mipmap_input0 = "false"
-float_framebuffer0 = "false"
-srgb_framebuffer0 = "false"

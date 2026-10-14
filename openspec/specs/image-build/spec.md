@@ -117,7 +117,7 @@ Cada build SHALL ser identificado pelo timestamp local da geração, no formato 
 
 #### Scenario: Nome da imagem
 - **WHEN** um build é gerado em 13/10/2026 às 15:30:45, hora local
-- **THEN** a imagem completa se chama `r36s_ga36-mb_v1.2-20260416_build_20261013-153045.img.xz`, o diretório se chama `20261013-153045`, e o manifest e o `R36-BUILD.txt` registram o timestamp `20261013-153045`
+- **THEN** a imagem completa se chama `r36s_ga36-mb_v1.2-20260416_build_20261013-153045.img.xz`, o diretório se chama `20261013-153045`, o manifest registra o timestamp `20261013-153045`, e o `R36-BUILD.txt` registra o nome da imagem, sem uma linha separada de timestamp
 
 #### Scenario: Build no mesmo segundo
 - **WHEN** um build é iniciado no mesmo segundo de outro, cujo diretório de saída já existe
