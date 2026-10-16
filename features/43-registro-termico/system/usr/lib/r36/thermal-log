@@ -53,10 +53,14 @@ for b in "$SYS"/class/power_supply/*; do
   [ "$(rd "$b/type")" = Battery ] && { BAT=$b; break; }
 done
 
-# Cena da DRAM (A33): sunxi-ddrfreq/dsm/scene.
+# Cena da DRAM (A33): o maxperf/normperf escrevem em
+# sunxi-ddrfreq/devfreq/sunxi-ddrfreq/dsm/scene; os caminhos sem devfreq ficam por garantia.
 DRAM=${R36_DRAM_SCENE:-}
 if [ -z "$DRAM" ]; then
-  for f in "$SYS"/devices/platform/sunxi-ddrfreq/dsm/scene "$SYS"/devices/*/sunxi-ddrfreq/dsm/scene; do
+  for f in "$SYS"/devices/platform/sunxi-ddrfreq/devfreq/sunxi-ddrfreq/dsm/scene \
+    "$SYS"/devices/platform/sunxi-ddrfreq/dsm/scene \
+    "$SYS"/devices/*/sunxi-ddrfreq/devfreq/sunxi-ddrfreq/dsm/scene \
+    "$SYS"/devices/*/sunxi-ddrfreq/dsm/scene; do
     [ -r "$f" ] && { DRAM=$f; break; }
   done
 fi
@@ -95,7 +99,9 @@ cpu_busy() {
             if (v > 100) v = 100
           }
         }
-        out = out (n ? "," : "") v
+        # o awk do busybox 1.32.1 lê um nome seguido de parêntese como chamada de função
+        sep = (n ? "," : "")
+        out = out sep v
       }
       print out
     }'

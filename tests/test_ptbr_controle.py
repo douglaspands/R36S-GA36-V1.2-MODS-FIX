@@ -1,9 +1,14 @@
+import difflib
+import os
 import re
+import subprocess
 import unittest
 
-from context import ROOT
+from context import CFG, ROOT, TempDirCase, needs_base
+from r36img import mtools
 
 F10 = ROOT / "features" / "10-ptbr-sao-paulo" / "storage" / ".config"
+RUNEMU = ROOT / "features" / "10-ptbr-sao-paulo" / "system" / "usr" / "bin" / "emuelecRunEmu.sh"
 F20 = ROOT / "features" / "20-controle-posicional" / "storage" / "joypads" / "micro_gamepad.cfg"
 
 
@@ -63,6 +68,58 @@ class ControlePosicional(unittest.TestCase):
         for k, v in self.c.items():
             if k.endswith("_btn") and k not in dpad:
                 self.assertNotIn(v, {"13", "14", "15", "16"}, k)
+
+
+def bloco_maxperf(txt):
+    i = txt.index("# R36: máximo desempenho")
+    return txt[i:txt.index("\nfi\n", i) + 4]
+
+
+class RunEmuMaxperf(TempDirCase):
+    def roda(self, valor):
+        """Executa só o bloco de escolha, com funções falsas; devolve a função chamada."""
+        prog = (
+            'get_ee_setting() { echo "$R36_VAL"; }\n'
+            "maxperf() { echo maxperf; }\nnormperf() { echo normperf; }\n"
+            'PLATFORM=gba; BASEROMNAME="a.zip"\n' + bloco_maxperf(RUNEMU.read_text())
+        )
+        return subprocess.run(
+            ["bash", "-c", prog], check=True, capture_output=True, text=True,
+            env=dict(os.environ, R36_VAL=valor),
+        ).stdout.strip()
+
+    def test_script_executavel_e_valido(self):
+        self.assertTrue(os.access(RUNEMU, os.X_OK))
+        subprocess.run(["bash", "-n", str(RUNEMU)], check=True)
+
+    def test_sem_maxperf_incondicional(self):
+        linhas = [l.strip() for l in RUNEMU.read_text().splitlines()]
+        antes = linhas[: linhas.index("# R36: máximo desempenho só quando a chave maxperf (jogo, sistema ou global) vale 1")]
+        self.assertNotIn("maxperf", antes)
+
+    def test_chave_um_liga(self):
+        self.assertEqual(self.roda("1"), "maxperf")
+
+    def test_chave_zero_vazia_ou_outra_desliga(self):
+        for v in ("0", "", "2", "off"):
+            self.assertEqual(self.roda(v), "normperf", v)
+
+    @needs_base
+    def test_so_difere_da_base_nos_pontos_esperados(self):
+        sq = self.tmp / "SYSTEM"
+        subprocess.run(
+            ["mcopy", "-n", "-i", mtools.spec(CFG.base_path, CFG.part("system").offset), "::/SYSTEM", str(sq)],
+            check=True, env=mtools.ENV, capture_output=True)
+        base = subprocess.run(
+            ["unsquashfs", "-cat", str(sq), "usr/bin/emuelecRunEmu.sh"],
+            check=True, capture_output=True, text=True).stdout.splitlines()
+        nova = RUNEMU.read_text().splitlines()
+        mudou = [l for l in difflib.unified_diff(base, nova, lineterm="", n=0)
+                 if l[:1] in "+-" and l[:3] not in ("+++", "---")]
+        self.assertEqual(
+            [l for l in mudou if l.startswith("-")], ["-maxperf"])
+        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 8)
+        self.assertEqual(bloco_maxperf("\n".join(nova)).count("get_ee_setting maxperf"), 1)
 
 
 if __name__ == "__main__":

@@ -191,8 +191,14 @@ que em muitos sistemas é um tmpfs pequeno.
     EmulationStation. A BIOS do GBA continua opcional e não vem na imagem.
   - máximo desempenho desligado (`global.maxperf=0`): o aparelho esquenta menos,
     mas rende menos nos sistemas pesados (GBA, PSP, N64); para ligar, use o menu
-    do EmulationStation, por sistema ou por jogo. Só imagem nova ou regravada
-    recebe esse padrão; num cartão já gravado, desligue a opção no menu.
+    do EmulationStation, por sistema ou por jogo. A imagem base chamava `maxperf`
+    em todo jogo, sem ler a chave; por isso a feature traz uma cópia do
+    `/usr/bin/emuelecRunEmu.sh` em que, depois de saber o sistema e o jogo, o
+    `maxperf` só é chamado quando a chave (jogo, sistema ou global, nessa ordem)
+    vale `1`, e o `normperf` roda nos demais casos. Só imagem nova ou regravada
+    recebe esse padrão; num cartão já gravado, desligue a opção no menu. Ao
+    trocar a imagem base, reconfira a cópia: `tests/test_ptbr_controle.py` compara
+    o script com o da base e só aceita essas diferenças.
 - **`20-controle-posicional`**: no RetroArch, os botões de face seguem a posição
   física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o Select.
 
@@ -260,7 +266,8 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
 - **`43-registro-termico`**: só mede o calor, sem mudar nada. O serviço
   `r36-thermal-log` anexa uma linha a cada 5 s em `R36-ROMS/r36-thermal.csv`
   (no aparelho, `/storage/roms/r36-thermal.csv`), sem usar o cron. Não mexe no
-  clock, no governor nem na DRAM: quem faz isso é o `maxperf` da `10-ptbr-sao-paulo`.
+  clock, no governor nem na DRAM: quem escolhe o governor de cada jogo é a
+  `10-ptbr-sao-paulo` (chave `maxperf`).
   Serve para descobrir quanto cada `sistema:core` esquenta e quanto clock usa de
   fato, antes de definir tetos de clock.
   - **Colunas:** `date`, `uptime_s`, `boot`, uma `temp_<zona>` por

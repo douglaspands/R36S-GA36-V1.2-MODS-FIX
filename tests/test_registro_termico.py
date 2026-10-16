@@ -1,6 +1,9 @@
 import os
+import re
+import shutil
 import subprocess
 import tomllib
+import unittest
 
 from context import ROOT, TempDirCase
 from test_otimizacoes import UnitCase, diretivas
@@ -134,6 +137,26 @@ class Registro(ThermalLogCase):
         self.assertEqual(c["cpu1"], "0")
         self.assertEqual(c["cpu2"], "")     # ausente na segunda leitura
         self.assertEqual(c["cpu3"], "")     # nunca existiu
+
+    def test_dram_no_caminho_com_devfreq(self):
+        # onde o maxperf/normperf escrevem de fato
+        (self.sys / "devices/platform/sunxi-ddrfreq/dsm/scene").unlink()
+        escreve(self.sys / "devices/platform/sunxi-ddrfreq/devfreq/sunxi-ddrfreq/dsm/scene", "1\n")
+        self.run_once()
+        self.assertEqual(self.colunas()["dram_scene"], "1")
+
+    def test_cpu_busy_sem_chamada_de_funcao_falsa(self):
+        # o awk do busybox 1.32.1 lê "out (...)" como chamada da função out
+        corpo = SCRIPT.read_text().split("cpu_busy() {")[1].split("\n}\n")[0]
+        self.assertIsNone(re.search(r"\b(out|sep|v|dt|di) \(", corpo))
+
+    @unittest.skipUnless(shutil.which("busybox"), "sem busybox no PATH")
+    def test_cpu_busy_com_busybox_awk(self):
+        bb = self.tmp / "bbbin"
+        bb.mkdir()
+        (bb / "awk").symlink_to(shutil.which("busybox"))
+        self.run_once(PATH=f"{bb}:{self.bin}:{os.environ['PATH']}")
+        self.assertEqual(self.colunas()["cpu0"], "75")
 
     def test_jogo_com_virgula_no_nome_da_rom(self):
         self.jogo()
