@@ -32,6 +32,10 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertEqual(c["gba.core"], "gpsp")
         self.assertEqual(c["global.maxperf"], "0")
         self.assertEqual([k for k in c if k.endswith(".maxperf")], ["global.maxperf"])
+        self.assertEqual(c["cps2.emulator"], "libretro")
+        self.assertEqual(c["cps2.core"], "fbalpha2012")
+        for k in ("cps1.core", "cps3.core", "fbn.core"):
+            self.assertNotIn(k, c)
 
     def test_es_settings(self):
         txt = (F10 / "emulationstation" / "es_settings.cfg").read_text()
@@ -118,7 +122,7 @@ class RunEmuMaxperf(TempDirCase):
                  if l[:1] in "+-" and l[:3] not in ("+++", "---")]
         self.assertEqual(
             [l for l in mudou if l.startswith("-")], ["-maxperf"])
-        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 8)
+        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 12)
         self.assertEqual(bloco_maxperf("\n".join(nova)).count("get_ee_setting maxperf"), 1)
 
 

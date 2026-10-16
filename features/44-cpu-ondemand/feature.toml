@@ -1,0 +1,11 @@
+schema = 1
+name = "Ondemand afinado"
+description = "Governor ondemand sobe cedo e desce devagar (up_threshold 30, sampling_down_factor 10) com piso de 600 MHz, sem ligar o máximo desempenho."
+order = 44
+enabled = true
+
+# O build preserva o modo do arquivo substituído (0775 na base); a change pede 0755.
+[[meta]]
+layer = "system"
+path = "usr/bin/cpufreq"
+mode = "0755"
