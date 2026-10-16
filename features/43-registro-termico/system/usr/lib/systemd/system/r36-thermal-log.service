@@ -1,0 +1,13 @@
+[Unit]
+Description=Registro térmico (R36S)
+After=emuelec-autostart.service
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/r36/thermal-log
+Restart=always
+RestartSec=30
+Nice=19
+
+[Install]
+WantedBy=emuelec.target

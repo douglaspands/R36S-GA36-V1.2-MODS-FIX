@@ -243,6 +243,32 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
 `systemctl is-active lircd eventlircd cron` (`inactive`) e
 `grep /storage/roms /proc/mounts` (`noatime`).
 
+- **`43-registro-termico`**: só mede o calor, sem mudar nada. O serviço
+  `r36-thermal-log` anexa uma linha a cada 5 s em `R36-ROMS/r36-thermal.csv`
+  (no aparelho, `/storage/roms/r36-thermal.csv`), sem usar o cron. Não mexe no
+  clock, no governor nem na DRAM: o `maxperf` e o `normperf` agem como sempre.
+  Serve para descobrir quanto cada `sistema:core` esquenta e quanto clock usa de
+  fato, antes de definir tetos de clock.
+  - **Colunas:** `date`, `uptime_s`, `boot`, uma `temp_<zona>` por
+    `thermal_zone*` (em °C), `cpu_mhz`, `governor`, `cpus_online`, `cpu0` a
+    `cpu3` (ocupação em %, no intervalo; vazio se o núcleo está desligado),
+    `dram_scene`, `bat_status`, `bat_pct`, `system`, `emulator`, `core` e `rom`
+    (os quatro últimos vêm do `emuelecRunEmu.sh` em execução e ficam vazios no
+    menu). Sem hora certa no relógio, `uptime_s` e `boot` ordenam e separam as
+    sessões.
+  - **Limites:** o arquivo vira `r36-thermal.1.csv` ao passar de 1 MB (2 MB no
+    máximo, somando os dois), e nada é gravado com menos de 64 MB livres na p1
+    ou se `/storage/roms` não estiver montado. A gravação não usa `sync`: numa
+    queda de energia perdem-se cerca de 30 s de log.
+  - **Sessão de medição:** 5 min no menu e 10 min em cada um de NES, Mega Drive,
+    SNES, GBA (Mario Kart), PSX, N64, PSP e CPS2. Depois, abra o CSV no PC.
+    A ocupação do núcleo mais ocupado dá o teto aproximado:
+    `clock x ocupação / 0,8`.
+  - **Desligar:** `enabled = false` em `features/43-registro-termico/feature.toml`
+    e gerar de novo. Os CSVs que já estão no cartão podem ser apagados à mão.
+  - Fica no SYSTEM, então vale com qualquer gravação dele. Para conferir no
+    aparelho: `systemctl is-active r36-thermal-log` (`active`).
+
 - **`50-temas-extras`**: quatro temas do EmulationStation instalados na p8 ao lado
   do NES-BOX, que continua sendo o padrão: **Minimal EmuELEC**, **Switch**,
   **Graphite OGA** e **Crystal**. Somam cerca de 348 MiB (limite de 400 MiB,
