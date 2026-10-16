@@ -15,6 +15,10 @@ NOVOS = {
     "SkipGPUReadbackMode": ("0", "1"),
     "SplineBezierQuality": ("1", "0"),
     "ShowFPSCounter": ("2", "0"),
+    "TextureFiltering": ("3", "2"),
+    "ReplaceTextures": ("True", "False"),
+    "AchievementsEnable": ("True", "False"),
+    "EnableCheats": ("True", "False"),
 }
 
 
@@ -66,7 +70,7 @@ class PspContraBase(TempDirCase):
             ["unsquashfs", "-cat", str(sq), "usr/config/ppsspp/PSP/SYSTEM/ppsspp.ini"],
             check=True, capture_output=True).stdout
 
-    def test_so_as_seis_chaves_mudam(self):
+    def test_so_as_dez_chaves_mudam(self):
         base = self.extrai_base()
         esperado = sorted((k, a, b) for k, (a, b) in NOVOS.items())
         self.assertEqual(sorted(diferencas(base, INI_SYSTEM.read_bytes())), esperado)
