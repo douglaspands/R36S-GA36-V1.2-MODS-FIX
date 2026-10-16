@@ -178,7 +178,17 @@ que em muitos sistemas é um tmpfs pequeno.
 ## Features habilitadas
 
 - **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema, no EmulationStation e no
-  RetroArch, fuso `America/Sao_Paulo` e menu RGUI no RetroArch.
+  RetroArch, fuso `America/Sao_Paulo` e menu RGUI no RetroArch. Também troca
+  três padrões de fábrica (cada um dá para voltar pelos menus):
+  - proporção de tela "Core provided" (`global.ratio=core`) em vez de 4/3; para
+    outra, use o menu do EmulationStation (Configurações de jogos > Proporção);
+  - OK/Cancel sem inversão (`menu_swap_ok_cancel_buttons = "false"`): no menu do
+    RetroArch, o botão da direita confirma e o de baixo volta; para inverter,
+    ative "Trocar botões OK/Cancelar" no RetroArch (Configurações > Entrada >
+    Controles do menu);
+  - gpSP como core de GBA (`gba.emulator=libretro`, `gba.core=gpsp`) em vez do
+    mGBA; para voltar, escolha o core do GBA nas opções do sistema no
+    EmulationStation. A BIOS do GBA continua opcional e não vem na imagem.
 - **`20-controle-posicional`**: no RetroArch, os botões de face seguem a posição
   física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o Select.
 
