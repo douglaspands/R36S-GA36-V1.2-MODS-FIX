@@ -198,6 +198,11 @@ que em muitos sistemas é um tmpfs pequeno.
   - gpSP como core de GBA (`gba.emulator=libretro`, `gba.core=gpsp`) em vez do
     mGBA; para voltar, escolha o core do GBA nas opções do sistema no
     EmulationStation. A BIOS do GBA continua opcional e não vem na imagem.
+  - fbalpha2012 como core de CPS2 (`cps2.emulator=libretro`,
+    `cps2.core=fbalpha2012`) em vez do fbneo da base, por ser mais leve para o A33. Os
+    outros cores (fbneo, mame2003_plus, mame2010, AdvanceMame) continuam
+    instalados: para trocar, escolha outro core nas opções do sistema ou do jogo
+    no EmulationStation. CPS1, CPS3 e os demais sistemas de arcade não mudam.
   - máximo desempenho desligado (`global.maxperf=0`): o aparelho esquenta menos,
     mas rende menos nos sistemas pesados (GBA, PSP, N64); para ligar, use o menu
     do EmulationStation, por sistema ou por jogo. A imagem base chamava `maxperf`
@@ -298,6 +303,23 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     e gerar de novo. Os CSVs que já estão no cartão podem ser apagados à mão.
   - Fica no SYSTEM, então vale com qualquer gravação dele. Para conferir no
     aparelho: `systemctl is-active r36-thermal-log` (`active`).
+
+- **`44-cpu-ondemand`**: afina o governor `ondemand` para o clock subir cedo e
+  não cair no meio do jogo, sem ligar o máximo desempenho. Com o ondemand ativo:
+  `up_threshold` 30 (sobe de clock com 30% de carga, em vez dos 50% da base),
+  `sampling_down_factor` 10 (demora 10 amostragens para descer) e piso de
+  600 MHz (`scaling_min_freq` 600000), que corta os clocks de 240 a 504 MHz
+  vistos em jogo. O menu continua variando de 600 a 1200 MHz.
+  O `/usr/bin/cpufreq` roda no boot e chama `/usr/lib/r36/cpu-ondemand-tune`; o
+  `emuelecRunEmu.sh` chama o mesmo script depois de cada `normperf`, porque a
+  troca de `performance` para `ondemand` zera os tunables. Com o governor
+  `performance` (máximo desempenho ligado) o script não faz nada.
+  - **Desligar:** `enabled = false` em `features/44-cpu-ondemand/feature.toml` e
+    gerar de novo; o ondemand volta aos valores da imagem base.
+  - **Conferir:** no log da `43-registro-termico`, `cpu_mhz` sem valores abaixo
+    de 600 em jogo. No aparelho: `cat /sys/devices/system/cpu/cpufreq/*/up_threshold`
+    (30) e `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq` (600000).
+  - Fica no SYSTEM, então vale com qualquer gravação dele.
 
 - **`50-temas-extras`**: quatro temas do EmulationStation instalados na p8 ao lado
   do NES-BOX, que continua sendo o padrão: **Minimal EmuELEC**, **Switch**,

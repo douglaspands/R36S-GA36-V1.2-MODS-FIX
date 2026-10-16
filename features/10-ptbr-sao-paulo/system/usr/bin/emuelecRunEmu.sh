@@ -146,6 +146,8 @@ if [ "$(get_ee_setting maxperf "${PLATFORM}" "${BASEROMNAME}")" == "1" ]; then
     maxperf
 else
     normperf
+    # R36: reaplica o afinamento do ondemand (a troca de governor zera os tunables)
+    if [ -x /usr/lib/r36/cpu-ondemand-tune ]; then /usr/lib/r36/cpu-ondemand-tune; fi
 fi
 
 KILLTHIS="none"
@@ -563,6 +565,8 @@ else
 fi
 
 normperf
+# R36: reaplica o afinamento do ondemand (a troca de governor zera os tunables)
+if [ -x /usr/lib/r36/cpu-ondemand-tune ]; then /usr/lib/r36/cpu-ondemand-tune; fi
 
 sed -i '
        /video_scale_integer =/d;
