@@ -9,7 +9,7 @@ from context import CFG, TempDirCase, needs_base, slow
 from r36img import build, image, mtools
 from r36img.errors import R36Error
 
-NAME_RE = re.compile(r"^r36s_ga36-mb_v1\.2-20260416_build_\d{8}-\d{6}\.img\.xz$")
+NAME_RE = re.compile(r"^r36s_ga36-mb_v1\.2-20260416_build_\d{8}-\d{6}(-test)?\.img\.xz$")
 
 
 def skeleton_image(tmp, card_sectors):
@@ -95,6 +95,19 @@ class OutputDirTest(TempDirCase):
         self.assertEqual(os.listdir(out / "20261013-153045"), ["manifest.json"])
 
 
+class BuildInfoTextTest(unittest.TestCase):
+    def test_test_line_only_in_test_builds(self):
+        name = "x_build_20261013-153045-test.img.xz"
+        self.assertIn("teste: sim\n", build.build_info_text("20261013-153045", name, 7000, [], test=True))
+        normal = build.build_info_text("20261013-153045", name, 7000, [])
+        self.assertNotIn("teste:", normal)
+        self.assertEqual(normal, build.build_info_text("20261013-153045", name, 7000, [], test=False))
+
+    def test_flag_parsed(self):
+        self.assertTrue(build.parse_args(["--test"]).test)
+        self.assertFalse(build.parse_args([]).test)
+
+
 @needs_base
 @slow
 class FullBuildTest(TempDirCase):
@@ -135,6 +148,28 @@ class FullBuildTest(TempDirCase):
                 n += len(buf)
         self.assertEqual(n, 7000 * 1024 * 1024)
         self.assertEqual(h.hexdigest(), manifest["image"]["sha256_uncompressed"])
+
+    def test_test_build_names_and_markers(self):
+        ts = "20261013-153045"
+        out_dir = build.build(CFG, size_mib=7000, none=True, timestamp=ts, test=True, compress=False,
+                              out_root=self.tmp / "out", work_root=self.tmp / "work")
+        self.assertEqual(out_dir.name, f"{ts}-test")
+        manifest = json.loads((out_dir / "manifest.json").read_text())
+        self.assertEqual(manifest["image"]["file"], f"r36s_ga36-mb_v1.2-20260416_build_{ts}-test.img.xz")
+        self.assertRegex(manifest["image"]["file"], NAME_RE)
+        self.assertEqual(manifest["timestamp"], ts)
+        self.assertIs(manifest["test"], True)
+        self.assertIn("teste: sim\n", manifest["build_info"]["text"])
+        self.assertFalse((self.tmp / "work" / f"{ts}-test").exists())
+
+    def test_normal_build_has_no_test_marker(self):
+        ts = "20261013-153045"
+        out_dir = build.build(CFG, size_mib=7000, none=True, timestamp=ts, compress=False,
+                              out_root=self.tmp / "out", work_root=self.tmp / "work")
+        self.assertEqual(out_dir.name, ts)
+        manifest = json.loads((out_dir / "manifest.json").read_text())
+        self.assertNotIn("test", manifest)
+        self.assertNotIn("teste:", manifest["build_info"]["text"])
 
 
 if __name__ == "__main__":

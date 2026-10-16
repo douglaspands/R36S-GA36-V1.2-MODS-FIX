@@ -20,6 +20,7 @@ base de fábrica (base/) e das features do diretório features/.
 
 Roda como usuário comum (sem sudo). A saída fica em out/<AAAAMMDD-HHMMSS>/:
   <prefixo>_build_<timestamp>.img.xz   imagem completa (Etcher/dd)
+Com --test, o diretório e a imagem ganham o sufixo -test (<timestamp>-test).
   parts/*.img                          imagens por partição (usadas pelo ./flash.sh)
   manifest.json, changes.txt           registro do build e relatório de mudanças
 """
@@ -31,6 +32,7 @@ exemplos:
   ./build.sh --size-mib 7400          cartão de "8 GB" (meça com: lsblk -b)
   ./build.sh --features 00-exemplo    só a feature 00-exemplo (mesmo desabilitada)
   ./build.sh --offline                usa só o cache de downloads das features
+  ./build.sh --test                   marca o build como imagem de teste (sufixo -test)
 """
 
 
@@ -50,6 +52,9 @@ def parse_args(argv):
     p.add_argument("--fast", action="store_true",
                    help="pula a verificação de conteúdo (sha256) do SYSTEM; "
                         "a verificação de metadados continua")
+    p.add_argument("--test", action="store_true",
+                   help="marca o build como imagem de teste (intermediária): diretório e imagem "
+                        "ganham o sufixo -test; o conteúdo não muda")
     args = p.parse_args(argv)
     if args.features is not None and args.no_features:
         p.error("as opções --features e --no-features não podem ser usadas juntas")
@@ -61,13 +66,15 @@ def parse_args(argv):
     return args
 
 
-def build_info_text(ts, image_name, size_mib, feats):
+def build_info_text(ts, image_name, size_mib, feats, test=False):
     lines = [
         "R36S GA36-MB V1.2 - registro do build",
         f"imagem: {image_name}",
         f"tamanho_cartao_mib: {size_mib}",
-        "features:",
     ]
+    if test:
+        lines.append("teste: sim")
+    lines.append("features:")
     if feats:
         lines += [f"  {i}. {f.id} - {f.name}" for i, f in enumerate(feats, 1)]
     else:
@@ -87,7 +94,7 @@ def _step(msg):
     log(f"==> {msg}")
 
 
-def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=False, timestamp=None,
+def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=False, timestamp=None, test=False,
           features_dir=None, out_root=None, work_root=None, compress=True):
     """Executa o build completo. Devolve o diretório de saída.
     `compress=False` (só para testes) pula o .img.xz; parts/ e manifest são gerados igual."""
@@ -99,23 +106,24 @@ def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=Fal
     feats = features.select(features.discover(features_dir or cfg.root / "features"), names, none)
 
     ts = timestamp or datetime.now().strftime("%Y%m%d-%H%M%S")
-    image_name = f"{cfg.image_prefix}_build_{ts}.img.xz"
+    dirname = ts + "-test" if test else ts
+    image_name = f"{cfg.image_prefix}_build_{dirname}.img.xz"
     out_root = Path(out_root or cfg.root / "out")
     work_root = Path(work_root or cfg.root / "work")
     out_root.mkdir(parents=True, exist_ok=True)
-    out_dir = out_root / ts
+    out_dir = out_root / dirname
     try:
         out_dir.mkdir()
     except FileExistsError:
         raise R36Error(f"o diretório de saída {out_dir} já existe; nada foi alterado. Rode o build de novo.")
-    work = work_root / ts
+    work = work_root / dirname
     if work.exists():
         _rmtree(work)
     work.mkdir(parents=True)
     ok = False
     try:
         _build_into(cfg, out_dir, work, ts, image_name, size, feats, fast, compress, offline,
-                    external.cache_dir(work_root))
+                    external.cache_dir(work_root), test)
         ok = True
     finally:
         if ok:
@@ -123,7 +131,7 @@ def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=Fal
         else:
             _rmtree(out_dir)
             print(f"(arquivos temporários mantidos em {work} para diagnóstico)", file=sys.stderr)
-    log(f"\nBuild {ts} concluído em {time.monotonic() - t0:.0f}s: {out_dir}")
+    log(f"\nBuild {dirname} concluído em {time.monotonic() - t0:.0f}s: {out_dir}")
     return out_dir
 
 
@@ -134,7 +142,7 @@ def _rmtree(path):
 
 
 def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compress=True, offline=False,
-                cache=None):
+                cache=None, test=False):
     base = cfg.base_path
     card_sectors = size_mib * 2048
     card_bytes = card_sectors * 512
@@ -180,7 +188,7 @@ def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compr
                   content_tree=None if fast else tree, work_dir=work)
     _rmtree(tree)
 
-    info_text = build_info_text(ts, image_name, size_mib, feats)
+    info_text = build_info_text(ts, image_name, size_mib, feats, test)
     _step("Partições: BOOT (p2), SYSTEM (p7), STORAGE (p8), ROMS (p1)")
     boot_img = parts.build_boot(cfg, base, work, plans["boot"])
     system_img = parts.build_system_part(cfg, base, work, sq_new, info_text)
@@ -267,6 +275,8 @@ def _build_into(cfg, out_dir, work, ts, image_name, size_mib, feats, fast, compr
         },
         "labels": {k: cfg.part(k).label for k in ("boot", "system", "storage", "roms")},
     }
+    if test:
+        manifest["test"] = True
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (out_dir / "changes.txt").write_text(features.report(plans, feats), encoding="utf-8")
 
@@ -281,7 +291,7 @@ def main(argv=None):
     try:
         cfg = config.load()
         build(cfg, size_mib=args.size_mib, names=args.features, none=args.no_features, fast=args.fast,
-              offline=args.offline)
+              offline=args.offline, test=args.test)
         return 0
     except R36Error as e:
         print(f"ERRO: {e}", file=sys.stderr)

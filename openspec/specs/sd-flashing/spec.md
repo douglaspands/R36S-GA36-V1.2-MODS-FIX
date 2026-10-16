@@ -7,7 +7,7 @@ Gravar no cartão SD uma imagem gerada pelo build, inteira ou por partição, se
 ## Requirements
 
 ### Requirement: Modos de gravação
-O script de gravação SHALL oferecer dois modos, sempre sobre um build escolhido pelo timestamp (`--build`), pelo menu interativo ou, quando nenhum dos dois se aplica, pelo build mais recente. Na gravação completa, ele grava a imagem inteira do build. Na gravação parcial, ele grava uma ou mais partições escolhidas entre `boot`, `system`, `storage` e `roms`, e nenhum byte fora delas SHALL ser escrito.
+O script de gravação SHALL oferecer dois modos, sempre sobre um build escolhido pelo identificador (`--build`), pelo menu interativo ou, quando nenhum dos dois se aplica, pelo build mais recente. O identificador de um build é o nome do diretório dele em `out/`: o timestamp `AAAAMMDD-HHMMSS`, com o sufixo `-test` quando o build foi gerado como teste. Builds de teste SHALL ser tratados como quaisquer outros: SHALL aparecer no menu e na listagem, SHALL poder ser indicados em `--build` e SHALL entrar na escolha do mais recente. Na gravação completa, ele grava a imagem inteira do build. Na gravação parcial, ele grava uma ou mais partições escolhidas entre `boot`, `system`, `storage` e `roms`, e nenhum byte fora delas SHALL ser escrito.
 
 #### Scenario: Build mais recente por padrão
 - **WHEN** existem os builds `20261013-153045` e `20261014-090000`, e o usuário grava sem `--build` fora de um terminal interativo
@@ -24,6 +24,18 @@ O script de gravação SHALL oferecer dois modos, sempre sobre um build escolhid
 #### Scenario: Gravação completa
 - **WHEN** o usuário grava a imagem completa com a confirmação exigida
 - **THEN** o cartão passa a ter o layout, as partições e os labels do build gravado
+
+#### Scenario: Build de teste indicado em --build
+- **WHEN** existe o build `20261016-150632-test` e o usuário indica `--build 20261016-150632-test`
+- **THEN** o script usa esse build e mostra o nome dele no plano antes da confirmação
+
+#### Scenario: Build de teste como mais recente
+- **WHEN** existem os builds `20261016-120000` e `20261016-150632-test`, e o usuário grava sem `--build` fora de um terminal interativo
+- **THEN** o script usa o build `20261016-150632-test` sem perguntar, como usaria qualquer build mais recente
+
+#### Scenario: Identificador malformado
+- **WHEN** o usuário indica `--build 20261016-150632-teste`
+- **THEN** o script recusa informando o formato esperado (`AAAAMMDD-HHMMSS`, com `-test` opcional)
 
 ### Requirement: Somente cartões removíveis e com capacidade suficiente
 O script SHALL recusar gravar em qualquer dispositivo que não seja um disco inteiro removível (`RM=1`) ou um cartão em leitor SD interno (`mmcblk`), que contenha a partição raiz ou outra partição montada do host fora das do cartão, ou que seja menor que a imagem a gravar. O script SHALL NOT impor limite máximo de capacidade.
@@ -148,7 +160,7 @@ Sem `--build`, num terminal interativo e com mais de um build disponível, o scr
 - **THEN** o script não mostra o menu e usa esse build
 
 ### Requirement: Informações de cada build
-O menu, a listagem e o plano antes da confirmação SHALL mostrar, para cada build, o timestamp, o tamanho do cartão em MiB e as features aplicadas, lidos do manifest do build. Um build sem features SHALL aparecer como "sem features".
+O menu, a listagem e o plano antes da confirmação SHALL mostrar, para cada build, o identificador, o tamanho do cartão em MiB e as features aplicadas, lidos do manifest do build. Um build sem features SHALL aparecer como "sem features". Um build gerado como teste SHALL aparecer com o marcador `test` na linha, além do sufixo `-test` do identificador.
 
 #### Scenario: Linha de um build
 - **WHEN** o build `20261013-124416` foi gerado para 15000 MiB com as features `10-ptbr-sao-paulo` e `20-controle-posicional`
@@ -157,6 +169,10 @@ O menu, a listagem e o plano antes da confirmação SHALL mostrar, para cada bui
 #### Scenario: Build de referência
 - **WHEN** o build foi gerado com `--no-features`
 - **THEN** a linha dele mostra "sem features"
+
+#### Scenario: Linha de um build de teste
+- **WHEN** o build `20261016-150632-test` foi gerado com `--test` para 15000 MiB
+- **THEN** a linha dele mostra `20261016-150632-test`, `15000 MiB`, as features e o marcador `test`
 
 ### Requirement: Listagem de builds
 O script SHALL oferecer a opção `--list-builds`, que lista os builds disponíveis com suas informações, do mais recente para o mais antigo, e termina sem acessar nenhum dispositivo. Essa opção SHALL dispensar as opções de alvo e de modo de gravação.

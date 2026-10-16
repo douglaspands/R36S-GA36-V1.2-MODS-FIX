@@ -16,7 +16,7 @@ from .util import CHUNK, MIB, fmt_mib, log, run, sha256_file, warn
 
 PARTS = ("boot", "system", "storage", "roms")
 FULL_ORDER = ("bootarea", "boot", "env", "kernel", "system", "storage", "roms")
-TS_RE = re.compile(r"^\d{8}-\d{6}$")
+TS_RE = re.compile(r"^\d{8}-\d{6}(-test)?$")
 SAFE_MOUNT_PREFIXES = ("/run/media/", "/media/", "/mnt/")
 
 HELP = """\
@@ -31,7 +31,8 @@ partições do sistema montadas ou menor que a imagem, exige digitar o nome do
 dispositivo, nunca grava mais de 16 MiB na p2 e exige escolha explícita antes
 de apagar ROMs (p1) ou saves (p8). Use --dry-run para só ver o plano.
 
-Escolha do build: com --build, usa o timestamp indicado. Sem --build, num
+Escolha do build: com --build, usa o identificador indicado (AAAAMMDD-HHMMSS,
+com -test nos builds gerados com ./build.sh --test). Sem --build, num
 terminal e com mais de um build em out/, mostra um menu (Enter = o mais
 recente); fora de um terminal, usa o mais recente sem perguntar. Use
 --list-builds para ver os builds com tamanho do cartão e features.
@@ -46,6 +47,7 @@ exemplos:
   ./flash.sh --device /dev/sdc --all --keep-roms --keep-storage
   ./flash.sh --device /dev/sdc --part system
   ./flash.sh --device /dev/sdc --part system --part boot --build 20261013-153045
+  ./flash.sh --device /dev/sdc --part system --build 20261013-153045-test
   ./flash.sh --target-file teste.img --all --wipe-roms --wipe-storage
 """
 
@@ -68,7 +70,7 @@ def parse_args(argv):
     p.add_argument("--dry-run", action="store_true",
                    help="simulação: faz as verificações e mostra o plano, sem escrever nada")
     p.add_argument("--build", metavar="TIMESTAMP",
-                   help="build a gravar (AAAAMMDD-HHMMSS); padrão: menu no terminal ou o mais recente em out/")
+                   help="build a gravar (AAAAMMDD-HHMMSS, com -test nos builds de teste); padrão: menu no terminal ou o mais recente em out/")
     p.add_argument("--list-builds", action="store_true",
                    help="só lista os builds de out/ (tamanho do cartão e features) e sai")
     args = p.parse_args(argv)
@@ -99,7 +101,7 @@ def validate_args(a) -> list:
         errs.append("a gravação completa sobrescreve a p8 (saves e configurações): "
                     "escolha --keep-storage (manter) ou --wipe-storage (apagar)")
     if a.build is not None and not TS_RE.match(a.build):
-        errs.append(f"--build deve ter o formato AAAAMMDD-HHMMSS, recebido {a.build!r}")
+        errs.append(f"--build deve ter o formato AAAAMMDD-HHMMSS, com -test opcional, recebido {a.build!r}")
     return errs
 
 
@@ -134,7 +136,8 @@ def build_line(build_dir, manifest=None) -> str:
     try:
         m = load_manifest(build_dir) if manifest is None else manifest
         feats = ", ".join(f["id"] for f in m["features"]) or "sem features"
-        return f"{name}  {int(m['card_size_mib'])} MiB  {feats}"
+        mark = "  test" if m.get("test") else ""
+        return f"{name}  {int(m['card_size_mib'])} MiB  {feats}{mark}"
     except (OSError, ValueError, KeyError, TypeError):
         return f"{name}  manifest ilegível"
 

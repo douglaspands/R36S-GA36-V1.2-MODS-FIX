@@ -56,6 +56,7 @@ A pasta `base/` e todas as imagens ficam fora do git.
 ./build.sh                    # cartão de 16 GB (15000 MiB), features habilitadas
 ./build.sh --no-features      # imagem equivalente à de fábrica (teste de referência)
 ./build.sh --offline          # usa só o cache de downloads das features (sem rede)
+./build.sh --test             # marca o build como imagem de teste (sufixo -test)
 ./build.sh --help             # todas as opções
 ```
 
@@ -67,6 +68,14 @@ fica em `out/<AAAAMMDD-HHMMSS>/`:
 - `parts/*.img`: uma imagem por região, usadas pelo `./flash.sh`;
 - `manifest.json`: timestamp, tamanho do cartão, offsets, sha256 e features;
 - `changes.txt`: o que cada feature adicionou, substituiu ou removeu.
+
+Com `--test`, o build é marcado como imagem de teste (intermediária, para
+experimentar uma ideia): a pasta vira `out/<timestamp>-test/` e a imagem
+`..._build_<timestamp>-test.img.xz`. O conteúdo da imagem não muda. O
+`manifest.json` ganha `"test": true` e o `R36-BUILD.txt` ganha a linha
+`teste: sim`. O `./flash.sh` trata o build de teste como qualquer outro: ele
+aparece no menu e no `--list-builds` com o marcador `test`, e se indica com
+`--build <timestamp>-test`.
 
 ### Tamanho do cartão
 
@@ -407,6 +416,9 @@ features. A versão é o timestamp no fim do nome da imagem, registrado na linha
 
 - no PC: na partição **R36-SYSTEM**;
 - no aparelho: `/flash/R36-BUILD.txt`.
+
+Num build gerado com `--test`, o nome da imagem termina em `-test.img.xz` e o
+arquivo tem a linha `teste: sim`; um build normal não tem essa linha.
 
 Ele é igual ao campo `build_info` do `manifest.json` do build.
 

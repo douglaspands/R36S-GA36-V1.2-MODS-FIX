@@ -110,6 +110,12 @@ class ArgsTest(unittest.TestCase):
         self.assertRefused("--device", "/dev/sdc", "--part", "kernel", contains="não aceita")
         self.assertRefused("--device", "/dev/sdc", "--part", "boot", "--keep-roms", contains="só valem com --all")
         self.assertRefused("--device", "/dev/sdc", "--part", "boot", "--build", "ontem", contains="AAAAMMDD-HHMMSS")
+        self.assertRefused("--device", "/dev/sdc", "--part", "boot", "--build", "20261016-150632-teste",
+                           contains="com -test opcional")
+
+    def test_build_with_test_suffix_accepted(self):
+        a = args("--device", "/dev/sdc", "--part", "boot", "--build", "20261016-150632-test")
+        self.assertEqual(a.build, "20261016-150632-test")
 
     def test_help_lists_all_options(self):
         buf = io.StringIO()
@@ -148,16 +154,25 @@ class BuildSelectionTest(TempDirCase):
         with self.assertRaises(R36Error):
             flash.resolve_build(self.tmp / "out")
 
+    def test_test_build_selectable_and_latest(self):
+        self._mk("20261016-120000", "20261016-150632-test")
+        self.assertEqual(flash.available_builds(self.tmp), ["20261016-120000", "20261016-150632-test"])
+        self.assertEqual(flash.resolve_build(self.tmp).name, "20261016-150632-test")
+        self.assertEqual(flash.resolve_build(self.tmp, "20261016-150632-test").name, "20261016-150632-test")
+        self.assertEqual(flash.resolve_build(self.tmp, "20261016-120000").name, "20261016-120000")
+
 
 FEATS = [{"id": "10-ptbr-sao-paulo", "name": "PT-BR", "order": 10},
          {"id": "20-controle-posicional", "name": "Controle", "order": 20}]
 OLD, NEW = "20261013-101231", "20261013-124416"
 
 
-def mk_build(root, ts, features=(), raw=None):
-    d = root / ts
+def mk_build(root, ts, features=(), raw=None, test=False):
+    d = root / (ts + "-test" if test else ts)
     d.mkdir()
     manifest = {"timestamp": ts, "card_size_mib": 15000, "features": list(features)}
+    if test:
+        manifest["test"] = True
     (d / "manifest.json").write_text(raw if raw is not None else json.dumps(manifest))
     return d
 
@@ -165,8 +180,22 @@ def mk_build(root, ts, features=(), raw=None):
 class BuildInfoTest(TempDirCase):
     """Linha de cada build e --list-builds sobre um out/ temporário."""
 
-    def mk(self, ts, features=(), raw=None):
-        return mk_build(self.tmp, ts, features, raw)
+    def mk(self, ts, features=(), raw=None, test=False):
+        return mk_build(self.tmp, ts, features, raw, test)
+
+    def test_line_test_build_has_marker(self):
+        self.assertEqual(flash.build_line(self.mk(NEW, FEATS, test=True)),
+                         f"{NEW}-test  15000 MiB  10-ptbr-sao-paulo, 20-controle-posicional  test")
+        self.assertNotIn("test", flash.build_line(self.mk(OLD)))
+
+    def test_list_builds_shows_test_marker(self):
+        self.mk(OLD)
+        self.mk(NEW, test=True)
+        rc, out = quiet(flash.flash, args("--list-builds"), out_root=self.tmp,
+                        input_fn=lambda _p: self.fail("não deveria perguntar"))
+        self.assertEqual(rc, 0)
+        self.assertIn(f"1) {NEW}-test  15000 MiB  sem features  test", out)
+        self.assertIn(f"2) {OLD}  15000 MiB  sem features\n", out + "\n")
 
     def test_line_with_features(self):
         line = flash.build_line(self.mk(NEW, FEATS))
