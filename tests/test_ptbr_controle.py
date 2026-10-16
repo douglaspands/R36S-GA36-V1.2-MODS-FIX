@@ -22,6 +22,9 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertEqual(c["system.language"], "pt_BR")
         self.assertEqual(c["system.timezone"], "America/Sao_Paulo")
         self.assertEqual(c["global.retroarch.menu_driver"], "rgui")
+        self.assertEqual(c["global.ratio"], "core")
+        self.assertEqual(c["gba.emulator"], "libretro")
+        self.assertEqual(c["gba.core"], "gpsp")
 
     def test_es_settings(self):
         txt = (F10 / "emulationstation" / "es_settings.cfg").read_text()
@@ -31,6 +34,7 @@ class PtBrSaoPaulo(unittest.TestCase):
         c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
         self.assertEqual(c["user_language"], "7")
         self.assertEqual(c["menu_driver"], "rgui")
+        self.assertEqual(c["menu_swap_ok_cancel_buttons"], "false")
 
 
 class ControlePosicional(unittest.TestCase):
