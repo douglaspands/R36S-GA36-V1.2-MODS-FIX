@@ -25,6 +25,8 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertEqual(c["global.ratio"], "core")
         self.assertEqual(c["gba.emulator"], "libretro")
         self.assertEqual(c["gba.core"], "gpsp")
+        self.assertEqual(c["global.maxperf"], "0")
+        self.assertEqual([k for k in c if k.endswith(".maxperf")], ["global.maxperf"])
 
     def test_es_settings(self):
         txt = (F10 / "emulationstation" / "es_settings.cfg").read_text()

@@ -179,7 +179,7 @@ que em muitos sistemas é um tmpfs pequeno.
 
 - **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema, no EmulationStation e no
   RetroArch, fuso `America/Sao_Paulo` e menu RGUI no RetroArch. Também troca
-  três padrões de fábrica (cada um dá para voltar pelos menus):
+  quatro padrões de fábrica (cada um dá para voltar pelos menus):
   - proporção de tela "Core provided" (`global.ratio=core`) em vez de 4/3; para
     outra, use o menu do EmulationStation (Configurações de jogos > Proporção);
   - OK/Cancel sem inversão (`menu_swap_ok_cancel_buttons = "false"`): no menu do
@@ -189,6 +189,10 @@ que em muitos sistemas é um tmpfs pequeno.
   - gpSP como core de GBA (`gba.emulator=libretro`, `gba.core=gpsp`) em vez do
     mGBA; para voltar, escolha o core do GBA nas opções do sistema no
     EmulationStation. A BIOS do GBA continua opcional e não vem na imagem.
+  - máximo desempenho desligado (`global.maxperf=0`): o aparelho esquenta menos,
+    mas rende menos nos sistemas pesados (GBA, PSP, N64); para ligar, use o menu
+    do EmulationStation, por sistema ou por jogo. Só imagem nova ou regravada
+    recebe esse padrão; num cartão já gravado, desligue a opção no menu.
 - **`20-controle-posicional`**: no RetroArch, os botões de face seguem a posição
   física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o Select.
 
@@ -256,7 +260,7 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
 - **`43-registro-termico`**: só mede o calor, sem mudar nada. O serviço
   `r36-thermal-log` anexa uma linha a cada 5 s em `R36-ROMS/r36-thermal.csv`
   (no aparelho, `/storage/roms/r36-thermal.csv`), sem usar o cron. Não mexe no
-  clock, no governor nem na DRAM: o `maxperf` e o `normperf` agem como sempre.
+  clock, no governor nem na DRAM: quem faz isso é o `maxperf` da `10-ptbr-sao-paulo`.
   Serve para descobrir quanto cada `sistema:core` esquenta e quanto clock usa de
   fato, antes de definir tetos de clock.
   - **Colunas:** `date`, `uptime_s`, `boot`, uma `temp_<zona>` por
