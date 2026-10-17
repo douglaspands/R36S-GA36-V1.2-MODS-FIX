@@ -186,9 +186,12 @@ que em muitos sistemas é um tmpfs pequeno.
 
 ## Features habilitadas
 
-- **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema, no EmulationStation e no
-  RetroArch, fuso `America/Sao_Paulo` e menu RGUI no RetroArch. Também troca
-  quatro padrões de fábrica (cada um dá para voltar pelos menus):
+- **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema e no EmulationStation, fuso
+  `America/Sao_Paulo` e menu RGUI no RetroArch. O menu do RetroArch fica em
+  inglês por padrão (`user_language = "0"`, o valor da imagem base); para o
+  português, use o próprio menu: Settings > User Interface > Language >
+  Portuguese (Brazil). Também troca
+  vários padrões de fábrica (cada um dá para voltar pelos menus):
   - proporção de tela "Core provided" (`global.ratio=core`) em vez de 4/3; para
     outra, use o menu do EmulationStation (Configurações de jogos > Proporção);
   - OK/Cancel sem inversão (`menu_swap_ok_cancel_buttons = "false"`): no menu do
@@ -198,6 +201,14 @@ que em muitos sistemas é um tmpfs pequeno.
   - gpSP como core de GBA (`gba.emulator=libretro`, `gba.core=gpsp`) em vez do
     mGBA; para voltar, escolha o core do GBA nas opções do sistema no
     EmulationStation. A BIOS do GBA continua opcional e não vem na imagem.
+  - snes9x2005_plus como core de SNES (`snes.emulator=libretro`,
+    `snes.core=snes9x2005_plus`), mais leve que o snes9x. Os outros cores de SNES
+    continuam instalados: para trocar, escolha o core nas opções do sistema ou do
+    jogo no EmulationStation. `snesh` e `snesmsu1` não mudam.
+  - pastas ocultas nas listas de jogos (`FolderViewMode` `never`) e favoritos no
+    topo (`FavoritesFirst` `true`). Para voltar, no EmulationStation: Start >
+    Configurações da interface (lista de jogos) > mostrar pastas / favoritos primeiro.
+    Ficam no `/storage`, então só chegam com `--wipe-storage`.
   - fbalpha2012 como core de CPS2 (`cps2.emulator=libretro`,
     `cps2.core=fbalpha2012`) em vez do fbneo da base, por ser mais leve para o A33. Os
     outros cores (fbneo, mame2003_plus, mame2010, AdvanceMame) continuam
@@ -285,12 +296,21 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   Serve para descobrir quanto cada `sistema:core` esquenta e quanto clock usa de
   fato, antes de definir tetos de clock.
   - **Colunas:** `date`, `uptime_s`, `boot`, uma `temp_<zona>` por
-    `thermal_zone*` (em °C), `cpu_mhz`, `governor`, `cpus_online`, `cpu0` a
+    `thermal_zone*` (em °C), `cpu_mhz`, `cpu_max_mhz` (teto de clock em vigor,
+    `scaling_max_freq`), `governor`, `cpus_online`, `cpu0` a
     `cpu3` (ocupação em %, no intervalo; vazio se o núcleo está desligado),
-    `dram_scene`, `bat_status`, `bat_pct`, `system`, `emulator`, `core` e `rom`
+    `dram_scene`, `dram_mhz` (clock da DRAM, do `cur_freq` do devfreq),
+    `bat_status`, `bat_pct`, `bat_voltage` (mV), `system`, `emulator`, `core` e `rom`
     (os quatro últimos vêm do `emuelecRunEmu.sh` em execução e ficam vazios no
     menu). Sem hora certa no relógio, `uptime_s` e `boot` ordenam e separam as
     sessões.
+  - **Retrato do sistema:** uma vez por boot, no primeiro ciclo em que o log
+    pode gravar, o serviço grava `R36-ROMS/r36-sysinfo.txt` (substitui o do boot
+    anterior): governors e clocks disponíveis, teto e máximo, tunables do
+    ondemand (já afinados), cenas e clocks da DRAM, trip points das zonas
+    térmicas e estado dos dispositivos de resfriamento, um `caminho: valor` por
+    linha, com `(ausente)` no que o aparelho não tem. Serve para ler no PC o que
+    não dá para conferir no aparelho (sem Wi-Fi nem SSH).
   - **Limites:** o arquivo vira `r36-thermal.1.csv` ao passar de 1 MB (2 MB no
     máximo, somando os dois), e nada é gravado com menos de 64 MB livres na p1
     ou se `/storage/roms` não estiver montado. A gravação não usa `sync`: numa
@@ -314,10 +334,16 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   `emuelecRunEmu.sh` chama o mesmo script depois de cada `normperf`, porque a
   troca de `performance` para `ondemand` zera os tunables. Com o governor
   `performance` (máximo desempenho ligado) o script não faz nada.
+  Na abertura do jogo o `emuelecRunEmu.sh` passa o argumento `jogo`, e o script
+  põe a DRAM na cena `0` (a mesma do máximo desempenho); no menu, depois do
+  `normperf` da saída, a DRAM volta à cena `1`. Sem a feature, a DRAM fica na
+  cena `1` também em jogo.
   - **Desligar:** `enabled = false` em `features/44-cpu-ondemand/feature.toml` e
-    gerar de novo; o ondemand volta aos valores da imagem base.
+    gerar de novo; o ondemand volta aos valores da imagem base e a DRAM volta à
+    cena `1` em jogo.
   - **Conferir:** no log da `43-registro-termico`, `cpu_mhz` sem valores abaixo
-    de 600 em jogo. No aparelho: `cat /sys/devices/system/cpu/cpufreq/*/up_threshold`
+    de 600 em jogo e `dram_scene` `0` em jogo, `1` no menu.
+    No aparelho: `cat /sys/devices/system/cpu/cpufreq/*/up_threshold`
     (30) e `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq` (600000).
   - Fica no SYSTEM, então vale com qualquer gravação dele.
 

@@ -13,6 +13,7 @@ TUNE = F44 / "system" / "usr" / "lib" / "r36" / "cpu-ondemand-tune"
 CPUFREQ = F44 / "system" / "usr" / "bin" / "cpufreq"
 RUNEMU = ROOT / "features" / "10-ptbr-sao-paulo" / "system" / "usr" / "bin" / "emuelecRunEmu.sh"
 CHAMADA = "if [ -x /usr/lib/r36/cpu-ondemand-tune ]; then /usr/lib/r36/cpu-ondemand-tune; fi"
+CHAMADA_JOGO = "if [ -x /usr/lib/r36/cpu-ondemand-tune ]; then /usr/lib/r36/cpu-ondemand-tune jogo; fi"
 
 
 class Feature(TempDirCase):
@@ -48,9 +49,11 @@ class Sysfs(TempDirCase):
             (a / "sampling_down_factor").write_text("1\n")
         return sys_, alvos
 
-    def roda(self, script, sys_):
-        subprocess.run(["sh", str(script)], check=True, env=dict(os.environ, R36_CPU_SYS=str(sys_)),
-                       capture_output=True)
+    def roda(self, script, sys_, *args, cena=None):
+        env = dict(os.environ, R36_CPU_SYS=str(sys_))
+        if cena is not None:
+            env["R36_DRAM_SCENE"] = str(cena)
+        subprocess.run(["sh", str(script), *args], check=True, env=env, capture_output=True)
 
     def le(self, p):
         return p.read_text().strip()
@@ -87,6 +90,37 @@ class Tune(Sysfs):
             self.roda(TUNE, sys_)
             self.assertEqual(self.le(alvos[0] / "up_threshold"), "30")
             shutil.rmtree(sys_)
+
+
+class Dram(Sysfs):
+    def cena(self, valor="1\n"):
+        c = self.tmp / "scene"
+        c.write_text(valor)
+        return c
+
+    def test_jogo_com_ondemand_grava_cena_0(self):
+        sys_, _ = self.monta("ondemand")
+        c = self.cena()
+        self.roda(TUNE, sys_, "jogo", cena=c)
+        self.assertEqual(self.le(c), "0")
+
+    def test_sem_argumento_nao_toca_na_cena(self):
+        sys_, _ = self.monta("ondemand")
+        c = self.cena()
+        self.roda(TUNE, sys_, cena=c)
+        self.assertEqual(self.le(c), "1")
+
+    def test_jogo_com_performance_nao_toca_na_cena(self):
+        sys_, _ = self.monta("performance")
+        c = self.cena()
+        self.roda(TUNE, sys_, "jogo", cena=c)
+        self.assertEqual(self.le(c), "1")
+
+    def test_cena_ausente_sai_com_0(self):
+        sys_, _ = self.monta("ondemand")
+        c = self.tmp / "nao-existe"
+        self.roda(TUNE, sys_, "jogo", cena=c)  # check=True
+        self.assertFalse(c.exists())
 
 
 class Cpufreq(Sysfs):
@@ -128,8 +162,9 @@ class RunEmu(TempDirCase):
         linhas = [l.strip() for l in RUNEMU.read_text().splitlines()]
         idx = [i for i, l in enumerate(linhas) if l == "normperf"]
         self.assertEqual(len(idx), 2)  # abertura (else do maxperf) e saída
-        for i in idx:
-            self.assertIn(CHAMADA, linhas[i + 1:i + 3])
+        # só a abertura passa "jogo"; a saída deixa a DRAM na cena 1 do normperf
+        self.assertIn(CHAMADA_JOGO, linhas[idx[0] + 1:idx[0] + 3])
+        self.assertIn(CHAMADA, linhas[idx[1] + 1:idx[1] + 3])
 
     def test_ausencia_do_script_nao_quebra(self):
         prog = f"set -e\nnormperf() {{ echo ok; }}\nnormperf\n{CHAMADA}\necho depois\n"
@@ -142,7 +177,6 @@ class MaxperfIntacto(TempDirCase):
         for p in (TUNE, CPUFREQ):
             codigo = re.sub(r"#.*", "", p.read_text())
             self.assertNotIn("performance", codigo)
-            self.assertNotIn("dram", codigo.lower())
             self.assertNotIn("scaling_governor", re.sub(r"cat [^\n]*scaling_governor[^\n]*", "", codigo))
             self.assertNotIn("maxperf", codigo)
             self.assertNotIn("normperf", codigo)

@@ -57,6 +57,9 @@ class ThermalLogCase(TempDirCase):
         cpu = self.sys / "devices/system/cpu"
         escreve(cpu / "cpu0/cpufreq/scaling_cur_freq", "1200000\n")
         escreve(cpu / "cpu0/cpufreq/scaling_governor", "performance\n")
+        escreve(cpu / "cpu0/cpufreq/scaling_max_freq", "1104000\n")
+        escreve(cpu / "cpu0/cpufreq/scaling_available_governors", "ondemand performance\n")
+        escreve(cpu / "cpufreq/ondemand/up_threshold", "30\n")
         escreve(cpu / "online", "0-3\n")
         escreve(self.sys / "devices/platform/sunxi-ddrfreq/dsm/scene", "0\n")
         bat = self.sys / "class/power_supply"
@@ -64,6 +67,12 @@ class ThermalLogCase(TempDirCase):
         escreve(bat / "battery/type", "Battery\n")
         escreve(bat / "battery/status", "Discharging\n")
         escreve(bat / "battery/capacity", "87\n")
+        escreve(bat / "battery/voltage_now", "3950000\n")
+        escreve(z / "trip_point_0_temp", "90000\n")
+        escreve(self.sys / "class/thermal/cooling_device0/type", "thermal-cpufreq-0\n")
+        escreve(self.sys / "class/thermal/cooling_device0/cur_state", "2\n")
+        escreve(self.sys / "class/thermal/cooling_device0/max_state", "4\n")
+        self.sysinfo = self.roms / "r36-sysinfo.txt"
 
         self.bin.mkdir()
         self.stub("df", 'echo "Filesystem 1K-blocks Used Available Use% Mounted on"\n'
@@ -108,8 +117,9 @@ class Registro(ThermalLogCase):
         self.assertEqual(len(cab.split(",")), len(linha.split(",")))
         self.assertEqual(
             cab,
-            "date,uptime_s,boot,temp_soc_thermal,cpu_mhz,governor,cpus_online,"
-            "cpu0,cpu1,cpu2,cpu3,dram_scene,bat_status,bat_pct,system,emulator,core,rom",
+            "date,uptime_s,boot,temp_soc_thermal,cpu_mhz,cpu_max_mhz,governor,cpus_online,"
+            "cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,"
+            "system,emulator,core,rom",
         )
 
     def test_campos_basicos(self):
@@ -124,6 +134,19 @@ class Registro(ThermalLogCase):
         self.assertEqual(c["dram_scene"], "0")
         self.assertEqual(c["bat_status"], "Discharging")
         self.assertEqual(c["bat_pct"], "87")
+        self.assertEqual(c["cpu_max_mhz"], "1104")
+        self.assertEqual(c["bat_voltage"], "3950")  # µV viram mV
+        self.assertEqual(c["dram_mhz"], "")  # sem devfreq na árvore falsa
+
+    def test_dram_mhz_em_hz_e_em_khz(self):
+        d = self.sys / "devices/platform/sunxi-ddrfreq/devfreq/sunxi-ddrfreq"
+        (self.sys / "devices/platform/sunxi-ddrfreq/dsm/scene").unlink()
+        escreve(d / "dsm/scene", "0\n")
+        for bruto in ("360000000", "360000"):
+            escreve(d / "cur_freq", bruto + "\n")
+            self.log.unlink(missing_ok=True)
+            self.run_once()
+            self.assertEqual(self.colunas()["dram_mhz"], "360", bruto)
 
     def test_temperatura_em_graus(self):
         escreve(self.sys / "class/thermal/thermal_zone0/temp", "48\n")
@@ -180,12 +203,14 @@ class Registro(ThermalLogCase):
 
     def test_leituras_que_falham_ficam_vazias(self):
         (self.sys / "class/power_supply/battery/capacity").unlink()
+        (self.sys / "class/power_supply/battery/voltage_now").unlink()
+        (self.sys / "devices/system/cpu/cpu0/cpufreq/scaling_max_freq").unlink()
         (self.sys / "devices/platform/sunxi-ddrfreq/dsm/scene").unlink()
         self.run_once()
         cab, linha = self.linhas()
         self.assertEqual(len(cab.split(",")), len(linha.split(",")))
         c = self.colunas()
-        self.assertEqual((c["bat_pct"], c["dram_scene"]), ("", ""))
+        self.assertEqual((c["bat_pct"], c["dram_scene"], c["bat_voltage"], c["cpu_max_mhz"]), ("", "", "", ""))
 
     def test_anexa_sem_repetir_cabecalho(self):
         self.run_once()
@@ -235,6 +260,64 @@ class Limites(ThermalLogCase):
         novo = self.linhas()
         self.assertTrue(novo[0].startswith("date,uptime_s,boot"))
         self.assertEqual(len(novo), 2)
+
+
+class Retrato(ThermalLogCase):
+    def test_retrato_com_valores_e_caminhos(self):
+        self.run_once()
+        txt = self.sysinfo.read_text()
+        self.assertEqual(txt.splitlines()[0], "boot_id: abcdef01-2345-6789-abcd-ef0123456789")
+        cpu = self.sys / "devices/system/cpu"
+        self.assertIn(f"{cpu}/cpu0/cpufreq/scaling_available_governors: ondemand performance", txt)
+        self.assertIn(f"{cpu}/cpu0/cpufreq/scaling_max_freq: 1104000", txt)
+        self.assertIn(f"{cpu}/cpufreq/ondemand/up_threshold: 30", txt)
+        self.assertIn(f"{self.sys}/class/thermal/thermal_zone0/trip_point_0_temp: 90000", txt)
+        self.assertIn(f"{self.sys}/class/thermal/cooling_device0/cur_state: 2", txt)
+        self.assertIn(f"{self.sys}/class/power_supply/battery/voltage_now: 3950000", txt)
+        self.assertFalse((self.roms / "r36-sysinfo.txt.tmp").exists())
+
+    def test_item_ausente_marcado_e_demais_seguem(self):
+        self.run_once()
+        txt = self.sysinfo.read_text()
+        cpu = self.sys / "devices/system/cpu"
+        self.assertIn(f"{cpu}/cpu0/cpufreq/scaling_available_frequencies: (ausente)", txt)
+        self.assertIn(f"{cpu}/cpu0/cpufreq/scaling_governor: performance", txt)
+        self.assertEqual(len(self.linhas()), 2)  # a linha do CSV também sai
+
+    def test_dram_com_devfreq_no_retrato(self):
+        d = self.sys / "devices/platform/sunxi-ddrfreq/devfreq/sunxi-ddrfreq"
+        (self.sys / "devices/platform/sunxi-ddrfreq/dsm/scene").unlink()
+        escreve(d / "dsm/scene", "1\n")
+        escreve(d / "cur_freq", "360000\n")
+        escreve(d / "available_frequencies", "168000 360000\n")
+        self.run_once()
+        txt = self.sysinfo.read_text()
+        self.assertIn(f"{d}/cur_freq: 360000", txt)
+        self.assertIn(f"{d}/available_frequencies: 168000 360000", txt)
+        self.assertIn(f"{d}/dsm/scene: 1", txt)
+
+    def test_nao_grava_sem_roms_montadas_ou_sem_espaco(self):
+        self.mounted = False
+        self.run_once()
+        self.assertFalse(self.sysinfo.exists())
+        self.mounted = True
+        self.free_kb = 100
+        self.run_once()
+        self.assertFalse(self.sysinfo.exists())
+        self.assertFalse(self.log.exists())
+
+    def test_nao_regrava_no_mesmo_boot(self):
+        self.run_once()
+        self.sysinfo.write_text(self.sysinfo.read_text() + "marca\n")
+        self.run_once()
+        self.assertIn("marca", self.sysinfo.read_text())
+        self.assertEqual(len(self.linhas()), 3)
+
+    def test_novo_boot_substitui(self):
+        self.run_once()
+        escreve(self.proc / "sys/kernel/random/boot_id", "99999999-0000-0000-0000-000000000000\n")
+        self.run_once()
+        self.assertEqual(self.sysinfo.read_text().splitlines()[0], "boot_id: 99999999-0000-0000-0000-000000000000")
 
 
 class Feature(UnitCase):

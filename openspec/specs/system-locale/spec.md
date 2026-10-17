@@ -24,16 +24,20 @@ A imagem gerada SHALL configurar o fuso horário do sistema como `America/Sao_Pa
 - **WHEN** o aparelho inicia com o storage gravado pela imagem
 - **THEN** o fuso horário ativo é `America/Sao_Paulo`
 
-### Requirement: Menu do RetroArch em português do Brasil
-A imagem gerada SHALL configurar o RetroArch para mostrar seu menu em português do Brasil.
-
-#### Scenario: Menu aberto durante um jogo
-- **WHEN** o usuário abre o menu do RetroArch durante um jogo
-- **THEN** os textos do menu aparecem em português do Brasil
-
 ### Requirement: Demais configurações preservadas
 As mudanças de idioma e fuso SHALL preservar todas as outras chaves dos arquivos de configuração de fábrica que alteram.
 
 #### Scenario: Comparação com a fábrica
 - **WHEN** cada arquivo de configuração alterado pela feature é comparado com o original de fábrica
 - **THEN** as únicas diferenças são as chaves de idioma, fuso e menu definidas por este change
+
+### Requirement: Menu do RetroArch em inglês
+A imagem gerada SHALL deixar o menu do RetroArch em inglês, o idioma da imagem base, enquanto o sistema e o EmulationStation continuam em português do Brasil.
+
+#### Scenario: Menu aberto durante um jogo
+- **WHEN** o usuário abre o menu do RetroArch durante um jogo
+- **THEN** os textos do menu aparecem em inglês
+
+#### Scenario: Configuração conferida no PC
+- **WHEN** a p8 da imagem gerada é inspecionada
+- **THEN** a configuração do RetroArch declara `user_language` com o valor da imagem base (`0`), e a do EmulationStation continua com `Language` = `pt_BR`

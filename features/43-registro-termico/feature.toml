@@ -1,5 +1,5 @@
 schema = 1
 name = "Registro térmico"
-description = "Grava a cada 5 s em /storage/roms/r36-thermal.csv a temperatura, o clock, a ocupação dos núcleos, a bateria e o jogo em execução, sem mudar clock nem governor."
+description = "Grava a cada 5 s em /storage/roms/r36-thermal.csv a temperatura, o clock e o teto de clock, a ocupação dos núcleos, a DRAM, a bateria (com tensão) e o jogo em execução, e um retrato do sistema por boot em r36-sysinfo.txt, sem mudar clock nem governor."
 order = 43
 enabled = true

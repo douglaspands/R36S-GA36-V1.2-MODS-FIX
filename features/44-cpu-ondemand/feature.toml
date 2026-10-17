@@ -1,6 +1,6 @@
 schema = 1
 name = "Ondemand afinado"
-description = "Governor ondemand sobe cedo e desce devagar (up_threshold 30, sampling_down_factor 10) com piso de 600 MHz, sem ligar o máximo desempenho."
+description = "Governor ondemand sobe cedo e desce devagar (up_threshold 30, sampling_down_factor 10) com piso de 600 MHz, e DRAM na cena 0 durante o jogo (cena 1 no menu), sem ligar o máximo desempenho."
 order = 44
 enabled = true
 
