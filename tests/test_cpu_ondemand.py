@@ -7,7 +7,9 @@ import tomllib
 from pathlib import Path
 
 from context import ROOT, TempDirCase
+from test_otimizacoes import UnitCase, diretivas
 
+UNITS = Path("usr/lib/systemd/system")
 F44 = ROOT / "features" / "44-cpu-ondemand"
 TUNE = F44 / "system" / "usr" / "lib" / "r36" / "cpu-ondemand-tune"
 CPUFREQ = F44 / "system" / "usr" / "bin" / "cpufreq"
@@ -25,6 +27,19 @@ class Feature(TempDirCase):
         for p in (TUNE, CPUFREQ):
             self.assertTrue(os.access(p, os.X_OK), p)
             subprocess.run(["sh", "-n", str(p)], check=True)
+
+
+class Servico(UnitCase):
+    def test_unit(self):
+        d = diretivas(F44 / "system" / UNITS / "r36-cpu-ondemand.service")
+        self.assertEqual(d["After"], ["emuelec-autostart.service"])
+        self.assertEqual(d["Type"], ["oneshot"])
+        self.assertEqual(d["ExecStart"], ["/usr/lib/r36/cpu-ondemand-tune"])
+        self.assertEqual(d["WantedBy"], ["emuelec.target"])
+        self.assertTrue(os.access(TUNE, os.X_OK))
+
+    def test_link(self):
+        self.assert_link(F44, "emuelec.target.wants", "r36-cpu-ondemand.service")
 
 
 class Sysfs(TempDirCase):

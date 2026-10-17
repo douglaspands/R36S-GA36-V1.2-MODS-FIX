@@ -332,7 +332,9 @@ class Feature(UnitCase):
         self.assertEqual(d["Restart"], ["always"])
         self.assertEqual(d["RestartSec"], ["30"])
         self.assertEqual(d["Nice"], ["19"])
-        self.assertEqual(d["After"], ["emuelec-autostart.service"])
+        self.assertEqual(d["After"], ["emuelec-autostart.service r36-cpu-ondemand.service"])
+        self.assertNotIn("Requires", d)
+        self.assertNotIn("Wants", d)
         self.assertEqual(d["WantedBy"], ["emuelec.target"])
 
     def test_link(self):

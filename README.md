@@ -334,6 +334,9 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   `emuelecRunEmu.sh` chama o mesmo script depois de cada `normperf`, porque a
   troca de `performance` para `ondemand` zera os tunables. Com o governor
   `performance` (máximo desempenho ligado) o script não faz nada.
+  O `r36-cpu-ondemand.service` (oneshot, `After=emuelec-autostart.service`) roda
+  o mesmo script uma vez depois do autostart, porque o `normperf` do boot zera
+  os tunables e o piso; sem ele o menu parado ficaria nos valores da base.
   Na abertura do jogo o `emuelecRunEmu.sh` passa o argumento `jogo`, e o script
   põe a DRAM na cena `0` (a mesma do máximo desempenho); no menu, depois do
   `normperf` da saída, a DRAM volta à cena `1`. Sem a feature, a DRAM fica na
@@ -343,6 +346,8 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     cena `1` em jogo.
   - **Conferir:** no log da `43-registro-termico`, `cpu_mhz` sem valores abaixo
     de 600 em jogo e `dram_scene` `0` em jogo, `1` no menu.
+    No `r36-sysinfo.txt` do boot: `up_threshold` 30, `sampling_down_factor` 10
+    e `scaling_min_freq` 600000.
     No aparelho: `cat /sys/devices/system/cpu/cpufreq/*/up_threshold`
     (30) e `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq` (600000).
   - Fica no SYSTEM, então vale com qualquer gravação dele.

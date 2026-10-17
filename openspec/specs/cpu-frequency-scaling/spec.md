@@ -7,14 +7,18 @@ Definir como o governor ondemand da CPU é afinado na imagem, para que o clock s
 ## Requirements
 
 ### Requirement: Ondemand sobe cedo e desce devagar
-Com o governor `ondemand` ativo, o sistema SHALL usar `up_threshold` 30 e `sampling_down_factor` 10 nos tunables do ondemand.
+Com o governor `ondemand` ativo, o sistema SHALL usar `up_threshold` 30 e `sampling_down_factor` 10 nos tunables do ondemand, também depois que o boot do EmulationStation termina e o governor volta para `ondemand`.
 
 #### Scenario: Após o boot
 - **WHEN** o aparelho termina de ligar com o governor `ondemand`
 - **THEN** `up_threshold` vale 30 e `sampling_down_factor` vale 10 nos tunables do ondemand
 
+#### Scenario: Governor trocado durante o boot
+- **WHEN** o script de autostart passa o governor por `performance` e depois o devolve a `ondemand`
+- **THEN** o afinamento é reaplicado depois dessa troca, e o retrato do sistema do boot mostra `up_threshold` 30 e `sampling_down_factor` 10
+
 ### Requirement: Piso de frequência da CPU
-A frequência mínima da CPU SHALL ser 600 MHz enquanto o governor for `ondemand`, tanto no menu quanto em jogo.
+A frequência mínima da CPU SHALL ser 600 MHz enquanto o governor for `ondemand`, tanto no menu quanto em jogo, desde o fim do boot.
 
 #### Scenario: Jogo em modo normal
 - **WHEN** um jogo roda com o máximo desempenho desligado
@@ -22,7 +26,7 @@ A frequência mínima da CPU SHALL ser 600 MHz enquanto o governor for `ondemand
 
 #### Scenario: Menu parado
 - **WHEN** o aparelho fica parado no menu do EmulationStation
-- **THEN** o `scaling_min_freq` da CPU vale 600000 kHz, e o governor continua `ondemand`
+- **THEN** o `scaling_min_freq` da CPU vale 600000 kHz, o governor continua `ondemand`, e as linhas do registro térmico no menu não trazem `cpu_mhz` abaixo de 600
 
 ### Requirement: Afinamento sobrevive à troca de modo
 Depois que um jogo é aberto e fechado, com o máximo desempenho ligado ou desligado, o sistema SHALL manter o governor `ondemand` e os mesmos valores de `up_threshold`, `sampling_down_factor` e frequência mínima do boot.
@@ -43,11 +47,11 @@ O afinamento do ondemand SHALL NOT alterar o modo de máximo desempenho: com a c
 - **THEN** o registro térmico mostra `performance`, `cpu_mhz` 1200 e `dram_scene` 0 nas linhas desse jogo
 
 ### Requirement: Afinamento desligável
-O afinamento do ondemand SHALL fazer parte de uma feature própria, que pode ser desligada sem afetar as demais.
+O afinamento do ondemand SHALL fazer parte de uma feature própria, que pode ser desligada sem afetar as demais, incluindo o serviço que o reaplica depois do boot.
 
 #### Scenario: Feature desligada
 - **WHEN** a imagem é gerada com a feature do afinamento desligada
-- **THEN** o ondemand roda com os tunables da imagem base, e a abertura de jogos não falha por causa da ausência do afinamento
+- **THEN** o ondemand roda com os tunables da imagem base, não existe o serviço de reaplicação, e a abertura de jogos não falha por causa da ausência do afinamento
 
 #### Scenario: DRAM com a feature desligada
 - **WHEN** a imagem é gerada com a feature do afinamento desligada e um jogo roda com o máximo desempenho desligado
