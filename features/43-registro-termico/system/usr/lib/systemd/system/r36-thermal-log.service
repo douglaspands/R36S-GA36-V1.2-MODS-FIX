@@ -1,6 +1,6 @@
 [Unit]
 Description=Registro térmico (R36S)
-After=emuelec-autostart.service
+After=emuelec-autostart.service r36-cpu-ondemand.service
 
 [Service]
 Type=simple

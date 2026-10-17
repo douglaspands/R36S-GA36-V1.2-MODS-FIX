@@ -1,0 +1,10 @@
+[Unit]
+Description=Reaplica o afinamento do ondemand depois do autostart (R36S)
+After=emuelec-autostart.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/cpu-ondemand-tune
+
+[Install]
+WantedBy=emuelec.target
