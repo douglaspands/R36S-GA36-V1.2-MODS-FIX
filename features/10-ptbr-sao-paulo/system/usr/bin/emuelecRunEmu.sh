@@ -146,8 +146,8 @@ if [ "$(get_ee_setting maxperf "${PLATFORM}" "${BASEROMNAME}")" == "1" ]; then
     maxperf
 else
     normperf
-    # R36: reaplica o afinamento do ondemand (a troca de governor zera os tunables)
-    if [ -x /usr/lib/r36/cpu-ondemand-tune ]; then /usr/lib/r36/cpu-ondemand-tune; fi
+    # R36: reaplica o afinamento do ondemand (a troca de governor zera os tunables) e põe a DRAM na cena 0 em jogo
+    if [ -x /usr/lib/r36/cpu-ondemand-tune ]; then /usr/lib/r36/cpu-ondemand-tune jogo; fi
 fi
 
 KILLTHIS="none"

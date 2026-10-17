@@ -36,14 +36,22 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertEqual(c["cps2.core"], "fbalpha2012")
         for k in ("cps1.core", "cps3.core", "fbn.core"):
             self.assertNotIn(k, c)
+        self.assertEqual(c["snes.emulator"], "libretro")
+        self.assertEqual(c["snes.core"], "snes9x2005_plus")
+        for k in ("snesh.core", "snesmsu1.core"):
+            self.assertNotIn(k, c)
 
     def test_es_settings(self):
         txt = (F10 / "emulationstation" / "es_settings.cfg").read_text()
         self.assertIn('<string name="Language" value="pt_BR" />', txt)
+        self.assertIn('<string name="FolderViewMode" value="never" />', txt)
+        self.assertIn('<bool name="FavoritesFirst" value="true" />', txt)
 
     def test_retroarch_cfg(self):
         c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
-        self.assertEqual(c["user_language"], "7")
+        self.assertEqual(c["user_language"], "0")
+        c2 = parse_cfg(F10 / "emuelec" / "configs" / "emuelec.conf")
+        self.assertEqual(c2["system.language"], "pt_BR")
         self.assertEqual(c["menu_driver"], "rgui")
         self.assertEqual(c["menu_swap_ok_cancel_buttons"], "false")
 
