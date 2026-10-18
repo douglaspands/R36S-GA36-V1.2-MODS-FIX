@@ -1,5 +1,5 @@
 schema = 1
-name = "Português do Brasil, São Paulo, RGUI e padrões de tela, OK/Cancel, GBA, SNES e listas"
-description = "Idioma pt_BR no sistema e no EmulationStation (RetroArch em inglês, trocável no menu), fuso America/Sao_Paulo, menu RGUI, proporção \"core provided\", OK/Cancel sem inversão gpSP como core de GBA, snes9x2005_plus como core de SNES, pastas ocultas e favoritos no topo."
+name = "Português do Brasil, São Paulo, RGUI e padrões de tela, OK/Cancel, GBA, SNES, NES e listas"
+description = "Idioma pt_BR no sistema e no EmulationStation (RetroArch em inglês, trocável no menu), fuso America/Sao_Paulo, menu RGUI, proporção \"core provided\", OK/Cancel sem inversão gpSP como core de GBA, snes9x2005_plus como core de SNES, fceumm como core de NES (nestopia continua no menu), pastas ocultas e favoritos no topo."
 order = 10
 enabled = true

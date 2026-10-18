@@ -205,6 +205,12 @@ que em muitos sistemas é um tmpfs pequeno.
     `snes.core=snes9x2005_plus`), mais leve que o snes9x. Os outros cores de SNES
     continuam instalados: para trocar, escolha o core nas opções do sistema ou do
     jogo no EmulationStation. `snesh` e `snesmsu1` não mudam.
+  - fceumm como core de NES (`nes.emulator=libretro`, `nes.core=fceumm`) em vez do
+    nestopia da base, por ser mais leve para o A33. O nestopia e os outros cores
+    continuam instalados: para voltar, escolha o nestopia nas opções do sistema ou
+    do jogo no EmulationStation. O `fds` não muda. Fica no `/storage`, então só
+    chega com imagem nova ou `--wipe-storage`. Save states do nestopia não carregam
+    no fceumm; saves de bateria (.srm) costumam ser compatíveis.
   - pastas ocultas nas listas de jogos (`FolderViewMode` `never`) e favoritos no
     topo (`FavoritesFirst` `true`). Para voltar, no EmulationStation: Start >
     Configurações da interface (lista de jogos) > mostrar pastas / favoritos primeiro.

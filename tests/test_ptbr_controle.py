@@ -40,6 +40,9 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertEqual(c["snes.core"], "snes9x2005_plus")
         for k in ("snesh.core", "snesmsu1.core"):
             self.assertNotIn(k, c)
+        self.assertEqual(c["nes.emulator"], "libretro")
+        self.assertEqual(c["nes.core"], "fceumm")
+        self.assertNotIn("fds.core", c)
 
     def test_es_settings(self):
         txt = (F10 / "emulationstation" / "es_settings.cfg").read_text()
