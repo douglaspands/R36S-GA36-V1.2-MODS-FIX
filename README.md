@@ -14,6 +14,10 @@ gera uma imagem nova, identificada pelo horário em que foi gerada.
 - Por isso o build **parte sempre da imagem de fábrica** (`base/`), que nunca é
   modificada, e só troca o que é seguro: arquivos do SYSTEM (squashfs), do
   STORAGE (ext4), das ROMs (FAT32) e da partição de boot (FAT16).
+- **Sem rede, SSH nem Wi-Fi: tudo pelo cartão SD.** O aparelho não tem conexão
+  nenhuma. Para pôr ou tirar arquivos (cores, logs, perfis), tire o cartão e leia
+  ou grave no PC: a `R36-ROMS` (FAT32) abre sem root, a `R36-STORAGE` (ext4) tem
+  arquivos do root.
 
 Layout do cartão (setores de 512 bytes):
 
@@ -201,10 +205,13 @@ que em muitos sistemas é um tmpfs pequeno.
   - gpSP como core de GBA (`gba.emulator=libretro`, `gba.core=gpsp`) em vez do
     mGBA; para voltar, escolha o core do GBA nas opções do sistema no
     EmulationStation. A BIOS do GBA continua opcional e não vem na imagem.
-  - snes9x2005_plus como core de SNES (`snes.emulator=libretro`,
-    `snes.core=snes9x2005_plus`), mais leve que o snes9x. Os outros cores de SNES
-    continuam instalados: para trocar, escolha o core nas opções do sistema ou do
-    jogo no EmulationStation. `snesh` e `snesmsu1` não mudam.
+  - snes9x2005_plus recompilado para o A33 como core de SNES
+    (`snes.emulator=libretro`, `snes.core=snes9x2005_plus_a33`, que vem da
+    `53-cores-a33`), mais leve que o snes9x. O snes9x2005_plus original e os outros
+    cores de SNES continuam instalados: para trocar, escolha o core nas opções do
+    sistema ou do jogo no EmulationStation. `snesh` e `snesmsu1` não mudam.
+    Se desligar a `53-cores-a33`, volte esta chave para `snes9x2005_plus` (um
+    teste confere).
   - fceumm como core de NES (`nes.emulator=libretro`, `nes.core=fceumm`) em vez do
     nestopia da base, por ser mais leve para o A33. O nestopia e os outros cores
     continuam instalados: para voltar, escolha o nestopia nas opções do sistema ou
@@ -282,12 +289,13 @@ O zram, os serviços e o `noatime` ficam no SYSTEM e valem com qualquer gravaç�
 dele, inclusive `--part system` ou `--all --keep-storage`. A remoção do swapfile e
 o `swap.conf` ficam no `/storage`, então só chegam com `--wipe-storage`. Com
 `--keep-storage`, o swapfile antigo continua lá, mas só é usado se o zram encher.
-Para apagá-lo à mão (por SSH ou no terminal do aparelho):
+Para apagá-lo à mão, com o cartão no PC e a `R36-STORAGE` montada (os arquivos
+são do root, então os comandos pedem sudo; troque `<ponto>` pelo ponto de
+montagem):
 
 ```bash
-echo 'SWAP_ENABLED="no"' > /storage/.config/swap.conf   # senão o boot recria o swapfile
-swapoff /storage/.cache/swapfile
-rm /storage/.cache/swapfile
+echo 'SWAP_ENABLED="no"' | sudo tee <ponto>/.config/swap.conf   # senão o boot recria o swapfile
+sudo rm <ponto>/.cache/swapfile
 ```
 
 Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
@@ -438,6 +446,27 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     `*_ppsspp.ini`) continuam valendo sobre o global. Pular quadros automático
     segue ligado.
 
+- **`53-cores-a33`**: cores recompilados para o A33 com o `./cores.sh` (veja
+  "Compilar um core"), instalados **ao lado** dos originais em
+  `/usr/lib/libretro`. Hoje é um só:
+  - **`snes9x2005_plus_a33`**: o snes9x2005_plus do mesmo fonte da base,
+    compilado com `-O2`, LTO e `-mcpu=cortex-a7`. É o core padrão do SNES (chave
+    na `10-ptbr-sao-paulo`). No Yoshi's Island usou 10% menos CPU que o original;
+    na tela a diferença não aparece, mas sobra mais folga quando o aparelho
+    esquenta.
+  - O `snes9x2005_plus` original fica intocado e continua na lista de cores do
+    SNES. O `snes9x2005_plus_a33` aparece no fim dessa lista e usa o mesmo nome
+    de biblioteca do original, então as opções do core e os saves são os mesmos.
+  - Na avaliação também foram testados `-O3`, PGO e o `snes9x2010` (`-O2` e
+    `-O3`); todos perderam e ficaram fora da imagem. Receitas, registros e
+    resultados estão em `cores/snes9x2005_plus/` e `cores/snes9x2010/`
+    (`RESULTADOS.md`).
+  - O `.so` e o `.info` ficam no SYSTEM e chegam com `--part system`. A lista de
+    cores (`es_systems.cfg`) e o padrão do SNES (`emuelec.conf`) ficam no
+    `/storage`, então só chegam com `--wipe-storage`. Com `--keep-storage`, o
+    SNES continua no core escolhido antes, e o `snes9x2005_plus_a33` não aparece
+    na lista de cores.
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 
@@ -552,3 +581,51 @@ O Python e as dependências são geridos com [uv](https://docs.astral.sh/uv/)
 (`uv sync`; nada de `pip`). A lógica fica em `tools/r36img/` (Python, só
 biblioteca padrão). Os testes
 lentos usam `work/tests/` para os temporários.
+
+### Compilar um core
+
+O `./cores.sh` compila cores libretro para o A33 a partir de uma receita
+versionada, num container sem root. O `./build.sh` não depende dele: usa os
+binários já commitados em `features/53-cores-a33`.
+
+Pré-requisitos, sem sudo: `podman` rootless (no Fedora já vem configurado),
+`readelf` (binutils) e rede na primeira compilação (imagem `debian:bookworm`
+fixada por digest e o fonte do core, guardado em `work/cache/cores/`). O
+toolchain é o cross-GCC armhf do bookworm, com glibc 2.36, a mesma da base.
+
+```bash
+./cores.sh compilar snes9x2005_plus o3      # compila, confere a ABI, copia para a feature e registra
+./cores.sh verificar                        # ABI e sha256 dos binários commitados contra o registro
+./cores.sh perfil snes9x2005_plus <R36-ROMS>/pgo/snes9x2005_plus   # importa o perfil do PGO
+./cores.sh resumo <R36-ROMS>/r36-thermal.csv --roms <R36-ROMS>      # tabela das sessões
+```
+
+- **`compilar <core> <variante>`**: baixa o fonte do commit da receita (confere o
+  sha256), roda o `make` do upstream com `CC=a33-cc`, um wrapper que acrescenta
+  as flags da variante **depois** das do Makefile, e confere o binário: só
+  bibliotecas que a base tem, `GLIBC_` até 2.36, `GLIBCXX_` até 3.4.29, ARMv7
+  com VFPv4 e hard-float, `retro_*` em modo ARM e sem seções de depuração. Se
+  passar, copia o `.so` para a feature e acrescenta uma linha em
+  `cores/<core>/builds.jsonl` (flags efetivas, versão do GCC, imagem, sha256).
+- **`verificar [<core>]`**: repete a checagem de ABI nos binários commitados e
+  confere que o sha256 de cada um é o do último registro da variante.
+- **`perfil <core> <dir>`**: copia os `.gcda` gravados pelo build instrumentado
+  (`R36-ROMS/pgo/<core>/`, com o cartão no PC) para `cores/<core>/pgo/`,
+  conferindo que há um por objeto, e registra os hashes em `perfil.json`.
+- **`resumo <csv> [--roms <ponto>]`**: lê o `r36-thermal.csv` da `43-registro-termico`
+  e imprime uma tabela Markdown por sessão (`boot`, `core`, `rom`), com duração,
+  ocupação, clock e temperatura; com `--roms`, também o CRC32 e o SHA1 das ROMs.
+
+Para acrescentar um core:
+
+1. Crie `cores/<core>/receita.toml` copiando a do `snes9x2005_plus`: repositório,
+   commit completo, URL do `.tar.gz` do commit e o sha256 dele, os argumentos do
+   `make`, o nome do `.so` que ele gera, o `.info` da base e as variantes (nome
+   do core e flags). Para um core em C++, veja o limite de `GLIBCXX_` no
+   `CLAUDE.md`.
+2. `./cores.sh compilar <core> <variante>` para cada variante.
+3. Em `features/53-cores-a33`, crie o `.info` de cada variante a partir do da
+   base (só `display_name` e `display_version` mudam) e acrescente as `<core>`
+   no `es_systems.cfg` das duas camadas.
+4. Rode os testes e `./cores.sh verificar`, e commite binários, `builds.jsonl` e
+   receita juntos.

@@ -1,0 +1,14 @@
+# Toolchain dos cores do A33: cross-GCC armhf do Debian bookworm, com glibc 2.36
+# (a mesma da imagem base). A origem é fixada por digest; a versão do compilador
+# de cada build fica no builds.jsonl do core. Veja ./cores.sh --help.
+FROM docker.io/library/debian:bookworm@sha256:bc49dc1918ee1a47a93e65b5e4676e8680fb754b133197b92ca52bfe6731d5f0
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      gcc-arm-linux-gnueabihf libc6-dev-armhf-cross make \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY a33-cc /usr/local/bin/a33-cc
+RUN chmod 0755 /usr/local/bin/a33-cc
+
+WORKDIR /build/src

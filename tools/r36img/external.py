@@ -32,28 +32,34 @@ def _sha256_of(path) -> str:
 
 def fetch(feature, ext, cache) -> Path:
     """Garante o arquivo no cache (baixando se preciso) e devolve o caminho."""
+    return download(f"feature '{feature.id}'", ext.url, ext.sha256, cache)
+
+
+def download(who, url, sha256, cache) -> Path:
+    """Baixa `url` para `cache/<sha256>.tar.gz` conferindo o sha256; com o arquivo já no
+    cache, só confere (sem rede). `who` abre as mensagens de erro."""
     cache = Path(cache)
-    dst = cached_path(cache, ext)
+    dst = cache / f"{sha256}.tar.gz"
     if dst.is_file():
         got = _sha256_of(dst)
-        if got != ext.sha256:
-            raise R36Error(f"feature '{feature.id}': o cache {dst} está corrompido "
-                           f"(sha256 {got}, esperado {ext.sha256}); apague-o e rode de novo")
+        if got != sha256:
+            raise R36Error(f"{who}: o cache {dst} está corrompido "
+                           f"(sha256 {got}, esperado {sha256}); apague-o e rode de novo")
         return dst
     cache.mkdir(parents=True, exist_ok=True)
-    tmp = cache / f".{ext.sha256}.{os.getpid()}.part"
+    tmp = cache / f".{sha256}.{os.getpid()}.part"
     h = hashlib.sha256()
     try:
         try:
-            with urllib.request.urlopen(ext.url, timeout=60) as resp, open(tmp, "wb") as out:
+            with urllib.request.urlopen(url, timeout=60) as resp, open(tmp, "wb") as out:
                 for chunk in iter(lambda: resp.read(1 << 20), b""):
                     h.update(chunk)
                     out.write(chunk)
         except (urllib.error.URLError, OSError, ValueError) as e:
-            raise R36Error(f"feature '{feature.id}': falha ao baixar {ext.url}: {e}")
-        if h.hexdigest() != ext.sha256:
-            raise R36Error(f"feature '{feature.id}': sha256 divergente para {ext.url}\n"
-                           f"  esperado: {ext.sha256}\n  recebido: {h.hexdigest()}")
+            raise R36Error(f"{who}: falha ao baixar {url}: {e}")
+        if h.hexdigest() != sha256:
+            raise R36Error(f"{who}: sha256 divergente para {url}\n"
+                           f"  esperado: {sha256}\n  recebido: {h.hexdigest()}")
         os.replace(tmp, dst)
     finally:
         if tmp.exists():
@@ -68,23 +74,30 @@ def _strip(name, n):
 
 def extract(feature, ext, archive, dest):
     """Extrai `archive` em `dest` aplicando strip/exclude, recusando entradas inseguras."""
+    return extract_tar(f"feature '{feature.id}': {ext.url}", archive, dest, ext.strip, ext.exclude)
+
+
+def extract_tar(who, archive, dest, strip=0, exclude=()):
+    """Extrai um .tar.gz em `dest` (que não pode existir), tirando `strip` níveis do início e
+    pulando os padrões de `exclude`. Recusa caminhos absolutos, `..`, hard links e o que o
+    filtro "data" do tarfile recusa. `who` abre as mensagens de erro."""
     dest = Path(dest)
     dest.mkdir(parents=True)
     with tarfile.open(archive) as tar:
         for m in tar:
-            name = _strip(m.name, ext.strip)
+            name = _strip(m.name, strip)
             if name is None:
                 continue
             if ".." in name.split("/") or m.name.startswith("/"):
-                raise R36Error(f"feature '{feature.id}': {ext.url}: entrada recusada: {m.name!r} (caminho inseguro)")
+                raise R36Error(f"{who}: entrada recusada: {m.name!r} (caminho inseguro)")
             if m.islnk():
-                raise R36Error(f"feature '{feature.id}': {ext.url}: entrada recusada: {m.name!r} (hard link)")
-            if any(fnmatch.fnmatch(name, pat) for pat in ext.exclude):
+                raise R36Error(f"{who}: entrada recusada: {m.name!r} (hard link)")
+            if any(fnmatch.fnmatch(name, pat) for pat in exclude):
                 continue
             try:
                 tar.extract(m.replace(name=name, deep=False), dest, filter="data")
             except tarfile.FilterError as e:
-                raise R36Error(f"feature '{feature.id}': {ext.url}: entrada recusada: {m.name!r} ({e})")
+                raise R36Error(f"{who}: entrada recusada: {m.name!r} ({e})")
     return dest
 
 

@@ -1,2 +1,5 @@
 # Telas em RGB24 cru: sem conversão de fim de linha nem diff de texto.
 *.raw binary
+# Cores recompilados e perfis do PGO (cores/, features/53-cores-a33/).
+*.so binary
+*.gcda binary

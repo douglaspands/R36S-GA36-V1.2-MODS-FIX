@@ -37,7 +37,7 @@ class PtBrSaoPaulo(unittest.TestCase):
         for k in ("cps1.core", "cps3.core", "fbn.core"):
             self.assertNotIn(k, c)
         self.assertEqual(c["snes.emulator"], "libretro")
-        self.assertEqual(c["snes.core"], "snes9x2005_plus")
+        self.assertEqual(c["snes.core"], "snes9x2005_plus_a33")  # da 53-cores-a33 (test_cores_a33)
         for k in ("snesh.core", "snesmsu1.core"):
             self.assertNotIn(k, c)
         self.assertEqual(c["nes.emulator"], "libretro")

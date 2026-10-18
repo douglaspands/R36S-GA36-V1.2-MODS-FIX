@@ -1,0 +1,41 @@
+{
+  "data": "2026-10-18T00:45:14",
+  "origem": "/run/media/douglas/R36-ROMS/pgo/snes9x2005_plus",
+  "treino": {
+    "variante": "pgo_treino",
+    "sha256": "637d28498c0df100a42fb3d8611e660673f78e1743743c922ecd6ec0e8f2da29"
+  },
+  "arquivos": {
+    "#build#src#libretro.gcda": "dbfea019b4a34e0b6f35eb680f69912684d39dcb6ec27755343d12a8c99dcbb8",
+    "#build#src#source#apu_blargg.gcda": "8e4b0b029023d2408c9d7661cb418ab6b943852caa30118fcc24a9d7452c0cfa",
+    "#build#src#source#c4.gcda": "1ed1f2fdbd5639cb5e4af49fe51346621b98458e4190055636c92a1f9256b5cb",
+    "#build#src#source#c4emu.gcda": "e0f27f4580b73fefe82bd76b5cf1d1bc0c9a308d4d643324d8ac007630243004",
+    "#build#src#source#cheats.gcda": "9993c121e38aba2e3a9f7b73be30946ffd28f001322b26c809a408775725200d",
+    "#build#src#source#cheats2.gcda": "4bedc83ea21f79a279a1aaa6f0d50ff23b69a2bcdd0b7c3d7b8dd5a9256b0abf",
+    "#build#src#source#clip.gcda": "5cbcb78936d93479831265002ef608a94442aa9e6a85a787bbc2c09d8e85bc2d",
+    "#build#src#source#cpu.gcda": "1d87919ac6f92423a36409a22a041587644ef1c4fd1ced4e364607ed4398a211",
+    "#build#src#source#cpuexec.gcda": "2365b49f0c1aef1d5d39fa01efb05e268cd9322f64360f48465ce5c0a1bbf732",
+    "#build#src#source#cpuops.gcda": "29862408f68458effa9e7efe7934ae472bad74ba5da25201ab8d24d40584d67e",
+    "#build#src#source#dma.gcda": "9c9a26c8841b39bc9a41f7eb39a32e583b84a1e7addcb14fabd938eb3e64a07e",
+    "#build#src#source#dsp1.gcda": "80b15c9a5d52bef4e3c3342a07309d0cde465758c380f546f6d4f6efa4493294",
+    "#build#src#source#fxemu.gcda": "46e042c652f92b34a46c43f91c8341835cad3917ae58fe530470692f9772840d",
+    "#build#src#source#fxinst.gcda": "523769c87236278890119f5470d357ad072c7e4e3e21573d1410df62ce1f1112",
+    "#build#src#source#getset.gcda": "2f0a3b9c371866beebf26e1039a9f3683ad85746b42e247a57143a993adb91c2",
+    "#build#src#source#gfx.gcda": "771ec78953952e207969e35954d25173ceb623a259a2e9e8a7b96654013db47e",
+    "#build#src#source#memmap.gcda": "1d484e9b7fc9135081274b67b2f4f040398393acdb275467a03adcd708758bbc",
+    "#build#src#source#obc1.gcda": "db4caca857a69b1fc73edf96d9063013aca788bc9748ed24831f45fc8feeede1",
+    "#build#src#source#ppu.gcda": "e681864fd403d07748b742f45a5d4c03e135a6ab22c12386a7ff3be58d3b47ac",
+    "#build#src#source#sa1.gcda": "bf86774d0fa10b7937f43bb40f841c726a78eb509c72d932068cf2af4305651a",
+    "#build#src#source#sa1cpu.gcda": "77479673969bf8e2d2168e4d75436813e6c92d2c7f07b26655709656fdd37ea8",
+    "#build#src#source#sdd1.gcda": "66dd78eaae3252582c6bc35b1f8e5542028d02bb1abce899c077ef1910706b3a",
+    "#build#src#source#sdd1emu.gcda": "861b498b61644a377d198603eff70ce97f7615228d7e4885980fd42c8d840e83",
+    "#build#src#source#seta.gcda": "a2a5a19f6cf27491d93b09334ec189b55a8e16c5ac1427488580db04e3ea004b",
+    "#build#src#source#seta010.gcda": "864b55dfa2a8f307e6a62a93d756e062597c1d43c70110e509dc31b6aa118913",
+    "#build#src#source#seta011.gcda": "745957620f1fcb2282b80a9c0d5576a307ea03d2bd22d289f7155777ae261062",
+    "#build#src#source#seta018.gcda": "d08515f285d0f8d52ed03180d8142a53e776f8d96314b1759c29b34f8d2db8c0",
+    "#build#src#source#spc7110.gcda": "8457eff12cd74290e840946362b22a87a648767af4f972c6f4b0416702f1e102",
+    "#build#src#source#spc7110dec.gcda": "719a8e899f2e6b1fc687de2d212bdbf41c60d33c68b20ca5a948f63f2ee21df5",
+    "#build#src#source#srtc.gcda": "4abc2d0a87d52d81c830aaf3f6d6a293a94f1ae725d3d865047041a14d731084",
+    "#build#src#source#tile.gcda": "3e5cb471a3683ce7a4b61588e828355ceb17eaf356afe52d3a55557e136e6e3c"
+  }
+}

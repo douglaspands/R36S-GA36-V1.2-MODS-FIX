@@ -1,0 +1,14 @@
+# Cores libretro recompilados para o A33 (Cortex-A7) com ./cores.sh, ao lado dos
+# originais da base, sem substituí-los. Hoje: snes9x2005_plus_a33, a variante o2
+# vencedora da avaliação (cores/snes9x2005_plus/RESULTADOS.md), que é o padrão do
+# SNES pela emuelec.conf da 10-ptbr-sao-paulo.
+# Os .so vêm de cores/<core>/ (receita e builds.jsonl); os .info e o
+# es_systems.cfg são derivados dos da base (tests/test_cores_a33.py confere).
+# O es_systems.cfg vai nas duas camadas: o ES lê o do /storage, que só chega
+# com --wipe-storage; o do SYSTEM cobre um /storage recriado.
+
+schema = 1
+name = "Cores A33"
+description = "snes9x2005_plus recompilado para o A33 (-O2, LTO, Cortex-A7) como snes9x2005_plus_a33, ao lado do original; é o core padrão do SNES."
+order = 53
+enabled = true
