@@ -32,6 +32,9 @@ def run(cmd, *, env=None, input=None, check=True, capture=True, text=True):
             input=input,
             capture_output=capture,
             text=text,
+            # nomes de arquivo FAT podem vir em outra codificação (ex.: 0xc9); surrogateescape
+            # preserva os bytes e volta intacto ao passar o nome como argumento
+            errors="surrogateescape" if text else None,
         )
     except FileNotFoundError:
         raise R36Error(f"comando não encontrado: {cmd[0]}")

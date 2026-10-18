@@ -1,0 +1,12 @@
+# Tema NES-BOX-V2: cópia do NES-BOX da imagem base mais uma pasta para cada
+# sistema do es_systems.cfg que o NES-BOX não cobre. O NES-BOX continua sendo o
+# tema padrão e não é alterado. A cópia do NES-BOX não entra no git: rode
+# features/51-tema-nes-box-v2/gerar.sh antes de gerar a imagem.
+# Escolha no aparelho: Menu > Configurações da interface > Tema.
+# Fica no /storage, então só chega com --wipe-storage.
+
+schema = 1
+name = "Tema NES-BOX-V2"
+description = "NES-BOX com logo e arte de personagem para os sistemas que o tema original não cobre."
+order = 51
+enabled = true

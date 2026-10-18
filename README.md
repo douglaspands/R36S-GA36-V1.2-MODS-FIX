@@ -353,7 +353,9 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   - Fica no SYSTEM, então vale com qualquer gravação dele.
 
 - **`50-temas-extras`**: quatro temas do EmulationStation instalados na p8 ao lado
-  do NES-BOX, que continua sendo o padrão: **Minimal EmuELEC**, **Switch**,
+  do NES-BOX, que continua sendo o padrão (o NES-BOX não cobre 15 sistemas da
+  imagem; o `51-tema-nes-box-v2` abaixo completa essa lacuna num tema à parte):
+  **Minimal EmuELEC**, **Switch**,
   **Graphite OGA** e **Crystal**. Somam cerca de 348 MiB (limite de 400 MiB,
   conferido pelo build). Não entram no git: o build baixa cada um de um commit
   fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira vez
@@ -367,6 +369,43 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     gravado com `--keep-storage`, troque de tema se um GPi estiver ativo e depois
     apague pelo PC os três diretórios `Mario (GPi)`, `Sonic (GPi)` e
     `Crash (GPi)` de `.config/emulationstation/themes/`.
+
+- **`51-tema-nes-box-v2`**: o tema **NES-BOX-V2**, instalado na p8 ao lado do
+  NES-BOX. O NES-BOX continua sendo o padrão e não muda. O V2 é uma cópia dele
+  (cerca de 21 MiB, tirada da própria imagem base) mais uma pasta para cada um dos
+  15 sistemas do `es_systems.cfg` que o NES-BOX não cobre, que no original aparecem
+  sem logo e sem arte de personagem: `pce-cd`, `tic-80`, `sharpx1`, `prboom`,
+  `ecwolf`, `megadrivemsu`, `ggh`, `wii`, `pgm2`, `fmtmarty`, `mplayer`,
+  `freej2me`, `gmloader`, `karaoke` e `imageviewer`.
+  - Sete deles só diferem de um sistema existente no nome e apontam para a arte
+    dele (`pce-cd` usa a de `pcenginecd`, e assim por diante). Os outros oito têm
+    arte própria: logo oficial quando existe (`wii`, `pgm2`, `fmtmarty`, `mplayer`,
+    `gmloader`), arte de personagem do Wikimedia Commons (`wii`, `fmtmarty`) e o
+    resto criado (ícone temático com o nome, ou círculo com ícone). Cada arquivo tem
+    origem registrada em `features/51-tema-nes-box-v2/LEIA-ME.txt`.
+  - Para escolher: no EmulationStation, Start > Configurações da interface > Tema >
+    NES-BOX-V2.
+  - Fica no `/storage`, então só chega com `--wipe-storage`. Com `--keep-storage`,
+    copie pelo PC: monte a partição ext4 `R36-STORAGE` do cartão e copie o diretório
+    `NES-BOX-V2` de `.config/emulationstation/themes/` de um build para o mesmo
+    caminho dela.
+  - A cópia do NES-BOX **não está no git**: o Readme do tema (Travis Wilson) proíbe
+    compartilhar versões modificadas e reusar os gráficos em outros projetos, então
+    é para uso pessoal nesta imagem. Depois de clonar o repositório, e antes de
+    gerar a imagem, rode (precisa da imagem base em `base/`, de `debugfs`, de
+    ImageMagick 7 e de `uv`):
+
+    ```bash
+    features/51-tema-nes-box-v2/gerar.sh
+    ```
+
+    O mesmo comando refaz as pastas novas e o `LEIA-ME.txt` a partir do
+    `fontes.toml`. A arte oficial é baixada uma vez para `work/cache/nes-box-v2/`
+    (sha256 conferido); o build não baixa nada e funciona com `--offline`.
+  - O teste `tests/test_tema_nes_box_v2.py` cruza o `es_systems.cfg` da base com o
+    V2 e falha se faltar pasta, arquivo de imagem, origem ou o `gerar.sh` não tiver
+    sido rodado.
+  - Para desligar, ponha `enabled = false` no `feature.toml`.
 
 - **`52-psp-desempenho`**: o `ppsspp.ini` global (PPSSPP standalone) fica mais
   leve para o A33 (4x Cortex-A7, Mali-400 MP2), valendo para qualquer jogo de

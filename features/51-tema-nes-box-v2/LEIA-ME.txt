@@ -1,0 +1,91 @@
+Tema NES-BOX-V2
+===============
+
+Cópia do NES-BOX da imagem base (tema padrão, que continua intacto) mais uma pasta
+para cada sistema do es_systems.cfg que o NES-BOX não cobre. Escolha no aparelho:
+Menu > Configurações da interface > Tema > NES-BOX-V2. Fica no /storage, então só
+chega ao cartão com --wipe-storage. Para desligar: enabled = false no feature.toml.
+
+A cópia do NES-BOX não está no git: o Readme do tema (Travis Wilson) proíbe
+compartilhar versões modificadas e reusar os gráficos em outros projetos. Uso
+pessoal nesta imagem. Rode ./gerar.sh (precisa da imagem base em base/, de debugfs,
+ImageMagick 7 e uv) para recriar a cópia, as pastas novas e este arquivo.
+Logos e personagens de terceiros são marcas e obras dos donos, também para uso pessoal.
+Os ícones das artes criadas são do Lucide (ISC), em fonte-<nome>.svg.
+
+Origem da arte acrescentada
+---------------------------
+
+Pasta por referência (só theme.xml, aponta para a arte da pasta equivalente do V2):
+  pce-cd         -> pcenginecd
+  tic-80         -> tic80
+  sharpx1        -> x1
+  prboom         -> doom
+  ecwolf         -> wolf
+  megadrivemsu   -> megadrive
+  ggh            -> gamegear
+
+Arte própria (oficial = baixada, com URL e sha256; criado = feito pelo gerar.sh):
+
+  wii
+    system.png: oficial
+      fonte:  Wikimedia Commons, File:Wii.svg (logo da Nintendo, domínio público, marca registrada)
+      url:    https://upload.wikimedia.org/wikipedia/commons/b/bc/Wii.svg
+      sha256: f7890d3a836e3cca1b81aea8cf28ffd4b3f5015ff3ae10ce15282650ecac1702
+    background_icon.png: oficial
+      fonte:  Wikimedia Commons, File:Wii-Console.png (console com Wii Remote, domínio público)
+      url:    https://upload.wikimedia.org/wikipedia/commons/f/f3/Wii-Console.png
+      sha256: f1e0ae680f45c60580f9250b5a05e36bb78a24b97e4d6d7f576297c37cd5cc1d
+
+  pgm2
+    system.png: oficial
+      fonte:  Wikimedia Commons, File:International Games System logo 2024.png (logo da IGS, fabricante do PGM2, domínio público, marca registrada)
+      url:    https://upload.wikimedia.org/wikipedia/commons/e/ee/International_Games_System_logo_2024.png
+      sha256: 239e8193cd143aaaeea270b9d832bb956d08cd825f03852ab925ec236c2e3413
+    background_icon.png: criado
+      motivo: sem arte de personagem ou do aparelho com origem livre; ilustração de fliperama criada
+
+  fmtmarty
+    system.png: oficial
+      fonte:  Wikimedia Commons, File:FM Towns Marty Logo.png (domínio público, marca registrada)
+      url:    https://upload.wikimedia.org/wikipedia/commons/c/c4/FM_Towns_Marty_Logo.png
+      sha256: c1769ef55e4f883806c0de95022e4d8a9d2b56c939bb6c5dea12785a85f94e84
+      ajuste: fundo-branco
+    background_icon.png: oficial
+      fonte:  Wikimedia Commons, File:FM-Towns-Marty-Console-Set.png (console com controle, domínio público)
+      url:    https://upload.wikimedia.org/wikipedia/commons/d/d0/FM-Towns-Marty-Console-Set.png
+      sha256: a983d83725b2e9540081675649ca7a1384c246cf8915ef6d1730577b0e5a6fea
+
+  mplayer
+    system.png: oficial
+      fonte:  Wikimedia Commons, File:MPlayer.svg (logo do projeto MPlayer, GPL)
+      url:    https://upload.wikimedia.org/wikipedia/commons/8/81/MPlayer.svg
+      sha256: 2ad29de9705910a24865c7f36768ff11e0e4d3f1c4e4f96c3c6d6fffda30c340
+    background_icon.png: criado
+      motivo: o projeto não publica personagem nem arte; ilustração de tela de vídeo criada
+
+  freej2me
+    system.png: criado
+      motivo: o projeto FreeJ2ME não tem logo com origem livre; logo criado com ícone de celular e o nome
+    background_icon.png: criado
+      motivo: sem arte; ilustração de celular com jogo Java criada
+
+  gmloader
+    system.png: oficial
+      fonte:  Wikimedia Commons, File:Logo GameMaker.svg (logo do GameMaker, motor dos jogos que o gmloader roda, domínio público, marca registrada)
+      url:    https://upload.wikimedia.org/wikipedia/commons/9/96/Logo_GameMaker.svg
+      sha256: d615dec86c709d507d1ae70b58bbdaae7553964a8879b889a4d93e1265a3c240
+    background_icon.png: criado
+      motivo: o gmloader não tem personagem próprio; ilustração de controle de jogo criada
+
+  karaoke
+    system.png: criado
+      motivo: karaokê não é produto com logo; logo criado com ícone de microfone e o nome
+    background_icon.png: criado
+      motivo: sem arte; ilustração de microfone criada
+
+  imageviewer
+    system.png: criado
+      motivo: visualizador de imagens não é produto com logo; logo criado com ícone de imagem e o nome
+    background_icon.png: criado
+      motivo: sem arte; ilustração de moldura de foto criada

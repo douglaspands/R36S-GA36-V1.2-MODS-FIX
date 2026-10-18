@@ -1,0 +1,162 @@
+# Origem da arte acrescentada ao NES-BOX-V2. Lido pelo gerar.sh e pelo teste
+# tests/test_tema_nes_box_v2.py.
+#
+# [referencias]: sistemas que só diferem de um existente no nome. A pasta nova
+# tem só o theme.xml, apontando para a arte da pasta equivalente do V2.
+#
+# [[arte]]: um item por arquivo de arte nova (sistema, arquivo, tipo, e para
+# "oficial" a url e o sha256 do arquivo baixado).
+
+[referencias]
+"pce-cd" = "pcenginecd"
+"tic-80" = "tic80"
+"sharpx1" = "x1"
+"prboom" = "doom"
+"ecwolf" = "wolf"
+"megadrivemsu" = "megadrive"
+"ggh" = "gamegear"
+
+# Campos de [[arte]]:
+#   sistema, arquivo (system.png ou background_icon.png), tipo ("oficial" ou "criado").
+#   oficial: url, sha256 do arquivo baixado, cache (nome dele em work/cache/nes-box-v2/),
+#            fonte (quem publica, e a licença) e ajuste opcional ("fundo-branco" tira o fundo branco).
+#   criado:  motivo (por que não usou arte oficial), icone (fonte-<icone>.svg, Lucide, ISC),
+#            texto (nome no logo) ou cor (fundo do círculo da arte de personagem).
+# Toda a arte oficial veio do Wikimedia Commons (logos de marca com a restrição
+# "trademarked": uso pessoal nesta imagem, como descrito no LEIA-ME.txt).
+
+[[arte]]
+sistema = "wii"
+arquivo = "system.png"
+tipo = "oficial"
+cache = "Wii.svg"
+url = "https://upload.wikimedia.org/wikipedia/commons/b/bc/Wii.svg"
+sha256 = "f7890d3a836e3cca1b81aea8cf28ffd4b3f5015ff3ae10ce15282650ecac1702"
+fonte = "Wikimedia Commons, File:Wii.svg (logo da Nintendo, domínio público, marca registrada)"
+
+[[arte]]
+sistema = "wii"
+arquivo = "background_icon.png"
+tipo = "oficial"
+cache = "Wii-Console.png"
+url = "https://upload.wikimedia.org/wikipedia/commons/f/f3/Wii-Console.png"
+sha256 = "f1e0ae680f45c60580f9250b5a05e36bb78a24b97e4d6d7f576297c37cd5cc1d"
+fonte = "Wikimedia Commons, File:Wii-Console.png (console com Wii Remote, domínio público)"
+
+[[arte]]
+sistema = "pgm2"
+arquivo = "system.png"
+tipo = "oficial"
+cache = "International_Games_System_logo_2024.png"
+url = "https://upload.wikimedia.org/wikipedia/commons/e/ee/International_Games_System_logo_2024.png"
+sha256 = "239e8193cd143aaaeea270b9d832bb956d08cd825f03852ab925ec236c2e3413"
+fonte = "Wikimedia Commons, File:International Games System logo 2024.png (logo da IGS, fabricante do PGM2, domínio público, marca registrada)"
+
+[[arte]]
+sistema = "pgm2"
+arquivo = "background_icon.png"
+tipo = "criado"
+motivo = "sem arte de personagem ou do aparelho com origem livre; ilustração de fliperama criada"
+icone = "joystick"
+cor = "#d93a3a"
+
+[[arte]]
+sistema = "fmtmarty"
+arquivo = "system.png"
+tipo = "oficial"
+cache = "FM_Towns_Marty_Logo.png"
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c4/FM_Towns_Marty_Logo.png"
+sha256 = "c1769ef55e4f883806c0de95022e4d8a9d2b56c939bb6c5dea12785a85f94e84"
+fonte = "Wikimedia Commons, File:FM Towns Marty Logo.png (domínio público, marca registrada)"
+ajuste = "fundo-branco"
+
+[[arte]]
+sistema = "fmtmarty"
+arquivo = "background_icon.png"
+tipo = "oficial"
+cache = "FM-Towns-Marty-Console-Set.png"
+url = "https://upload.wikimedia.org/wikipedia/commons/d/d0/FM-Towns-Marty-Console-Set.png"
+sha256 = "a983d83725b2e9540081675649ca7a1384c246cf8915ef6d1730577b0e5a6fea"
+fonte = "Wikimedia Commons, File:FM-Towns-Marty-Console-Set.png (console com controle, domínio público)"
+
+[[arte]]
+sistema = "mplayer"
+arquivo = "system.png"
+tipo = "oficial"
+cache = "MPlayer.svg"
+url = "https://upload.wikimedia.org/wikipedia/commons/8/81/MPlayer.svg"
+sha256 = "2ad29de9705910a24865c7f36768ff11e0e4d3f1c4e4f96c3c6d6fffda30c340"
+fonte = "Wikimedia Commons, File:MPlayer.svg (logo do projeto MPlayer, GPL)"
+
+[[arte]]
+sistema = "mplayer"
+arquivo = "background_icon.png"
+tipo = "criado"
+motivo = "o projeto não publica personagem nem arte; ilustração de tela de vídeo criada"
+icone = "clapperboard"
+cor = "#4b3a8c"
+
+[[arte]]
+sistema = "freej2me"
+arquivo = "system.png"
+tipo = "criado"
+motivo = "o projeto FreeJ2ME não tem logo com origem livre; logo criado com ícone de celular e o nome"
+icone = "smartphone"
+texto = "FreeJ2ME"
+
+[[arte]]
+sistema = "freej2me"
+arquivo = "background_icon.png"
+tipo = "criado"
+motivo = "sem arte; ilustração de celular com jogo Java criada"
+icone = "smartphone"
+cor = "#e8710a"
+
+[[arte]]
+sistema = "gmloader"
+arquivo = "system.png"
+tipo = "oficial"
+cache = "Logo_GameMaker.svg"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/96/Logo_GameMaker.svg"
+sha256 = "d615dec86c709d507d1ae70b58bbdaae7553964a8879b889a4d93e1265a3c240"
+fonte = "Wikimedia Commons, File:Logo GameMaker.svg (logo do GameMaker, motor dos jogos que o gmloader roda, domínio público, marca registrada)"
+
+[[arte]]
+sistema = "gmloader"
+arquivo = "background_icon.png"
+tipo = "criado"
+motivo = "o gmloader não tem personagem próprio; ilustração de controle de jogo criada"
+icone = "gamepad-2"
+cor = "#2f3640"
+
+[[arte]]
+sistema = "karaoke"
+arquivo = "system.png"
+tipo = "criado"
+motivo = "karaokê não é produto com logo; logo criado com ícone de microfone e o nome"
+icone = "mic-vocal"
+texto = "Karaoke"
+
+[[arte]]
+sistema = "karaoke"
+arquivo = "background_icon.png"
+tipo = "criado"
+motivo = "sem arte; ilustração de microfone criada"
+icone = "mic-vocal"
+cor = "#d6336c"
+
+[[arte]]
+sistema = "imageviewer"
+arquivo = "system.png"
+tipo = "criado"
+motivo = "visualizador de imagens não é produto com logo; logo criado com ícone de imagem e o nome"
+icone = "image"
+texto = "Image Viewer"
+
+[[arte]]
+sistema = "imageviewer"
+arquivo = "background_icon.png"
+tipo = "criado"
+motivo = "sem arte; ilustração de moldura de foto criada"
+icone = "image"
+cor = "#1c9aa8"
