@@ -1,0 +1,10 @@
+# Executáveis dos ports rodam de uma cópia na p8, nunca da p1 (FAT32).
+# A p1 não guarda permissão de execução e pode estar montada com noexec: no boot,
+# cada ELF e biblioteca .so de /storage/roms/ports recebe por cima (mount --bind)
+# uma cópia 0755 guardada em /storage/.config/r36-ports-exec.
+
+schema = 1
+name = "Executáveis dos ports"
+description = "Copiar um port pelo PC e jogar: no boot, os executáveis de ports/ rodam de uma cópia na p8 montada por cima do arquivo da p1."
+order = 58
+enabled = true

@@ -28,7 +28,7 @@ BUILD_SCRIPT = ROOT / "ports" / "classicube" / "compilar.sh"
 SYSTEM_DIR = FEATURE_DIR / "system"
 SYSTEM_SHARE_DIR = SYSTEM_DIR / "usr" / "share" / "classicube"
 SYSTEM_PORTS_DIR = SYSTEM_SHARE_DIR / "ports_scripts"
-BINARY = SYSTEM_SHARE_DIR / "ClassiCube"
+BINARY = PORT_DIR / "ClassiCube"
 SYNC_SCRIPT = SYSTEM_DIR / "usr" / "lib" / "r36" / "classicube-sync"
 SERVICE_FILE = SYSTEM_DIR / "usr" / "lib" / "systemd" / "system" / "r36-classicube-sync.service"
 SERVICE_WANTS_LINK = (
@@ -121,8 +121,8 @@ class TestPortClassiCube(unittest.TestCase):
         bin_conteudo = BINARY.read_bytes()
         self.assertIn(b"/usr/config/SDL-GameControllerDB/gamecontrollerdb.txt", bin_conteudo)
 
-        # O binário fica só no SYSTEM; a p1 não leva cópia
-        self.assertFalse((PORT_DIR / "ClassiCube").exists(), "Binário duplicado em roms/ports/classicube/")
+        # O binário é entregue na p1, como o de qualquer port; o SYSTEM não leva cópia
+        self.assertFalse((SYSTEM_SHARE_DIR / "ClassiCube").exists(), "Binário duplicado em system/usr/share/classicube/")
 
     @needs_base
     def test_binary_libraries_against_base(self):
@@ -146,7 +146,7 @@ class TestPortClassiCube(unittest.TestCase):
         self.assertIn("SDL_GAMECONTROLLERCONFIG", conteudo)
         self.assertIn("/storage/roms/ports/classicube", conteudo)
         self.assertIn("/usr/share/classicube", conteudo)
-        self.assertIn('BIN="$SHARE_DIR/ClassiCube"', conteudo)
+        self.assertIn('BIN="$PORT_DIR/ClassiCube"', conteudo)
         self.assertNotIn("/tmp/classicube", conteudo)
         self.assertNotIn("SDL_GAMECONTROLLERCONFIG_FILE", conteudo)
         self.assertIn("--singleplayer", conteudo)
@@ -179,6 +179,63 @@ class TestPortClassiCube(unittest.TestCase):
     def test_launcher_sensibilidade_ausente_recebe_padrao_novo(self):
         depois = self.roda_regra_sensibilidade("viewdist = 96\n")
         self.assertEqual(depois, "viewdist = 96\nmousesensitivity = 120\n")
+
+    def roda_lancador(self, binario=None, modo=0o755):
+        """Roda o ClassiCube.sh com R36_ROOT temporário; binario é o texto de um script de shell."""
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            (raiz / "usr" / "share").mkdir(parents=True)
+            os.symlink(SYSTEM_SHARE_DIR, raiz / "usr" / "share" / "classicube")
+            porta = raiz / "storage" / "roms" / "ports" / "classicube"
+            porta.mkdir(parents=True)
+            if binario is not None:
+                (porta / "ClassiCube").write_text(binario, encoding="utf-8")
+                (porta / "ClassiCube").chmod(modo)
+            proc = subprocess.run(
+                ["bash", str(LAUNCHER)], capture_output=True, text=True, timeout=60,
+                env={"PATH": os.environ["PATH"], "R36_ROOT": str(raiz)},
+            )
+            log, aberturas = porta / "log.txt", porta / "exec.txt"
+            return (
+                proc,
+                log.read_text(encoding="utf-8") if log.is_file() else "",
+                aberturas.read_text(encoding="utf-8") if aberturas.is_file() else "",
+                str(porta),
+            )
+
+    def test_launcher_executa_o_binario_da_p1(self):
+        proc, log, aberturas, porta = self.roda_lancador('#!/bin/sh\necho "$PWD|$*" >> "$PWD/exec.txt"\n')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertNotIn("ClassiCube:", proc.stdout)
+        self.assertEqual(log, "")
+        self.assertEqual(aberturas, f"{porta}|--singleplayer\n")
+
+    def test_launcher_binario_ausente_avisa_e_sai_com_0(self):
+        proc, log, _, _ = self.roda_lancador(None)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("ClassiCube: binário ausente", proc.stdout)
+        self.assertIn("binário ausente", log)
+
+    def test_launcher_binario_sem_permissao_avisa(self):
+        proc, log, _, _ = self.roda_lancador("#!/bin/sh\nexit 0\n", modo=0o644)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("código 126", proc.stdout)
+        self.assertIn("r36-ports-exec.log", log)
+
+    def test_launcher_interpretador_ausente_avisa(self):
+        proc, log, _, _ = self.roda_lancador("#!/caminho/que/nao/existe\n")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("recusou o binário", proc.stdout)
+        self.assertIn("r36-ports-exec.log", log)
+
+    def test_launcher_codigo_de_saida_do_jogo_nao_reabre(self):
+        proc, log, aberturas, porta = self.roda_lancador(
+            '#!/bin/sh\necho "$PWD|$*" >> "$PWD/exec.txt"\nexit 3\n'
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertNotIn("ClassiCube:", proc.stdout)
+        self.assertEqual(log, "")
+        self.assertEqual(aberturas.splitlines(), [f"{porta}|--singleplayer"])
 
     def test_options_preset(self):
         self.assertTrue(OPTIONS.is_file(), "options.txt ausente")

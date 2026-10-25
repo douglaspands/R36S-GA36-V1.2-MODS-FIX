@@ -450,6 +450,33 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     versão de teste anterior com `--wipe-storage`, ela deixou presets que
     mantêm o shader ligado; gravar a p8 de novo com `--wipe-storage` os remove.
 
+- **`58-ports-exec`**: copiar um port pelo PC e jogar. A p1 (FAT32) não guarda
+  permissão de execução e pode estar montada com `noexec`, então o
+  `r36-ports-exec.service` prepara os executáveis no boot, antes do
+  EmulationStation.
+  - Para cada arquivo ELF (executáveis e bibliotecas `.so`) dentro de
+    `R36-ROMS/ports/` (até 4 níveis de pasta), guarda uma cópia com permissão
+    de execução na p8, em `/storage/.config/r36-ports-exec/<sha256>`, e a monta
+    por cima do arquivo da p1 (`mount --bind`). O script do port segue
+    chamando o mesmo caminho, mas o processo roda da cópia. Nenhum script de
+    port precisa de edição, e saves, mapas e opções continuam sendo gravados
+    na p1, visíveis no PC.
+  - **Instalar um port**: copie o script para `R36-ROMS/ports_scripts/` e a
+    pasta do port (binário e dados) para `R36-ROMS/ports/<nome>/`, e ligue o
+    aparelho. O port aparece no menu "Ports" e executa; não há build nem
+    gravação do SYSTEM, e a imagem não guarda lista de ports.
+  - **Trocar um binário**: copie o novo por cima pelo PC e religue. A cópia é
+    pelo conteúdo (sha256), então o binário novo vira uma cópia nova e a
+    antiga é apagada, assim como as de ports removidos.
+  - **Log**: `R36-ROMS/ports/r36-ports-exec.log` traz, do último boot, uma
+    linha por executável (`ok` ou `ERRO`, o caminho, o sha256 e a mensagem de
+    erro) e as opções de montagem de `/storage` e `/storage/roms`. Um erro em
+    um arquivo não impede os outros nem o boot.
+  - **Limites**: só varre `R36-ROMS/ports/`; o que um port criar ou trocar com
+    o aparelho ligado só vale no boot seguinte; binários que reescrevem a si
+    mesmos em execução não são atendidos. Para levar o serviço ao aparelho,
+    grave o SYSTEM uma vez (`--part system`).
+
 - **`60-port-classicube`**: o ClassiCube 1.3.9 (recriação do Minecraft Classic
   em C) como port nativo, no menu Ports como "Classic Craft (ClassiCube)". Roda
   offline, com texturas clássicas e sons já no cartão.
@@ -478,9 +505,23 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     - Cartões gravados com `--keep-roms` recebem a sensibilidade nova na
       primeira abertura, mas só se o `options.txt` ainda tiver
       `mousesensitivity = 30`; outro valor é preservado.
-  - O binário fica só no SYSTEM, em `/usr/share/classicube/`, e roda de lá.
-    Mapas e opções ficam em `R36-ROMS/ports/classicube/`; o `ClassiCube.sh`
-    recria ali o `options.txt` e os pacotes de textura e som que faltarem.
+  - O binário é um port como os outros: a imagem o entrega em
+    `R36-ROMS/ports/classicube/ClassiCube` (p1), não há cópia no SYSTEM, e o
+    `58-ports-exec` o torna executável no boot. Mapas e opções ficam na mesma
+    pasta; o `ClassiCube.sh` recria ali o `options.txt` e os pacotes de textura
+    e som que faltarem. Se o binário faltar, ou o sistema o recusar, o
+    lançador avisa (`ports/classicube/log.txt`, e o `r36-ports-exec.log` traz
+    o motivo) e volta ao EmulationStation.
+  - **Atualizar o binário**: o binário que está na p1 é sempre o que vale, e
+    `--keep-roms` não regrava a p1. Para trocar o do cartão, compile com
+    `./ports/classicube/compilar.sh` (ele grava em
+    `features/60-port-classicube/roms/ports/classicube/ClassiCube`), copie o
+    arquivo para `R36-ROMS/ports/classicube/` pelo PC e religue o aparelho; não
+    precisa de `flash.sh`. Uma gravação completa já leva o binário da imagem.
+  - **Primeira vez com esta versão**: grave o SYSTEM uma vez
+    (`./flash.sh --device /dev/sdX --part system`) para levar o serviço
+    `r36-ports-exec` e o lançador novo; em cartão gravado com `--keep-roms`,
+    copie também o binário para a p1.
   - O `r36-classicube-sync.service` roda no boot, antes do EmulationStation
     (espera até 20 s o `mount_romfs.sh` montar `/storage/roms`; não espera o
     `emuelec-autostart`, que só termina depois de abrir o ES), e
@@ -492,7 +533,8 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   - Outros ports copiados pelo PC para `R36-ROMS/ports_scripts/` continuam
     aparecendo no menu: a feature não cria `/usr/bin/ports`, então o overlay
     que o `mount_romfs.sh` tenta montar nessa pasta segue falhando, como na
-    base.
+    base. Para instalar outro port basta copiar o script e a pasta pelo PC (veja
+    `58-ports-exec`).
   - Apagar o `ClassiCube.sh` do cartão não remove o jogo, porque o boot o
     recria. Para tirá-lo, desligue a feature e grave o `system` de novo.
 

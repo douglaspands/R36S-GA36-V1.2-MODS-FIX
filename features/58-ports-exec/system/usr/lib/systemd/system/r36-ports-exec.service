@@ -1,0 +1,15 @@
+[Unit]
+Description=Prepara os executáveis dos ports na p8 (R36S)
+# Sem After=emuelec-autostart.service: o autostart só termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o mount_romfs.sh montar /storage/roms.
+Before=emustation.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/ports-exec
+RemainAfterExit=yes
+TimeoutStartSec=60
+
+[Install]
+WantedBy=emuelec.target

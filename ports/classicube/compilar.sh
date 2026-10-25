@@ -7,13 +7,13 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cache_dir="$root/work/cache/external"
 work_dir="$root/work/ports/classicube"
 src_dir="$work_dir/src"
-dest_system="$root/features/60-port-classicube/system/usr/share/classicube"
+dest_roms="$root/features/60-port-classicube/roms/ports/classicube"
 
 url="https://github.com/ClassiCube/ClassiCube/archive/refs/tags/1.3.9.tar.gz"
 sha256_esperado="5bb62dbb3ad27e1fbb09842f0cb1f4802b2686553b017e0b67ce09b36f908246"
 tarball="$cache_dir/classicube-1.3.9.tar.gz"
 
-mkdir -p "$cache_dir" "$work_dir" "$dest_system"
+mkdir -p "$cache_dir" "$work_dir" "$dest_roms"
 
 echo "==> Verificando código fonte upstream do ClassiCube 1.3.9"
 if [ ! -f "$tarball" ]; then
@@ -174,12 +174,12 @@ if [ ! -f "$bin_gerado" ]; then
 fi
 
 echo "==> Instalando binário na feature 60-port-classicube"
-cp "$bin_gerado" "$dest_system/ClassiCube"
-chmod 0755 "$dest_system/ClassiCube"
+cp "$bin_gerado" "$dest_roms/ClassiCube"
+chmod 0755 "$dest_roms/ClassiCube"
 
-tamanho="$(stat -c%s "$dest_system/ClassiCube")"
-sha_bin="$(sha256sum "$dest_system/ClassiCube" | awk '{print $1}')"
-echo "    Destino: $dest_system/ClassiCube"
+tamanho="$(stat -c%s "$dest_roms/ClassiCube")"
+sha_bin="$(sha256sum "$dest_roms/ClassiCube" | awk '{print $1}')"
+echo "    Destino: $dest_roms/ClassiCube"
 echo "    Tamanho: $tamanho bytes"
 echo "    sha256:  $sha_bin"
 echo "==> Compilação concluída com sucesso."

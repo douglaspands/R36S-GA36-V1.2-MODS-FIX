@@ -3,10 +3,11 @@
 # Mapeado no menu "Ports" do EmulationStation (/storage/roms/ports_scripts/ClassiCube.sh)
 set -euo pipefail
 
-PORT_DIR="/storage/roms/ports/classicube"
-SHARE_DIR="/usr/share/classicube"
-BIN="$SHARE_DIR/ClassiCube"
-DB_FILE="/usr/config/SDL-GameControllerDB/gamecontrollerdb.txt"
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+PORT_DIR="${R36_ROOT:-}/storage/roms/ports/classicube"
+SHARE_DIR="${R36_ROOT:-}/usr/share/classicube"
+BIN="$PORT_DIR/ClassiCube"
+DB_FILE="${R36_ROOT:-}/usr/config/SDL-GameControllerDB/gamecontrollerdb.txt"
 
 export LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH:-}"
 export SDL_VIDEO_GL_DRIVER="/usr/lib/libGLESv2.so.2"
@@ -43,6 +44,24 @@ if ! grep -q '^auto-pause' "$PORT_DIR/options.txt"; then
     echo "auto-pause = false" >> "$PORT_DIR/options.txt"
 fi
 
+# O binário é o de qualquer port: o r36-ports-exec.service monta no boot uma cópia
+# executável da p8 por cima do arquivo da p1. Só 126 (existe mas não executa) e 127
+# (interpretador ausente) indicam que isso falhou; outro código é o jogo que rodou
+# e saiu, e não se reabre o jogo.
+aviso() {
+    echo "ClassiCube: $1"
+    echo "$1" >> "$PORT_DIR/log.txt" 2>/dev/null || true
+}
+
 cd "$PORT_DIR"
-"$BIN" --singleplayer
+if [ ! -f "$BIN" ]; then
+    aviso "binário ausente: copie o ClassiCube para ports/classicube/ pelo PC"
+    exit 0
+fi
+
+rc=0
+"$BIN" --singleplayer || rc=$?
+if [ "$rc" -eq 126 ] || [ "$rc" -eq 127 ]; then
+    aviso "o sistema recusou o binário (código $rc): veja ports/r36-ports-exec.log"
+fi
 exit 0

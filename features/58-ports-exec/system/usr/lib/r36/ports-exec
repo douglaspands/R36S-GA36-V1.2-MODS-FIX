@@ -1,0 +1,113 @@
+#!/bin/sh
+# Prepara os executáveis dos ports: para cada ELF (executável ou .so) em
+# /storage/roms/ports, guarda uma cópia 0755 em /storage/.config/r36-ports-exec,
+# nomeada pelo sha256, e monta a cópia por cima do arquivo da p1 (mount --bind).
+# O script do port segue chamando o caminho da p1, mas o processo roda da p8.
+# Roda antes do ES e nunca falha: erro vira linha no ports/r36-ports-exec.log.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário
+# e R36_MOUNT para um comando de montagem falso.
+
+ROOT="${R36_ROOT:-}"
+MOUNT="${R36_MOUNT:-mount}"
+ROMS="$ROOT/storage/roms"
+PORTS="$ROMS/ports"
+STORE="$ROOT/storage/.config/r36-ports-exec"
+LOG="$PORTS/r36-ports-exec.log"
+MOUNTS="$ROOT/proc/mounts"
+
+# O mount_romfs.sh monta /storage/roms dentro do emuelec-autostart, que só termina
+# depois de iniciar o ES: espera a montagem aqui (até 20 s) em vez de ordenar o
+# serviço depois do autostart, o que trava o boot.
+if [ -z "$ROOT" ]; then
+    i=0
+    until mountpoint -q /storage/roms 2>/dev/null; do
+        [ "$i" -ge 20 ] && exit 0
+        sleep 1
+        i=$((i + 1))
+    done
+fi
+[ -d "$ROMS" ] || exit 0
+
+NL='
+'
+LOGTXT="r36-ports-exec: executáveis de ports/ montados de uma cópia na p8${NL}"
+for dir in /storage /storage/roms; do
+    LOGTXT="$LOGTXT# $(awk -v d="$dir" '$2 == d { print d ": " $3 " " $4 }' "$MOUNTS" 2>/dev/null)${NL}"
+done
+
+# Linha do log por executável: resultado, caminho (como o port o vê), sha256 e mensagem.
+registra() {
+    LOGTXT="$LOGTXT$1 ${2#"$ROOT"} $3${4:+ $4}${NL}"
+}
+
+# Um ELF começa com 0x7f 'E' 'L' 'F'; dados, textos e ROMs ficam de fora.
+eh_elf() {
+    [ "$(head -c 4 "$1" 2>/dev/null)" = "$(printf '\177ELF')" ]
+}
+
+# /proc/mounts escreve o espaço do caminho como \040.
+ja_montado() {
+    cam=$(printf '%s' "${1#"$ROOT"}" | sed 's/ /\\040/g')
+    grep -qF " $cam " "$MOUNTS" 2>/dev/null
+}
+
+USADAS=" "
+LIMPAR=1
+
+if ! command -v sha256sum >/dev/null 2>&1; then
+    LOGTXT="${LOGTXT}ERRO sha256sum ausente; nenhum executável foi preparado${NL}"
+    LIMPAR=0
+elif ! mkdir -p "$STORE" 2>/dev/null; then
+    LOGTXT="${LOGTXT}ERRO não foi possível criar ${STORE#"$ROOT"}${NL}"
+    LIMPAR=0
+elif [ -d "$PORTS" ]; then
+    LISTA=$(find "$PORTS" -maxdepth 4 -type f 2>/dev/null)
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        eh_elf "$f" || continue
+
+        soma=$(sha256sum < "$f" 2>/dev/null)
+        soma=${soma%% *}
+        if [ -z "$soma" ]; then
+            LIMPAR=0
+            registra ERRO "$f" - "não foi possível ler o arquivo"
+            continue
+        fi
+        USADAS="$USADAS$soma "
+
+        copia="$STORE/$soma"
+        if [ ! -f "$copia" ]; then
+            tmp="$STORE/.tmp.$soma"
+            if ! msg=$(cp -f "$f" "$tmp" 2>&1 && chmod 0755 "$tmp" 2>&1 && mv -f "$tmp" "$copia" 2>&1); then
+                rm -f "$tmp"
+                registra ERRO "$f" "$soma" "copia: $msg"
+                continue
+            fi
+        fi
+
+        if ja_montado "$f"; then
+            registra ok "$f" "$soma" "(já montado)"
+        elif msg=$("$MOUNT" --bind "$copia" "$f" 2>&1); then
+            registra ok "$f" "$soma"
+        else
+            registra ERRO "$f" "$soma" "mount: $msg"
+        fi
+    done <<FIM_DA_LISTA
+$LISTA
+FIM_DA_LISTA
+fi
+
+# Apaga as cópias que nenhum arquivo da p1 usa mais (e restos de cópia interrompida).
+if [ "$LIMPAR" = 1 ] && [ -d "$STORE" ]; then
+    for c in "$STORE"/* "$STORE"/.tmp.*; do
+        [ -f "$c" ] || continue
+        case "$USADAS" in
+            *" ${c##*/} "*) ;;
+            *) rm -f "$c" ;;
+        esac
+    done
+fi
+
+# Substitui o log do boot anterior; p1 somente leitura não atrapalha o boot.
+[ -d "$PORTS" ] && printf '%s' "$LOGTXT" 2>/dev/null > "$LOG" 2>/dev/null
+exit 0
