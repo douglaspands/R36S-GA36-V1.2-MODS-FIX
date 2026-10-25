@@ -1,6 +1,8 @@
 """Testes do port nativo ClassiCube para Allwinner A33 (feature 60-port-classicube)."""
 
+import os
 import re
+import stat
 import subprocess
 import tomllib
 import unittest
@@ -20,6 +22,16 @@ TEXPACK = PORT_DIR / "texpacks" / "default.zip"
 AUDIO_ZIP = PORT_DIR / "audio" / "default.zip"
 RECIPE = ROOT / "ports" / "classicube" / "receita.toml"
 BUILD_SCRIPT = ROOT / "ports" / "classicube" / "compilar.sh"
+
+SYSTEM_DIR = FEATURE_DIR / "system"
+SYSTEM_PORTS_DIR = SYSTEM_DIR / "usr" / "bin" / "ports"
+SYSTEM_SHARE_DIR = SYSTEM_DIR / "usr" / "share" / "classicube"
+SYSTEM_BINARY = SYSTEM_SHARE_DIR / "ClassiCube"
+SYNC_SCRIPT = SYSTEM_DIR / "usr" / "lib" / "r36" / "classicube-sync"
+SERVICE_FILE = SYSTEM_DIR / "usr" / "lib" / "systemd" / "system" / "r36-classicube-sync.service"
+SERVICE_WANTS_LINK = (
+    SYSTEM_DIR / "usr" / "lib" / "systemd" / "system" / "emuelec.target.wants" / "r36-classicube-sync.service"
+)
 
 
 class TestPortClassiCube(unittest.TestCase):
@@ -50,7 +62,7 @@ class TestPortClassiCube(unittest.TestCase):
 
     def test_binary_architecture_and_abi(self):
         texto = subprocess.run(
-            ["readelf", "-h", "-A", "-d", "-V", "-W", str(BINARY)],
+            ["readelf", "-h", "-A", "-d", "-V", "-W", "-s", str(BINARY)],
             capture_output=True, text=True, check=True,
             env={"LC_ALL": "C"}
         ).stdout
@@ -76,6 +88,15 @@ class TestPortClassiCube(unittest.TestCase):
         self.assertNotIn("libX11.so.6", needed)
         self.assertNotIn("libGL.so.1", needed)
 
+        # Patch SDL 2.0.9 GameControllerAddMappingsFromFile e gamecontrollerdb
+        self.assertIn("SDL_GameControllerAddMappingsFromRW", texto)
+        bin_conteudo = BINARY.read_bytes()
+        self.assertIn(b"/usr/config/SDL-GameControllerDB/gamecontrollerdb.txt", bin_conteudo)
+
+        # Cópia em system/usr/share/classicube/ClassiCube deve ser idêntica
+        self.assertTrue(SYSTEM_BINARY.is_file(), "ClassiCube ausente em system/usr/share/classicube/")
+        self.assertEqual(BINARY.read_bytes(), SYSTEM_BINARY.read_bytes(), "Binários ROMS e SYSTEM diferem")
+
     @needs_base
     def test_binary_libraries_against_base(self):
         texto = subprocess.run(
@@ -95,7 +116,9 @@ class TestPortClassiCube(unittest.TestCase):
         conteudo = LAUNCHER.read_text(encoding="utf-8")
         self.assertIn("SDL_VIDEO_GL_DRIVER", conteudo)
         self.assertIn("SDL_VIDEO_EGL_DRIVER", conteudo)
+        self.assertIn("SDL_GAMECONTROLLERCONFIG", conteudo)
         self.assertIn("/storage/roms/ports/classicube", conteudo)
+        self.assertIn("/usr/share/classicube", conteudo)
         self.assertIn("/tmp/classicube", conteudo)
         self.assertIn("--singleplayer", conteudo)
         self.assertNotIn('"$@"', conteudo)
@@ -107,6 +130,7 @@ class TestPortClassiCube(unittest.TestCase):
         self.assertIn("window-height = 480", txt)
         self.assertIn("fpslimit = Limit60FPS", txt)
         self.assertIn("defaulttexpack = default.zip", txt)
+        self.assertIn("auto-pause = false", txt)
 
     def test_offline_texpack(self):
         self.assertTrue(TEXPACK.is_file(), "texpacks/default.zip ausente")
@@ -147,6 +171,46 @@ class TestPortClassiCube(unittest.TestCase):
         self.assertTrue(img_thumb.is_file(), "images/ClassiCube-thumb.png ausente")
         img_marquee = SCRIPTS_DIR / "images" / "ClassiCube-marquee.png"
         self.assertTrue(img_marquee.is_file(), "images/ClassiCube-marquee.png ausente")
+
+    def test_system_ports_mirror_and_sync(self):
+        for nome in (
+            "ClassiCube.sh",
+            "gamelist.xml",
+            "img/ClassiCube.png",
+            "images/ClassiCube-image.png",
+            "images/ClassiCube-thumb.png",
+            "images/ClassiCube-marquee.png",
+        ):
+            sys_file = SYSTEM_PORTS_DIR / nome
+            rom_file = SCRIPTS_DIR / nome
+            self.assertTrue(sys_file.is_file(), f"{nome} ausente em system/usr/bin/ports/")
+            self.assertEqual(sys_file.read_bytes(), rom_file.read_bytes(), f"{nome} difere entre system e roms")
+
+        for nome in ("options.txt", "texpacks/default.zip", "audio/default.zip"):
+            sys_file = SYSTEM_SHARE_DIR / nome
+            rom_file = PORT_DIR / nome
+            self.assertTrue(sys_file.is_file(), f"{nome} ausente em system/usr/share/classicube/")
+            self.assertEqual(sys_file.read_bytes(), rom_file.read_bytes(), f"{nome} difere entre system e roms")
+
+        self.assertTrue(SYNC_SCRIPT.is_file(), "classicube-sync ausente")
+        mode = SYNC_SCRIPT.stat().st_mode
+        self.assertTrue(bool(mode & stat.S_IXUSR), "classicube-sync sem permissão de execução")
+        proc = subprocess.run(["sh", "-n", str(SYNC_SCRIPT)], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, f"Sintaxe inválida no classicube-sync: {proc.stderr}")
+        conteudo_sync = SYNC_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("/usr/bin/ports", conteudo_sync)
+        self.assertIn("/usr/share/classicube", conteudo_sync)
+        self.assertIn("/storage/.config/emuelec/ports", conteudo_sync)
+
+        self.assertTrue(SERVICE_FILE.is_file(), "r36-classicube-sync.service ausente")
+        conteudo_service = SERVICE_FILE.read_text(encoding="utf-8")
+        self.assertIn("ExecStart=/usr/lib/r36/classicube-sync", conteudo_service)
+        self.assertIn("After=emuelec-autostart.service", conteudo_service)
+        self.assertIn("Before=emustation.service", conteudo_service)
+        self.assertIn("WantedBy=emuelec.target", conteudo_service)
+
+        self.assertTrue(SERVICE_WANTS_LINK.is_symlink(), "Symlink r36-classicube-sync.service em emuelec.target.wants ausente")
+        self.assertEqual(os.readlink(SERVICE_WANTS_LINK), "../r36-classicube-sync.service")
 
 
 if __name__ == "__main__":

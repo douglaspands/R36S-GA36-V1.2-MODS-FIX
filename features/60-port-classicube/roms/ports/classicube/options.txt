@@ -15,3 +15,5 @@ gui-showfps = true
 autocloselauncher = true
 singleplayerphysics = true
 viewbobbing = true
+auto-pause = false
+

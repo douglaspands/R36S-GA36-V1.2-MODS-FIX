@@ -1,0 +1,12 @@
+[Unit]
+Description=Sincroniza ClassiCube e capa no menu Ports (R36S)
+After=emuelec-autostart.service
+Before=emustation.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/classicube-sync
+RemainAfterExit=yes
+
+[Install]
+WantedBy=emuelec.target

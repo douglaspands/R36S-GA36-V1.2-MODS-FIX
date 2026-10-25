@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./ClassiCube.sh</path>
+		<name>Classic Craft (ClassiCube)</name>
+		<desc>ClassiCube é uma recriação em C99 do Minecraft Classic/Alpha otimizada com OpenGL ES 2.0 nativo e SDL2 para o processador Allwinner A33 e GPU Mali-400 MP2.</desc>
+		<image>./img/ClassiCube.png</image>
+		<thumbnail>./img/ClassiCube.png</thumbnail>
+		<marquee>./img/ClassiCube.png</marquee>
+		<rating>1.0</rating>
+		<releasedate>20240101T000000</releasedate>
+		<developer>ClassiCube</developer>
+		<publisher>ClassiCube</publisher>
+		<genre>Sandbox</genre>
+		<players>1</players>
+	</game>
+</gameList>

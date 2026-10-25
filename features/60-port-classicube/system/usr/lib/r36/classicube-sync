@@ -1,0 +1,40 @@
+#!/bin/sh
+# Sincroniza o port ClassiCube e sua capa no menu Ports após mount_romfs.sh,
+# garantindo funcionamento mesmo em cartões atualizados com --keep-roms.
+
+PORTS_SRC="/usr/bin/ports"
+SHARE_SRC="/usr/share/classicube"
+PORTS_UPPER="/storage/.config/emuelec/ports"
+PORTS_ROMS="/storage/roms/ports_scripts"
+ES_GAMELIST_DIR="/storage/.config/emulationstation/gamelists/ports"
+PORT_DEST="/storage/roms/ports/classicube"
+
+if [ -d "$PORTS_SRC" ]; then
+    for dst in "$PORTS_UPPER" "$PORTS_ROMS"; do
+        mkdir -p "$dst/img" "$dst/images" 2>/dev/null || true
+        cp -f "$PORTS_SRC/ClassiCube.sh" "$dst/ClassiCube.sh" 2>/dev/null || true
+        chmod 0755 "$dst/ClassiCube.sh" 2>/dev/null || true
+        cp -f "$PORTS_SRC/img/ClassiCube.png" "$dst/img/ClassiCube.png" 2>/dev/null || true
+        cp -f "$PORTS_SRC/images/"*.png "$dst/images/" 2>/dev/null || true
+        if [ ! -f "$dst/gamelist.xml" ] || ! grep -q "ClassiCube.png" "$dst/gamelist.xml" 2>/dev/null; then
+            cp -f "$PORTS_SRC/gamelist.xml" "$dst/gamelist.xml" 2>/dev/null || true
+        fi
+    done
+
+    mkdir -p "$ES_GAMELIST_DIR/img" "$ES_GAMELIST_DIR/images" 2>/dev/null || true
+    cp -f "$PORTS_SRC/img/ClassiCube.png" "$ES_GAMELIST_DIR/img/ClassiCube.png" 2>/dev/null || true
+    cp -f "$PORTS_SRC/images/"*.png "$ES_GAMELIST_DIR/images/" 2>/dev/null || true
+    if [ ! -f "$ES_GAMELIST_DIR/gamelist.xml" ] || ! grep -q "ClassiCube.png" "$ES_GAMELIST_DIR/gamelist.xml" 2>/dev/null; then
+        cp -f "$PORTS_SRC/gamelist.xml" "$ES_GAMELIST_DIR/gamelist.xml" 2>/dev/null || true
+    fi
+fi
+
+if [ -d "$SHARE_SRC" ] && mountpoint -q /storage/roms 2>/dev/null; then
+    mkdir -p "$PORT_DEST/texpacks" "$PORT_DEST/audio" "$PORT_DEST/maps" 2>/dev/null || true
+    cp -f "$SHARE_SRC/ClassiCube" "$PORT_DEST/ClassiCube" 2>/dev/null || true
+    [ ! -f "$PORT_DEST/options.txt" ] && cp -f "$SHARE_SRC/options.txt" "$PORT_DEST/options.txt" 2>/dev/null || true
+    [ ! -f "$PORT_DEST/texpacks/default.zip" ] && cp -f "$SHARE_SRC/texpacks/default.zip" "$PORT_DEST/texpacks/default.zip" 2>/dev/null || true
+    [ ! -f "$PORT_DEST/audio/default.zip" ] && cp -f "$SHARE_SRC/audio/default.zip" "$PORT_DEST/audio/default.zip" 2>/dev/null || true
+fi
+
+exit 0

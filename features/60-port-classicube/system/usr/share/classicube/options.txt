@@ -1,0 +1,19 @@
+# Configuração prévia do ClassiCube para R36S clone (Allwinner A33 / Mali-400 MP2)
+# Tela: 640x480 nativa | 60 FPS | Texturas clássicas offline | Áudio 100%
+window-width = 640
+window-height = 480
+viewdist = 96
+fpslimit = Limit60FPS
+mousesensitivity = 30
+gfx-smoothlighting = false
+gfx-mipmaps = false
+soundsvolume = 100
+musicvolume = 100
+defaulttexpack = default.zip
+gui-blockinhand = true
+gui-showfps = true
+autocloselauncher = true
+singleplayerphysics = true
+viewbobbing = true
+auto-pause = false
+
