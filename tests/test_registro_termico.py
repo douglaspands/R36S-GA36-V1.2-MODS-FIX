@@ -68,6 +68,9 @@ class ThermalLogCase(TempDirCase):
         escreve(bat / "battery/status", "Discharging\n")
         escreve(bat / "battery/capacity", "87\n")
         escreve(bat / "battery/voltage_now", "3950000\n")
+        escreve(bat / "battery/current_now", "-450000\n")
+        escreve(bat / "battery/charge_now", "1200000\n")
+        escreve(bat / "battery/charge_full", "2000000\n")
         escreve(z / "trip_point_0_temp", "90000\n")
         escreve(self.sys / "class/thermal/cooling_device0/type", "thermal-cpufreq-0\n")
         escreve(self.sys / "class/thermal/cooling_device0/cur_state", "2\n")
@@ -78,6 +81,7 @@ class ThermalLogCase(TempDirCase):
         self.stub("df", 'echo "Filesystem 1K-blocks Used Available Use% Mounted on"\n'
                         'echo "/dev/x 1000000 1 $R36_TEST_FREE_KB 1% /roms"\n')
         self.stub("mountpoint", '[ -z "$R36_TEST_NOMOUNT" ]\n')
+        self.stub("dmesg", "")  # sem linhas axp, a menos que o teste troque o stub
         # o sleep falso troca o /proc/stat, para haver variação entre as leituras
         self.stub("sleep", f'[ -f "{self.proc}/stat.next" ] && cp "{self.proc}/stat.next" "{self.proc}/stat"\n')
         escreve(self.proc / "stat.next", STAT_DEPOIS)
@@ -109,6 +113,15 @@ class ThermalLogCase(TempDirCase):
         cab, linha = self.linhas()[:2]
         return dict(zip(cab.split(","), linha.split(",")))
 
+    def estimativa(self, mv, status="Discharging"):
+        """bat_pct_est de uma única leitura (--once usa a tensão crua)."""
+        bat = self.sys / "class/power_supply/battery"
+        escreve(bat / "voltage_now", f"{mv * 1000}\n")
+        escreve(bat / "status", status + "\n")
+        self.log.unlink(missing_ok=True)
+        self.run_once()
+        return self.colunas()["bat_pct_est"]
+
 
 class Registro(ThermalLogCase):
     def test_cabecalho_e_linha_tem_as_mesmas_colunas(self):
@@ -119,6 +132,7 @@ class Registro(ThermalLogCase):
             cab,
             "date,uptime_s,boot,temp_soc_thermal,cpu_mhz,cpu_max_mhz,governor,cpus_online,"
             "cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,"
+            "bat_current,bat_charge_now,bat_charge_full,bat_pct_est,"
             "system,emulator,core,rom",
         )
 
@@ -137,6 +151,36 @@ class Registro(ThermalLogCase):
         self.assertEqual(c["cpu_max_mhz"], "1104")
         self.assertEqual(c["bat_voltage"], "3950")  # µV viram mV
         self.assertEqual(c["dram_mhz"], "")  # sem devfreq na árvore falsa
+
+    def test_corrente_e_carga_da_bateria(self):
+        self.run_once()
+        cab, linha = self.linhas()
+        self.assertEqual(len(cab.split(",")), len(linha.split(",")))
+        c = self.colunas()
+        self.assertEqual(c["bat_current"], "-450")  # µA com sinal viram mA
+        self.assertEqual(c["bat_charge_now"], "1200")  # µAh viram mAh
+        self.assertEqual(c["bat_charge_full"], "2000")
+
+    def test_corrente_positiva(self):
+        escreve(self.sys / "class/power_supply/battery/current_now", "300000\n")
+        self.run_once()
+        self.assertEqual(self.colunas()["bat_current"], "300")
+
+    def test_corrente_e_carga_ausentes_ficam_vazias(self):
+        for n in ("current_now", "charge_now", "charge_full"):
+            (self.sys / "class/power_supply/battery" / n).unlink()
+        self.run_once()
+        cab, linha = self.linhas()
+        self.assertEqual(len(cab.split(",")), len(linha.split(",")))
+        c = self.colunas()
+        self.assertEqual([c[k] for k in ("bat_current", "bat_charge_now", "bat_charge_full")], [""] * 3)
+        self.assertEqual(c["bat_voltage"], "3950")
+        self.assertEqual(c["bat_pct"], "87")
+
+    def test_corrente_invalida_fica_vazia(self):
+        escreve(self.sys / "class/power_supply/battery/current_now", "abc\n")
+        self.run_once()
+        self.assertEqual(self.colunas()["bat_current"], "")
 
     def test_dram_mhz_em_hz_e_em_khz(self):
         d = self.sys / "devices/platform/sunxi-ddrfreq/devfreq/sunxi-ddrfreq"
@@ -220,6 +264,64 @@ class Registro(ThermalLogCase):
         self.assertEqual(sum(1 for x in linhas if x.startswith("date,")), 1)
 
 
+class EstimativaSombra(ThermalLogCase):
+    def test_pontos_da_curva(self):
+        for mv, pct in ((4200, "100"), (3300, "0"), (3750, "40"), (3900, "65"), (3500, "4")):
+            self.assertEqual(self.estimativa(mv), pct, mv)
+
+    def test_fora_da_curva_e_cortado(self):
+        self.assertEqual(self.estimativa(3000), "0")
+        self.assertEqual(self.estimativa(3299), "0")
+        self.assertEqual(self.estimativa(4350), "100")
+
+    def test_carregando_ou_cheio_fica_vazia(self):
+        for status in ("Charging", "Full"):
+            self.assertEqual(self.estimativa(4100, status), "", status)
+            cab, linha = self.linhas()
+            self.assertEqual(len(cab.split(",")), len(linha.split(",")))
+
+    def test_sem_tensao_fica_vazia(self):
+        (self.sys / "class/power_supply/battery/voltage_now").unlink()
+        self.run_once()
+        self.assertEqual(self.colunas()["bat_pct_est"], "")
+
+    def test_sem_bateria_fica_vazia(self):
+        (self.sys / "class/power_supply/battery/type").unlink()
+        self.run_once()
+        c = self.colunas()
+        self.assertEqual((c["bat_voltage"], c["bat_pct_est"]), ("", ""))
+
+    def test_nao_publica_nada_alem_do_csv_e_do_retrato(self):
+        antes = {p for p in self.sys.rglob("*")}
+        self.run_once()
+        self.assertEqual({p.name for p in self.roms.iterdir()}, {"r36-thermal.csv", "r36-sysinfo.txt"})
+        self.assertEqual({p for p in self.sys.rglob("*")}, antes)
+
+    def test_filtro_suaviza_a_queda_entre_amostras(self):
+        bat = self.sys / "class/power_supply/battery"
+        escreve(bat / "voltage_now", "4000000\n")
+        cont = self.tmp / "sleeps"
+        # 1º ciclo: 4000 mV; 2º: 3800 mV (pico de carga); no 3º o sleep falso encerra o laço
+        self.stub("sleep", f'n=$(cat "{cont}" 2>/dev/null || echo 0)\nn=$((n + 1))\necho $n >"{cont}"\n'
+                           f'[ $n -eq 2 ] && echo 3800000 >"{bat}/voltage_now"\n'
+                           f'[ $n -eq 3 ] && kill $PPID\nexit 0\n')
+        env = dict(
+            os.environ,
+            PATH=f"{self.bin}:{os.environ['PATH']}",
+            R36_PROC=str(self.proc), R36_SYS=str(self.sys), R36_ROMS=str(self.roms),
+            R36_TEST_FREE_KB=str(self.free_kb),
+        )
+        subprocess.run(["sh", str(SCRIPT)], env=env, capture_output=True, timeout=30)
+        linhas = self.linhas()
+        self.assertEqual(len(linhas), 3)
+        cab = linhas[0].split(",")
+        est = [int(dict(zip(cab, l.split(",")))["bat_pct_est"]) for l in linhas[1:]]
+        self.assertEqual(est[0], 78)
+        self.assertLess(est[1], est[0])
+        cru = int(self.estimativa(3800))
+        self.assertLess(est[0] - est[1], est[0] - cru)
+
+
 class Limites(ThermalLogCase):
     def test_rotacao_acima_de_1mb_substitui_o_anterior(self):
         self.run_once()
@@ -275,6 +377,40 @@ class Retrato(ThermalLogCase):
         self.assertIn(f"{self.sys}/class/thermal/cooling_device0/cur_state: 2", txt)
         self.assertIn(f"{self.sys}/class/power_supply/battery/voltage_now: 3950000", txt)
         self.assertFalse((self.roms / "r36-sysinfo.txt.tmp").exists())
+
+    def test_secao_da_bateria_com_uevent_e_dmesg(self):
+        ps = self.sys / "class/power_supply"
+        escreve(ps / "battery/uevent", "POWER_SUPPLY_NAME=battery\nPOWER_SUPPLY_CAPACITY=87\n")
+        escreve(ps / "ac/uevent", "POWER_SUPPLY_NAME=ac\nPOWER_SUPPLY_ONLINE=0\n")
+        escreve(ps / "battery/charge_full_design", "2200000\n")
+        escreve(ps / "battery/capacity_level", "Normal\n")
+        linhas = [f"[    {i}.000] axp22: linha {i}" for i in range(100)]
+        linhas.insert(10, "[    1.000] mmc0: outra coisa")
+        self.stub("dmesg", "cat <<'EOT'\n" + "\n".join(linhas) + "\nEOT\n")
+        self.run_once()
+        txt = self.sysinfo.read_text()
+        sec = txt.split("== bateria ==\n")[1]
+        self.assertIn(f"{ps}/battery/uevent: POWER_SUPPLY_NAME=battery", sec)
+        self.assertIn(f"{ps}/battery/uevent: POWER_SUPPLY_CAPACITY=87", sec)
+        self.assertIn(f"{ps}/ac/uevent: POWER_SUPPLY_ONLINE=0", sec)
+        for n, v in (("status", "Discharging"), ("capacity", "87"), ("voltage_now", "3950000"),
+                     ("current_now", "-450000"), ("charge_now", "1200000"), ("charge_full", "2000000"),
+                     ("charge_full_design", "2200000"), ("capacity_level", "Normal")):
+            self.assertIn(f"{ps}/battery/{n}: {v}", sec)
+        dm = [l for l in sec.splitlines() if l.startswith("dmesg: ")]
+        self.assertEqual(len(dm), 80)
+        self.assertTrue(all("axp" in l for l in dm))
+        self.assertEqual(dm[-1], "dmesg: [    99.000] axp22: linha 99")
+        self.assertNotIn("outra coisa", txt)
+
+    def test_secao_da_bateria_ausente_nao_trava(self):
+        (self.sys / "class/power_supply/battery/type").unlink()
+        self.run_once()  # check=True: termina com sucesso
+        sec = self.sysinfo.read_text().split("== bateria ==\n")[1]
+        self.assertIn(f"{self.sys}/class/power_supply/<Battery>: (ausente)", sec)
+        self.assertIn("dmesg (axp): (ausente)", sec)
+        self.assertIn(f"{self.sys}/class/power_supply/*/uevent: (ausente)", sec)
+        self.assertEqual(len(self.linhas()), 2)
 
     def test_item_ausente_marcado_e_demais_seguem(self):
         self.run_once()

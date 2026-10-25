@@ -314,17 +314,37 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     `scaling_max_freq`), `governor`, `cpus_online`, `cpu0` a
     `cpu3` (ocupação em %, no intervalo; vazio se o núcleo está desligado),
     `dram_scene`, `dram_mhz` (clock da DRAM, do `cur_freq` do devfreq),
-    `bat_status`, `bat_pct`, `bat_voltage` (mV), `system`, `emulator`, `core` e `rom`
+    `bat_status`, `bat_pct`, `bat_voltage` (mV), `bat_current` (mA, com o sinal
+    que o kernel informa), `bat_charge_now` e `bat_charge_full` (mAh, o que o
+    driver acredita ter), `bat_pct_est`, `system`, `emulator`, `core` e `rom`
     (os quatro últimos vêm do `emuelecRunEmu.sh` em execução e ficam vazios no
     menu). Sem hora certa no relógio, `uptime_s` e `boot` ordenam e separam as
-    sessões.
+    sessões. Os campos de bateria que o kernel não expõe ficam vazios.
+  - **`bat_pct_est`:** percentual estimado só pela tensão (curva genérica de
+    Li-ion, com filtro de 4 amostras), vazio com o carregador ligado. Serve só
+    para comparar com o `bat_pct` do kernel: não aparece no ES nem no RetroArch e
+    não altera o `capacity`.
   - **Retrato do sistema:** uma vez por boot, no primeiro ciclo em que o log
     pode gravar, o serviço grava `R36-ROMS/r36-sysinfo.txt` (substitui o do boot
     anterior): governors e clocks disponíveis, teto e máximo, tunables do
     ondemand (já afinados), cenas e clocks da DRAM, trip points das zonas
     térmicas e estado dos dispositivos de resfriamento, um `caminho: valor` por
     linha, com `(ausente)` no que o aparelho não tem. Serve para ler no PC o que
-    não dá para conferir no aparelho (sem Wi-Fi nem SSH).
+    não dá para conferir no aparelho (sem Wi-Fi nem SSH). A seção `== bateria ==`
+    traz o `uevent` de cada `power_supply` (`caminho/uevent: CHAVE=valor`), os
+    campos da bateria (`status`, `capacity`, `voltage_now`, `current_now`,
+    `charge_now`, `charge_full`, `charge_full_design`, `capacity_level`) e as
+    últimas 80 linhas do `dmesg` que citam o `axp`, com o prefixo `dmesg:`.
+  - **Diagnóstico da bateria:** para medir o erro do percentual do ES, siga a
+    descarga completa. Carregue a bateria a 100%, ligue o aparelho e use-o (um
+    trecho no menu e um em jogo) até desligar sozinho. No PC, copie
+    `r36-thermal.csv`, `r36-thermal.1.csv` e `r36-sysinfo.txt` da `R36-ROMS` e
+    rode `uv run python -I tools/analisa_bateria.py r36-thermal.1.csv r36-thermal.csv`.
+    O resumo, por boot, traz tensão, `bat_pct` e `bat_pct_est` do início, a
+    diferença entre os dois percentuais e a queda por hora de cada um nas linhas em
+    `Discharging`. **Antes de gravar o cartão**, copie os CSVs que quer guardar: a
+    primeira gravação com as colunas novas move o `r36-thermal.csv` antigo para
+    `r36-thermal.1.csv` e apaga o `.1` que já existia.
   - **Limites:** o arquivo vira `r36-thermal.1.csv` ao passar de 1 MB (2 MB no
     máximo, somando os dois), e nada é gravado com menos de 64 MB livres na p1
     ou se `/storage/roms` não estiver montado. A gravação não usa `sync`: numa

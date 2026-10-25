@@ -36,6 +36,15 @@ num() {
   esac
 }
 
+# Como num, mas aceita um '-' inicial (corrente da bateria tem sinal).
+snum() {
+  _s=${1#-}
+  case $_s in
+    ''|*[!0-9]*) printf '' ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
 # Zonas térmicas: uma coluna temp_<type> por zona legível.
 ZONES=
 ZCOLS=
@@ -48,7 +57,7 @@ for z in "$SYS"/class/thermal/thermal_zone*; do
   ZCOLS="$ZCOLS,temp_$t"
 done
 
-HEADER="date,uptime_s,boot${ZCOLS},cpu_mhz,cpu_max_mhz,governor,cpus_online,cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,system,emulator,core,rom"
+HEADER="date,uptime_s,boot${ZCOLS},cpu_mhz,cpu_max_mhz,governor,cpus_online,cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,bat_current,bat_charge_now,bat_charge_full,bat_pct_est,system,emulator,core,rom"
 
 # Bateria: primeira power_supply do tipo Battery.
 BAT=
@@ -141,6 +150,25 @@ game() {
   printf ',,,'
 }
 
+# Percentual (0-100) estimado só pela tensão em mV: curva genérica de Li-ion, com
+# interpolação linear entre os pontos. É uma hipótese para comparar com o kernel.
+pct_est() {
+  awk -v v="$1" '
+    BEGIN {
+      n = split("3300 3500 3600 3700 3800 3900 4000 4100 4200", mv, " ")
+      split("0 4 12 30 50 65 78 90 100", pc, " ")
+      if (v <= mv[1]) { print 0; exit }
+      if (v >= mv[n]) { print 100; exit }
+      for (i = 2; i <= n; i++) {
+        if (v <= mv[i]) {
+          p = pc[i - 1] + (v - mv[i - 1]) * (pc[i] - pc[i - 1]) / (mv[i] - mv[i - 1])
+          print int(p + 0.5)
+          exit
+        }
+      }
+    }'
+}
+
 # Garante um log com o cabeçalho atual; troca o antigo se o formato mudou.
 ensure_log() {
   if [ -s "$LOG" ]; then
@@ -230,12 +258,28 @@ sysinfo_body() {
   done
   [ -n "$found" ] || echo "$SYS/class/thermal/cooling_device*: (ausente)"
   echo "== bateria =="
+  found=
+  for p in "$SYS"/class/power_supply/*; do
+    [ -r "$p/uevent" ] || continue
+    found=1
+    while IFS= read -r l; do
+      printf '%s/uevent: %s\n' "$p" "$l"
+    done <"$p/uevent"
+  done
+  [ -n "$found" ] || echo "$SYS/class/power_supply/*/uevent: (ausente)"
   if [ -n "$BAT" ]; then
-    for n in status capacity voltage_now; do
+    for n in status capacity voltage_now current_now charge_now charge_full \
+      charge_full_design capacity_level; do
       si "$BAT/$n"
     done
   else
     echo "$SYS/class/power_supply/<Battery>: (ausente)"
+  fi
+  ax=$(dmesg 2>/dev/null | grep -i axp | tail -n 80)
+  if [ -n "$ax" ]; then
+    printf '%s\n' "$ax" | sed 's/^/dmesg: /'
+  else
+    echo "dmesg (axp): (ausente)"
   fi
 }
 
@@ -299,21 +343,47 @@ EOT
   bst=
   bpct=
   bmv=
+  bma=
+  bcn=
+  bcf=
   if [ -n "$BAT" ]; then
     bst=$(rd "$BAT/status")
     bpct=$(num "$(rd "$BAT/capacity")")
     bmv=$(num "$(rd "$BAT/voltage_now")")
     [ -n "$bmv" ] && bmv=$((bmv / 1000))
+    bma=$(snum "$(rd "$BAT/current_now")")
+    [ -n "$bma" ] && bma=$((bma / 1000))
+    bcn=$(num "$(rd "$BAT/charge_now")")
+    [ -n "$bcn" ] && bcn=$((bcn / 1000))
+    bcf=$(num "$(rd "$BAT/charge_full")")
+    [ -n "$bcf" ] && bcf=$((bcf / 1000))
   fi
+
+  # Estimativa sombra: só vai para o CSV. Com carregador ou sem tensão não vale e o
+  # filtro recomeça; a primeira amostra (ou o --once) usa a tensão crua.
+  best=
+  case $bst in
+    Charging|Full) BATF= ;;
+    *)
+      if [ -n "$bmv" ]; then
+        if [ -z "$BATF" ]; then BATF=$bmv; else BATF=$((BATF + (bmv - BATF) / 4)); fi
+        best=$(pct_est "$BATF")
+      else
+        BATF=
+      fi
+      ;;
+  esac
 
   ensure_log
   rotate_if_big
-  printf '%s,%s,%s%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+  printf '%s,%s,%s%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$(date '+%F %T')" "$up" "$boot" "$temps" "$khz" "$kmax" "$gov" "$online" \
-    "$busy" "$scene" "$dmhz" "$bst" "$bpct" "$bmv" "$(game)" >>"$LOG" 2>/dev/null
+    "$busy" "$scene" "$dmhz" "$bst" "$bpct" "$bmv" "$bma" "$bcn" "$bcf" "$best" \
+    "$(game)" >>"$LOG" 2>/dev/null
 }
 
 PREV=$(cpu_snapshot)
+BATF=
 
 if [ "$1" = "--once" ]; then
   sleep "$ONCE_DELAY"
