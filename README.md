@@ -435,6 +435,21 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     SNES continua no core escolhido antes, e o `snes9x2005_plus_a33` não aparece
     na lista de cores.
 
+- **`54-shaders-gba`**: o shader `gba-modern-remaster` para Game Boy Advance,
+  que corrige as cores supersaturadas feitas para a tela sem luz do GBA (ponto
+  branco sRGB D65) e suaviza as bordas sem cintilar, numa só passada GLSL leve
+  para a Mali-400.
+  - **Vem desligado.** Para ligar: no EmulationStation, abra as configurações
+    avançadas do sistema GBA (ou as configurações de jogo, para todos os
+    sistemas) e escolha `gba/gba-modern-remaster.glslp` em "SHADER SET". Para
+    desligar, volte a opção para nenhum.
+  - Os arquivos ficam em `/usr/share/common-shaders/gba/` (SYSTEM), a camada de
+    baixo de `/tmp/shaders`, que é a pasta que o ES lista. Chegam ao cartão em
+    qualquer gravação do `system`, inclusive com `--keep-storage`.
+  - A feature não cria preset automático do RetroArch. Se o cartão recebeu a
+    versão de teste anterior com `--wipe-storage`, ela deixou presets que
+    mantêm o shader ligado; gravar a p8 de novo com `--wipe-storage` os remove.
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 
