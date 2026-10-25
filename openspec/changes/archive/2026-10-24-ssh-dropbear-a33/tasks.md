@@ -1,5 +1,12 @@
 # Tasks
 
+> **Situação (2026-10-25): removida da imagem.** Foi identificado um problema
+> com esta feature, e a `45-ssh-dropbear` saiu da imagem: feature, receita em
+> `services/dropbear/`, testes e a spec `ssh-server`. O problema será analisado
+> numa change futura, que decide se o SSH volta e em que condições. Enquanto
+> isso, a spec `system-services` exige a imagem sem servidor SSH. O que está
+> abaixo é o registro da implementação original (commit `9a72b09`).
+
 ## 1. Preparação dos binários do Dropbear para ARMv7-A
 
 - [x] 1.1 Obter ou compilar os binários `dropbear` e `dropbearkey` compatíveis com a ABI do Allwinner A33 (armhf, ARMv7-A, glibc <= 2.36) e verificar a arquitetura com comando de inspeção ELF.

@@ -32,6 +32,17 @@ O binário do ClassiCube SHALL depender exclusivamente das bibliotecas dinâmica
 - **WHEN** as tags `DT_NEEDED` do executável são inspecionadas
 - **THEN** todas as bibliotecas necessárias (`libSDL2-2.0.so.0`, `libGLESv2.so.2`, `libEGL.so.1`, `libm.so.6`, `libc.so.6`, `libpthread.so.0`, `libdl.so.2`) correspondem aos nomes exportados por `/usr/lib/` no SYSTEM
 
+### Requirement: Binário único na partição SYSTEM
+O binário `ClassiCube` SHALL existir só em `/usr/share/classicube/ClassiCube`, na partição SYSTEM, com permissão `0755`, e o `ClassiCube.sh` SHALL executá-lo direto de lá. A partição `roms` SHALL NOT levar cópia do binário: a FAT32 não guarda permissão de execução e não é regravada com `--keep-roms`. Na p1 ficam só os arquivos que o jogador ou o PC alteram (opções, mapas, texturas e sons em `/storage/roms/ports/classicube/`).
+
+#### Scenario: Atualização com --keep-roms
+- **WHEN** o cartão é gravado com `--keep-roms` a partir de um build com binário novo
+- **THEN** o jogo abre com o binário novo, porque ele vem do SYSTEM, sem depender de nada na p1
+
+#### Scenario: Boot sem regravar a FAT32
+- **WHEN** o aparelho dá boot com o lançador, a capa e os ativos já presentes e iguais aos do SYSTEM
+- **THEN** o `r36-classicube-sync.service` não grava nenhum arquivo na p1 e não copia o binário para ela
+
 ### Requirement: Pacote de ativos offline para execução sem internet
 Como o aparelho não dispõe de interface de rede (sem Wi-Fi), a instalação do ClassiCube SHALL conter previamente todos os arquivos de recursos necessários para a partida local, incluindo texturas clássicas (`texpacks/default.zip`) e sons básicos (`audio/`).
 
@@ -40,15 +51,23 @@ Como o aparelho não dispõe de interface de rede (sem Wi-Fi), a instalação do
 - **THEN** o jogo carrega o mapa local com blocos texturizados e sons de passos/interação sem emitir erros de download ou falhas de conexão
 
 ### Requirement: Lançador integrado aos Ports do EmulationStation
-A imagem SHALL disponibilizar o script inicializador `ClassiCube.sh`, o `gamelist.xml` e as imagens de capa tanto na partição `roms` (`/storage/roms/ports_scripts/`) quanto na partição `system` (`/usr/bin/ports/` e `/usr/share/classicube/`), com sincronização automática no boot (`r36-classicube-sync.service`), garantindo que a imagem do jogo apareça no menu "Ports" e que o jogo atualize e carregue mesmo quando o cartão SD for gravado com `--keep-roms` ou em cima do overlayFS de `mount_romfs.sh`.
+A imagem SHALL manter o lançador `ClassiCube.sh`, a entrada no `gamelist.xml` e as capas em `/storage/roms/ports_scripts/` (p1), com cópia mestre em `/usr/share/classicube/ports_scripts/` que o `r36-classicube-sync.service` restaura no boot quando falta ou difere, inclusive após `--keep-roms`. O serviço SHALL rodar antes do `emustation.service` e esperar até 20 s o `/storage/roms` ser montado, sem `After=emuelec-autostart.service`; se a montagem não vier, ele sai sem gravar e o ES abre normalmente. A imagem SHALL NOT criar `/usr/bin/ports`, para que o overlay do `mount_romfs.sh` continue falhando como na base e a pasta da p1 siga visível e editável pelo PC.
 
 #### Scenario: Inicialização pelo menu
 - **WHEN** o usuário seleciona o ClassiCube no menu de Ports do EmulationStation
-- **THEN** o script define as variáveis de ambiente necessárias (`SDL_VIDEO_GL_DRIVER`, `SDL_VIDEO_EGL_DRIVER`, `SDL_GAMECONTROLLERCONFIG`), garante que os ativos offline existam em `/storage/roms/ports/classicube`, muda o diretório de trabalho para `/storage/roms/ports/classicube` e dispara o executável no modo local com `--singleplayer` sem repassar argumentos externos do EmulationStation
+- **THEN** o script define as variáveis de ambiente necessárias (`SDL_VIDEO_GL_DRIVER`, `SDL_VIDEO_EGL_DRIVER`, `SDL_GAMECONTROLLERCONFIG`), garante que os ativos offline existam em `/storage/roms/ports/classicube`, muda o diretório de trabalho para `/storage/roms/ports/classicube` e executa `/usr/share/classicube/ClassiCube` no modo local com `--singleplayer`, sem repassar argumentos externos do EmulationStation
 
 #### Scenario: Exibição da capa na lista mesmo após atualização com --keep-roms
-- **WHEN** o usuário navega pelo menu "Ports" do EmulationStation (tanto em gravação completa quanto após `./flash.sh --keep-roms`)
-- **THEN** a lista exibe o nome "Classic Craft (ClassiCube)" e a imagem da capa correspondente (`img/ClassiCube.png` / `images/ClassiCube-image.png`), disponível tanto no overlay `/usr/bin/ports` / `/storage/roms/ports_scripts` quanto em `/storage/.config/emulationstation/gamelists/ports/gamelist.xml`
+- **WHEN** o cartão é gravado por completo ou com `./flash.sh --keep-roms` e o aparelho termina o boot
+- **THEN** `/storage/roms/ports_scripts/` contém `ClassiCube.sh`, as capas e uma entrada `<path>./ClassiCube.sh</path>` no `gamelist.xml`, e o menu "Ports" exibe "Classic Craft (ClassiCube)" com a capa
+
+#### Scenario: Boot até o EmulationStation
+- **WHEN** o aparelho liga com a feature `60-port-classicube` na imagem
+- **THEN** o boot passa do splash e o EmulationStation abre, sem esperar pelo fim do `emuelec-autostart.service`
+
+#### Scenario: Ports do usuário preservados
+- **WHEN** o usuário copia pelo PC outro script `.sh` para `R36-ROMS/ports_scripts/` e o `gamelist.xml` dessa pasta já tem entradas de outros jogos
+- **THEN** o script aparece no menu "Ports", e o serviço de boot acrescenta a entrada do ClassiCube só quando ela falta, sem apagar nem substituir as outras entradas, e sem duplicá-la em boots seguintes
 
 #### Scenario: Retorno limpo ao EmulationStation
 - **WHEN** o jogador seleciona "Quit game" no menu de pausa ou pressiona simultaneamente `Select + Start` no controle
@@ -60,3 +79,74 @@ A configuração e o binário do ClassiCube SHALL carregar o banco de mapeamento
 #### Scenario: Jogabilidade via gamepad no SDL 2.0.9
 - **WHEN** o jogador opera o direcional, analógicos e os botões ABXY/L/R/Start/Select no portátil
 - **THEN** o controle `micro_gamepad` é reconhecido por `SDL_IsGameController` e responde imediatamente às ações de movimentação, câmera, interação com blocos, abertura do menu (`Start`), inventário (`Select`) e saída rápida (`Select + Start`)
+
+### Requirement: Sentido dos analógicos
+O analógico esquerdo SHALL mover o personagem e o direito SHALL girar a câmera, ambos no sentido físico do movimento: empurrar para cima anda para frente (esquerdo) ou olha para cima (direito), e empurrar para baixo faz o oposto. Nos menus e no inventário, empurrar para cima SHALL mover a seleção para cima.
+
+#### Scenario: Andar para frente
+- **WHEN** o jogador empurra o analógico esquerdo para cima, estando no mundo
+- **THEN** o personagem anda para frente, e para baixo ele anda para trás
+
+#### Scenario: Olhar para cima
+- **WHEN** o jogador empurra o analógico direito para cima
+- **THEN** a câmera sobe, e para baixo ela desce
+
+#### Scenario: Seleção em menu
+- **WHEN** o jogador empurra o analógico esquerdo ou o direito para cima num menu ou no inventário
+- **THEN** a seleção sobe, e para baixo ela desce
+
+### Requirement: Zona morta dos analógicos
+Os dois analógicos SHALL ignorar deslocamentos de até cerca de 20% do curso, e o restante do curso SHALL ser reescalado de 0 a 1, para a deriva do ADC não mover o personagem nem a câmera.
+
+#### Scenario: Analógico solto com deriva
+- **WHEN** o jogador solta os analógicos e eles leem até 20% do curso em qualquer eixo
+- **THEN** o personagem fica parado e a câmera não gira
+
+#### Scenario: Saída da zona morta
+- **WHEN** o jogador empurra o analógico direito logo além dos 20% do curso
+- **THEN** a câmera começa a girar de forma lenta e contínua, sem salto de velocidade
+
+### Requirement: Velocidade da câmera e dos menus pelo analógico
+Com o analógico direito no fundo, a câmera SHALL girar cerca de 110°/s, e a seleção de menus e inventário pelos analógicos SHALL andar um passo em menos de 0,5 s com o analógico no fundo. Esses valores SHALL independer da taxa de quadros.
+
+#### Scenario: Volta completa
+- **WHEN** o jogador mantém o analógico direito no fundo para um lado
+- **THEN** a câmera completa uma volta em cerca de 3 a 4 segundos
+
+#### Scenario: Navegação em menu
+- **WHEN** o jogador mantém o analógico para baixo num menu com vários botões
+- **THEN** a seleção desce um item em menos de 0,5 s
+
+### Requirement: Binds padrão do gamepad
+O ClassiCube SHALL usar estes binds padrão no `micro_gamepad`, com o layout dos botões da Nintendo: A (direita) pula, X (cima) abre o inventário, Y (esquerda) pega o bloco, L quebra e R coloca bloco, L2 e R2 trocam o item da barra, e clicar L3 e R3 juntos (os dois analógicos apertados) faz respawn. O Select continua sendo o botão de voltar e fechar menus. O chat e a definição do ponto de spawn SHALL NOT ter botão padrão no gamepad.
+
+#### Scenario: Pausar sem mexer no spawn
+- **WHEN** o jogador aperta Start no mundo para abrir o menu de pausa
+- **THEN** o menu abre e o ponto de respawn não muda
+
+#### Scenario: Y não abre o chat
+- **WHEN** o jogador aperta Y no mundo
+- **THEN** o bloco sob a mira é copiado para a barra e o chat e o teclado virtual não abrem
+
+#### Scenario: Respawn
+- **WHEN** o jogador segura L3 (analógico esquerdo apertado) e aperta R3 (analógico direito apertado) no mundo
+- **THEN** o personagem volta ao ponto de respawn
+
+#### Scenario: Combinações de modificador sem efeito duplo
+- **WHEN** o jogador aperta B+L ou B+R
+- **THEN** só a velocidade ou o voo é acionado, sem quebrar nem colocar bloco
+
+#### Scenario: Binds salvos pelo jogador valem
+- **WHEN** o jogador remapeia um bind do gamepad pelo menu do jogo
+- **THEN** o bind salvo no `options.txt` prevalece sobre o padrão
+
+### Requirement: Sensibilidade da câmera em cartões já usados
+O lançador SHALL passar a sensibilidade da câmera do preset novo (`mousesensitivity = 120`) também ao `options.txt` de um cartão que já o tem, mas somente quando o valor gravado ainda for o do preset antigo (30). Um valor diferente de 30 SHALL ser preservado.
+
+#### Scenario: Cartão gravado com --keep-roms e preset antigo
+- **WHEN** o `options.txt` do cartão tem `mousesensitivity = 30` e o jogo é aberto pelo menu Ports
+- **THEN** o valor passa a 120 e as demais linhas do arquivo ficam iguais
+
+#### Scenario: Valor ajustado pelo jogador
+- **WHEN** o `options.txt` do cartão tem `mousesensitivity` diferente de 30
+- **THEN** o lançador não altera o valor

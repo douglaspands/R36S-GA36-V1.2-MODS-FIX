@@ -1,40 +1,72 @@
 #!/bin/sh
-# Sincroniza o port ClassiCube e sua capa no menu Ports após mount_romfs.sh,
-# garantindo funcionamento mesmo em cartões atualizados com --keep-roms.
+# Restaura na p1 o lançador, a capa e os ativos do ClassiCube a partir da cópia
+# do SYSTEM, para o jogo aparecer no menu Ports também em cartões gravados com
+# --keep-roms. Roda depois do mount_romfs.sh (emuelec-autostart) e antes do ES.
+# Escreve só na pasta FAT32 /storage/roms/ports_scripts, sem criar o lowerdir
+# do overlay que o mount_romfs.sh tenta montar ali (ele falha, como na base).
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
 
-PORTS_SRC="/usr/bin/ports"
-SHARE_SRC="/usr/share/classicube"
-PORTS_UPPER="/storage/.config/emuelec/ports"
-PORTS_ROMS="/storage/roms/ports_scripts"
-ES_GAMELIST_DIR="/storage/.config/emulationstation/gamelists/ports"
-PORT_DEST="/storage/roms/ports/classicube"
+ROOT="${R36_ROOT:-}"
+SRC="$ROOT/usr/share/classicube"
+SCRIPTS_SRC="$SRC/ports_scripts"
+SCRIPTS_DST="$ROOT/storage/roms/ports_scripts"
+PORT_DST="$ROOT/storage/roms/ports/classicube"
+GAMELIST="$SCRIPTS_DST/gamelist.xml"
 
-if [ -d "$PORTS_SRC" ]; then
-    for dst in "$PORTS_UPPER" "$PORTS_ROMS"; do
-        mkdir -p "$dst/img" "$dst/images" 2>/dev/null || true
-        cp -f "$PORTS_SRC/ClassiCube.sh" "$dst/ClassiCube.sh" 2>/dev/null || true
-        chmod 0755 "$dst/ClassiCube.sh" 2>/dev/null || true
-        cp -f "$PORTS_SRC/img/ClassiCube.png" "$dst/img/ClassiCube.png" 2>/dev/null || true
-        cp -f "$PORTS_SRC/images/"*.png "$dst/images/" 2>/dev/null || true
-        if [ ! -f "$dst/gamelist.xml" ] || ! grep -q "ClassiCube.png" "$dst/gamelist.xml" 2>/dev/null; then
-            cp -f "$PORTS_SRC/gamelist.xml" "$dst/gamelist.xml" 2>/dev/null || true
-        fi
+# O mount_romfs.sh monta /storage/roms dentro do emuelec-autostart, que só termina
+# depois de iniciar o ES: espera a montagem aqui (até 20 s) em vez de ordenar o
+# serviço depois do autostart, o que trava o boot.
+if [ -z "$ROOT" ]; then
+    i=0
+    until mountpoint -q /storage/roms 2>/dev/null; do
+        [ "$i" -ge 20 ] && exit 0
+        sleep 1
+        i=$((i + 1))
     done
+fi
+[ -d "$SCRIPTS_SRC" ] || exit 0
 
-    mkdir -p "$ES_GAMELIST_DIR/img" "$ES_GAMELIST_DIR/images" 2>/dev/null || true
-    cp -f "$PORTS_SRC/img/ClassiCube.png" "$ES_GAMELIST_DIR/img/ClassiCube.png" 2>/dev/null || true
-    cp -f "$PORTS_SRC/images/"*.png "$ES_GAMELIST_DIR/images/" 2>/dev/null || true
-    if [ ! -f "$ES_GAMELIST_DIR/gamelist.xml" ] || ! grep -q "ClassiCube.png" "$ES_GAMELIST_DIR/gamelist.xml" 2>/dev/null; then
-        cp -f "$PORTS_SRC/gamelist.xml" "$ES_GAMELIST_DIR/gamelist.xml" 2>/dev/null || true
-    fi
+# Copia só quando falta ou difere, para não regravar a FAT32 a cada boot.
+copia() {
+    cmp -s "$1" "$2" && return 0
+    mkdir -p "$(dirname "$2")" && cp -f "$1" "$2"
+}
+
+copia "$SCRIPTS_SRC/ClassiCube.sh" "$SCRIPTS_DST/ClassiCube.sh"
+chmod 0755 "$SCRIPTS_DST/ClassiCube.sh" 2>/dev/null
+for img in "$SCRIPTS_SRC"/img/*.png "$SCRIPTS_SRC"/images/*.png; do
+    [ -f "$img" ] || continue
+    copia "$img" "$SCRIPTS_DST/${img#"$SCRIPTS_SRC"/}"
+done
+
+# O gamelist.xml é de todos os ports e o ES o reescreve: só acrescenta o bloco
+# <game> do ClassiCube antes de </gameList>, sem tocar nas outras entradas.
+# Arquivo vazio, sem jogos ou fora do formato do ES (</gameList> sozinho na
+# linha) vira o mestre, com o anterior guardado em gamelist.xml.bak.
+if [ ! -f "$GAMELIST" ] || ! grep -q '<game[ >]' "$GAMELIST" \
+    || ! grep -q '^[[:space:]]*</gameList>[[:space:]]*$' "$GAMELIST"; then
+    [ -f "$GAMELIST" ] && cp -f "$GAMELIST" "$GAMELIST.bak"
+    cp -f "$SCRIPTS_SRC/gamelist.xml" "$GAMELIST"
+elif ! grep -q '<path>\./ClassiCube\.sh</path>' "$GAMELIST"; then
+    awk -v mestre="$SCRIPTS_SRC/gamelist.xml" '
+        /<\/gameList>/ && !feito {
+            dentro = 0
+            while ((getline linha < mestre) > 0) {
+                if (linha ~ /<game[ >]/) dentro = 1
+                if (dentro) print linha
+                if (linha ~ /<\/game>/) dentro = 0
+            }
+            close(mestre)
+            feito = 1
+        }
+        { print }
+    ' "$GAMELIST" > "$GAMELIST.r36tmp" && mv -f "$GAMELIST.r36tmp" "$GAMELIST"
 fi
 
-if [ -d "$SHARE_SRC" ] && mountpoint -q /storage/roms 2>/dev/null; then
-    mkdir -p "$PORT_DEST/texpacks" "$PORT_DEST/audio" "$PORT_DEST/maps" 2>/dev/null || true
-    cp -f "$SHARE_SRC/ClassiCube" "$PORT_DEST/ClassiCube" 2>/dev/null || true
-    [ ! -f "$PORT_DEST/options.txt" ] && cp -f "$SHARE_SRC/options.txt" "$PORT_DEST/options.txt" 2>/dev/null || true
-    [ ! -f "$PORT_DEST/texpacks/default.zip" ] && cp -f "$SHARE_SRC/texpacks/default.zip" "$PORT_DEST/texpacks/default.zip" 2>/dev/null || true
-    [ ! -f "$PORT_DEST/audio/default.zip" ] && cp -f "$SHARE_SRC/audio/default.zip" "$PORT_DEST/audio/default.zip" 2>/dev/null || true
-fi
+# Ativos que faltarem; mapas e opções do jogador nunca são sobrescritos.
+mkdir -p "$PORT_DST/texpacks" "$PORT_DST/audio" "$PORT_DST/maps"
+for f in options.txt texpacks/default.zip audio/default.zip; do
+    [ -f "$PORT_DST/$f" ] || cp -f "$SRC/$f" "$PORT_DST/$f"
+done
 
 exit 0

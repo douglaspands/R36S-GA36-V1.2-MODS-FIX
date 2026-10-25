@@ -450,6 +450,52 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     versão de teste anterior com `--wipe-storage`, ela deixou presets que
     mantêm o shader ligado; gravar a p8 de novo com `--wipe-storage` os remove.
 
+- **`60-port-classicube`**: o ClassiCube 1.3.9 (recriação do Minecraft Classic
+  em C) como port nativo, no menu Ports como "Classic Craft (ClassiCube)". Roda
+  offline, com texturas clássicas e sons já no cartão.
+  - O binário é compilado por `./ports/classicube/compilar.sh` (container
+    `localhost/r36-cores-a33`, Cortex-A7, GLES 2.0 + SDL2), que aplica ajustes
+    ao fonte: texturas em `GL_RGBA` (o driver da Mali-400 recusa o `BGRA` do
+    build Linux e a tela ficava preta), janela já com foco (sem window manager
+    o jogo abria em pausa), leitura do `gamecontrollerdb.txt` da base (o SDL
+    2.0.9 ignora `SDL_GAMECONTROLLERCONFIG_FILE`) e os controles descritos
+    abaixo.
+  - **Controles** (botões no layout Nintendo do aparelho): o direcional e o
+    analógico esquerdo andam; o analógico direito gira a câmera. Cima anda
+    para frente e olha para cima; nos menus, cima sobe a seleção. Os dois
+    analógicos têm zona morta de 20% do curso (o resto é reescalado), para a
+    deriva do ADC não mover nada. Com o analógico direito no fundo a câmera
+    gira cerca de 110°/s (`mousesensitivity = 120` no `options.txt`) e um
+    passo de menu leva menos de 0,5 s.
+    - A pula, X inventário, Y pega o bloco, L quebra, R coloca, L2/R2 trocam
+      o item da barra, `L3 + R3` (os dois analógicos apertados) faz respawn.
+    - B+L velocidade, B+R voar, B+X atravessar paredes, B+cima/baixo voar para
+      cima/baixo.
+    - Start abre a pausa e Select volta/fecha menus; `Select + Start` fecha o
+      jogo e volta ao EmulationStation. Chat e "definir spawn" não têm botão
+      (Start não redefine mais o respawn); o jogador pode ligá-los no menu do
+      jogo, e os binds que ele salvar valem mais que os padrões.
+    - Cartões gravados com `--keep-roms` recebem a sensibilidade nova na
+      primeira abertura, mas só se o `options.txt` ainda tiver
+      `mousesensitivity = 30`; outro valor é preservado.
+  - O binário fica só no SYSTEM, em `/usr/share/classicube/`, e roda de lá.
+    Mapas e opções ficam em `R36-ROMS/ports/classicube/`; o `ClassiCube.sh`
+    recria ali o `options.txt` e os pacotes de textura e som que faltarem.
+  - O `r36-classicube-sync.service` roda no boot, antes do EmulationStation
+    (espera até 20 s o `mount_romfs.sh` montar `/storage/roms`; não espera o
+    `emuelec-autostart`, que só termina depois de abrir o ES), e
+    repõe em `R36-ROMS/ports_scripts/` o lançador e a capa que faltarem ou
+    estiverem diferentes, a partir da cópia em
+    `/usr/share/classicube/ports_scripts/`. Assim o jogo também aparece num
+    cartão gravado com `--keep-roms`. No `gamelist.xml` dessa pasta ele só
+    acrescenta a entrada do ClassiCube quando ela falta, sem mexer nas outras.
+  - Outros ports copiados pelo PC para `R36-ROMS/ports_scripts/` continuam
+    aparecendo no menu: a feature não cria `/usr/bin/ports`, então o overlay
+    que o `mount_romfs.sh` tenta montar nessa pasta segue falhando, como na
+    base.
+  - Apagar o `ClassiCube.sh` do cartão não remove o jogo, porque o boot o
+    recria. Para tirá-lo, desligue a feature e grave o `system` de novo.
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 

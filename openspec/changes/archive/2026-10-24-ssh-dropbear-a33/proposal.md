@@ -1,5 +1,12 @@
 # Proposal
 
+> **Situação (2026-10-25): removida da imagem.** Foi identificado um problema
+> com esta feature, e a `45-ssh-dropbear` saiu da imagem: feature, receita em
+> `services/dropbear/`, testes e a spec `ssh-server`. O problema será analisado
+> numa change futura, que decide se o SSH volta e em que condições. Enquanto
+> isso, a spec `system-services` exige a imagem sem servidor SSH. O que está
+> abaixo é o registro da implementação original (commit `9a72b09`).
+
 ## Why
 
 A imagem de fábrica do clone R36S (GA36-MB V1.2, Allwinner A33) e a base EmuELEC 4.7 não trazem nenhum servidor SSH instalado (nem OpenSSH nem Dropbear), embora a configuração `ee_ssh.enabled=1` esteja presente no `emuelec.conf`. O aparelho não possui Wi-Fi nem Ethernet integrados na placa-mãe, mas usuários utilizam adaptadores de rede ou dongles Wi-Fi USB na porta OTG para depuração, testes e transferências de arquivos sem a necessidade de remover o cartão SD a cada iteração.

@@ -2,7 +2,7 @@
 
 > **Instruções para execução (otimizado para execução direta passo a passo):**
 > - No início do `/opsx-apply`, crie e mude para a branch `corrige-classicube-tela-preta-e-capa` a partir da `main` (`git checkout -b corrige-classicube-tela-preta-e-capa`).
-> - Respeite as regras do `GEMINI.md`: comandos relativos à raiz do projeto, **um comando por chamada** (sem `cd`, sem `&&` ou `;`), **sem `sudo`**, e Python sempre via `uv run`.
+> - Respeite as regras do `CLAUDE.md`: comandos relativos à raiz do projeto, **um comando por chamada** (sem `cd`, sem `&&` ou `;`), **sem `sudo`**, e Python sempre via `uv run`.
 
 ## 1. Patch de código-fonte C e recompilação do ClassiCube (`ports/classicube/compilar.sh`)
 
@@ -191,3 +191,32 @@
   - Que `options.txt` contém `auto-pause = false` e `ClassiCube.sh` exporta `SDL_GAMECONTROLLERCONFIG`.
 - [x] 4.2 Executar a suíte de testes completa com `uv run python -I -m unittest discover -s tests` e confirmar 100% de aprovação.
 - [x] 4.3 Executar `./build.sh --test --fast` para validar a geração da imagem e verificar o `changes.txt`.
+
+## 5. Revisão pós-arquivamento: capa sem overlay e gamelist mesclado
+
+> Verificação de 2026-10-25 contra a imagem base: `/usr/bin/ports` não existe no
+> `SYSTEM`, então o overlay do `mount_romfs.sh` sobre `ports_scripts` falha e o
+> ES lê a pasta FAT32 da p1. As seções 3.1 e 3.3 criaram `/usr/bin/ports`, o que
+> ativa o overlay e esconde `R36-ROMS/ports_scripts/`; o sync também substituía
+> o `gamelist.xml` inteiro. Os patches de C (seção 1) foram conferidos com o
+> fonte 1.3.9 e com o binário e não mudam. Veja a decisão 2 do `design.md`.
+> Por pedido do usuário, esta seção é aplicada na branch em uso, sem branch
+> própria.
+
+- [x] 5.1 Mover `features/60-port-classicube/system/usr/bin/ports/` para `features/60-port-classicube/system/usr/share/classicube/ports_scripts/` (mesmos arquivos: `ClassiCube.sh`, `gamelist.xml`, `img/ClassiCube.png`, `images/ClassiCube-{image,thumb,marquee}.png`; o `images/ClassiCube.png` sem uso pode sair) e apagar `system/usr/bin/ports/`. Nenhuma feature pode criar `/usr/bin/ports`.
+- [x] 5.2 Reescrever `features/60-port-classicube/system/usr/lib/r36/classicube-sync` (`#!/bin/sh`, `0755`):
+  - Origem `${R36_ROOT:-}/usr/share/classicube` e destinos sob `${R36_ROOT:-}/storage/roms`; `R36_ROOT` fica vazio no aparelho e serve só para os testes.
+  - Sair com 0 sem fazer nada se `/storage/roms` não estiver montado (`mountpoint -q`; pular a checagem quando `R36_ROOT` estiver definido).
+  - Copiar `ClassiCube.sh` (`chmod 0755`), `img/ClassiCube.png` e `images/ClassiCube-*.png` para `/storage/roms/ports_scripts/` só quando faltam ou diferem (`cmp -s`), para não regravar a FAT32 a cada boot.
+  - `gamelist.xml`: se não existe, copiar o mestre; se existe e não contém `<path>./ClassiCube.sh</path>`, inserir o bloco `<game>…</game>` do mestre antes de `</gameList>` com `awk`, gravando num temporário na mesma pasta e trocando com `mv`; se já contém, não mexer.
+  - Garantir `options.txt`, `texpacks/default.zip` e `audio/default.zip` em `/storage/roms/ports/classicube/` só quando faltam. Não copiar o binário.
+  - Remover as escritas em `/storage/.config/emuelec/ports` e `/storage/.config/emulationstation/gamelists/ports`.
+- [x] 5.3 Remover `features/60-port-classicube/roms/ports/classicube/ClassiCube` e a cópia para `$dest_roms` em `ports/classicube/compilar.sh` (o binário fica só em `system/usr/share/classicube/`).
+- [x] 5.4 Ajustar `ClassiCube.sh` (cópias em `roms/ports_scripts/` e `system/usr/share/classicube/ports_scripts/`, idênticas): `BIN="/usr/share/classicube/ClassiCube"` sem os ramos de fallback para a p1 e `/tmp`, e remover o `export SDL_GAMECONTROLLERCONFIG_FILE` (o SDL 2.0.9 ignora essa variável).
+- [x] 5.5 Atualizar `tests/test_port_classicube.py`:
+  - `system/usr/bin/ports` não existe em nenhuma feature (varrer `features/*/system/usr/bin/ports`).
+  - `system/usr/share/classicube/ports_scripts/*` idêntico a `roms/ports_scripts/*`; não há binário em `roms/ports/classicube/`.
+  - O sync passa em `sh -n`, não cita `/usr/bin/ports`, `/storage/.config/emuelec/ports` nem `gamelists/ports`.
+  - Rodando o sync com `R36_ROOT` num diretório temporário: (a) sem `gamelist.xml`, ele é criado com a entrada do ClassiCube; (b) com um `gamelist.xml` que tem outra entrada, a outra continua e a do ClassiCube é acrescentada uma vez; (c) uma segunda execução não duplica a entrada nem altera o arquivo; (d) o XML resultante é válido (`xml.etree.ElementTree`).
+- [x] 5.6 Executar `uv run python -I -m unittest discover -s tests` e `./build.sh --test --fast`; conferir no `changes.txt` que nada entra em `/usr/bin/ports`.
+- [ ] 5.7 Validação no aparelho (passos para o usuário, sem SSH): gravar o cartão com `--keep-roms` sobre um cartão que não tenha o ClassiCube na p1; ligar e conferir que o menu Ports mostra "Classic Craft (ClassiCube)" com a capa; abrir o jogo e conferir céu, blocos e interface com cor (sem tela preta) e resposta do controle; sair com `Select + Start`; no PC, copiar um `.sh` qualquer para `R36-ROMS/ports_scripts/`, ligar de novo e conferir que ele aparece no menu e que o `gamelist.xml` mantém as duas entradas.

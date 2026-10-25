@@ -38,6 +38,19 @@ do aparelho que não se deduzem do código.
   de cada sistema vem do `es_systems.cfg`: o ES lê a cópia em
   `/storage/.config/emulationstation/`, e o SYSTEM tem outra em
   `/usr/config/emulationstation/`.
+- **Ports:** o ES lê o sistema `ports` de `/storage/roms/ports_scripts`, a pasta
+  FAT32 da p1. O `mount_romfs.sh` tenta montar ali um overlay com
+  `lowerdir=/usr/bin/ports` e `upperdir=/storage/.config/emuelec/ports`, mas
+  `/usr/bin/ports` não existe na base, então o mount falha e a pasta da p1 fica
+  visível. Nenhuma feature cria `/usr/bin/ports`: isso ativa o overlay e esconde
+  os ports que o usuário põe pelo PC. Para sobreviver a `--keep-roms`, guarde a
+  cópia mestre no SYSTEM e restaure na p1 com um serviço de boot
+  `Before=emustation.service` que espera `/storage/roms` virar ponto de montagem.
+- **Boot e ES:** o `emuelec-autostart.service` (oneshot) roda o `mount_romfs.sh`
+  e, no fim, `systemctl start emustation` de forma síncrona. Um serviço com
+  `After=emuelec-autostart.service` e `Before=emustation.service` trava o boot
+  no splash para sempre (o ES espera o serviço, que espera o autostart, que
+  espera o ES).
 - **Imagem base:** `base/R36S GA36-MB V1.2-20260416 - Emuelec - No ROMS.img`
   (sha256 em `config/base.toml`), do post
   <https://www.reddit.com/r/R36S/comments/1w2i8em/r36s_ga36mb_v1220260416_emuelec_no_roms/>.
