@@ -1,0 +1,8 @@
+# Servidor SSH Dropbear para o Allwinner A33 (GA36-MB V1.2)
+# Permite conexão remota via rede (USB Wi-Fi / USB-Ethernet na porta OTG).
+
+schema = 1
+name = "Servidor SSH (Dropbear)"
+description = "Servidor SSH Dropbear leve com inicialização automática e geração de chaves persistentes."
+order = 45
+enabled = true
