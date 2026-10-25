@@ -9,7 +9,10 @@
 
 #echo "............: $(date +"%Y-%m-%d %H:%M:%S.%3N"), : $(( $(date +%s) * 1000 + $(date +%N) / 1000000 ))"
 
-mpv /storage/.config/splash/loading-game.png &
+# Prioriza a tela de carregamento neutra da partição SYSTEM (resiliente a --keep-storage)
+SPLASH_IMG="/usr/config/splash/loading-game.png"
+[ ! -f "$SPLASH_IMG" ] && SPLASH_IMG="/storage/.config/splash/loading-game.png"
+mpv "$SPLASH_IMG" &
 # This whole file has become very hacky, I am sure there is a better way to do all of this, but for now, this works.
 
 get_ee_setting1() {
@@ -629,7 +632,7 @@ sed -i '
 
 # Show exit splash
 #${TBASH} show_splash.sh exit
-mpv /storage/.config/splash/loading-game.png
+mpv "$SPLASH_IMG"
 
 # key_fn
 #echo "464" > /sys/devices/platform/micro_gamepad/fn_key

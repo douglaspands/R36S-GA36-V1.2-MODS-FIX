@@ -129,6 +129,14 @@ class TelasIconeControle(unittest.TestCase):
             if p.is_file():
                 self.assertNotEqual(sha256(p), arte, p.relative_to(F30))
 
+    def test_emuelec_run_emu_splash_path(self):
+        runemu = ROOT / "features" / "10-ptbr-sao-paulo" / "system" / "usr" / "bin" / "emuelecRunEmu.sh"
+        self.assertTrue(runemu.is_file(), "emuelecRunEmu.sh ausente")
+        txt = runemu.read_text(encoding="utf-8")
+        self.assertIn('SPLASH_IMG="/usr/config/splash/loading-game.png"', txt)
+        self.assertIn('mpv "$SPLASH_IMG"', txt)
+        self.assertNotIn('mpv /storage/.config/splash/loading-game.png', txt)
+
 
 
 

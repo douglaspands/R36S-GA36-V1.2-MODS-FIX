@@ -34,6 +34,6 @@ if [ ! -x "$BIN" ]; then
     BIN="$TMP_DIR/ClassiCube"
 fi
 
-# Executa o ClassiCube
-"$BIN" "$@"
+# Executa o ClassiCube diretamente em modo singleplayer sem repassar argumentos externos do ES
+"$BIN" --singleplayer
 exit 0

@@ -6,11 +6,11 @@ Definir quais temas do EmulationStation a imagem gerada traz, onde eles ficam e 
 ## Requirements
 
 ### Requirement: Temas extras disponíveis no menu
-A imagem gerada SHALL trazer, além do NES-BOX de fábrica, os temas extras declarados pela feature de temas: Minimal EmuELEC e Graphite OGA na partição `storage`, e Switch, Crystal e Epic Cody na partição `roms` (`themes/`). Todos SHALL aparecer na lista de temas das configurações de interface do EmulationStation.
+A imagem gerada SHALL disponibilizar uma coleção de temas para o EmulationStation: Minimal EmuELEC, Graphite OGA e Epic Cody instalados na partição `storage`, e Switch, Crystal e NES-BOX na partição de ROMs do cartão (`themes/`). Todos SHALL aparecer na lista de temas das configurações de interface do EmulationStation.
 
 #### Scenario: Escolher um tema extra na p8 ou no cartão
 - **WHEN** o usuário abre a lista de temas do EmulationStation em "Configurações da interface → Tema"
-- **THEN** a lista mostra o NES-BOX e cada tema extra (Minimal EmuELEC, Graphite OGA, Switch, Crystal e Epic Cody), e escolher qualquer um deles aplica o tema após reiniciar o EmulationStation.
+- **THEN** a lista mostra cada tema disponível (Minimal EmuELEC, Graphite OGA, Epic Cody, Switch, Crystal e NES-BOX), e escolher qualquer um deles aplica o tema após reiniciar o EmulationStation
 
 ### Requirement: Temas legíveis na tela do aparelho
 Cada tema extra SHALL mostrar a lista de sistemas e a lista de jogos na tela de 640x480 sem texto cortado a ponto de impedir a navegação. Um tema que falhar nessa validação SHALL sair do conjunto.
@@ -20,19 +20,19 @@ Cada tema extra SHALL mostrar a lista de sistemas e a lista de jogos na tela de 
 - **THEN** os nomes dos sistemas e dos jogos são legíveis e a seleção atual é visível
 
 ### Requirement: NES-BOX continua padrão
-O tema ativo no primeiro boot SHALL continuar sendo o NES-BOX.
+O tema ativo no primeiro boot SHALL ser o Epic Cody, configurado nativamente na partição default do sistema (`storage`).
 
 #### Scenario: Primeiro boot
 - **WHEN** o aparelho inicia pela primeira vez com o storage gravado pela imagem
-- **THEN** o EmulationStation abre com o tema NES-BOX
+- **THEN** o EmulationStation abre com o tema Epic Cody como padrão
 
 ### Requirement: Espaço dos temas limitado
-Os temas extras leves mantidos na p8 SHALL ocupar no máximo 50 MiB no armazenamento do sistema. Os temas armazenados na partição `roms` SHALL respeitar o orçamento de download declarado no descritor da feature.
+Os temas mantidos na partição `storage` (p8) SHALL respeitar o limite de espaço livre e não exceder 300 MiB no total. Os temas armazenados na partição `roms` (FAT32) SHALL respeitar o orçamento de download e não conter links simbólicos.
 
 #### Scenario: Orçamento da partição storage respeitado
 - **WHEN** o build aplica a feature de temas
-- **THEN** o espaço consumido por temas na partição `storage` não excede 50 MiB.
+- **THEN** o espaço consumido por temas na partição `storage` (Minimal, Graphite e Epic Cody) não excede 300 MiB e deixa espaço livre para saves e RetroArch
 
 #### Scenario: Temas no cartão disponíveis na partição de ROMs
 - **WHEN** a imagem gerada é inspecionada
-- **THEN** os temas Switch, Crystal e Epic Cody estão presentes no caminho `/themes/` da camada `roms` (FAT32) sem symlinks.
+- **THEN** os temas Switch, Crystal e NES-BOX estão presentes no caminho `/themes/` da camada `roms` (FAT32) sem links simbólicos

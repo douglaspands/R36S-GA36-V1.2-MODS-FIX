@@ -49,6 +49,7 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertIn('<string name="Language" value="pt_BR" />', txt)
         self.assertIn('<string name="FolderViewMode" value="never" />', txt)
         self.assertIn('<bool name="FavoritesFirst" value="true" />', txt)
+        self.assertIn('<string name="ThemeSet" value="Epic Cody" />', txt)
 
     def test_retroarch_cfg(self):
         c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
@@ -132,8 +133,14 @@ class RunEmuMaxperf(TempDirCase):
         mudou = [l for l in difflib.unified_diff(base, nova, lineterm="", n=0)
                  if l[:1] in "+-" and l[:3] not in ("+++", "---")]
         self.assertEqual(
-            [l for l in mudou if l.startswith("-")], ["-maxperf"])
-        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 12)
+            [l for l in mudou if l.startswith("-")],
+            [
+                "-maxperf",
+                "-mpv /storage/.config/splash/loading-game.png &",
+                "-mpv /storage/.config/splash/loading-game.png",
+            ],
+        )
+        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 17)
         self.assertEqual(bloco_maxperf("\n".join(nova)).count("get_ee_setting maxperf"), 1)
 
 

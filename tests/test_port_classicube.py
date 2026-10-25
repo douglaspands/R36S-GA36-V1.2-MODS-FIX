@@ -97,6 +97,8 @@ class TestPortClassiCube(unittest.TestCase):
         self.assertIn("SDL_VIDEO_EGL_DRIVER", conteudo)
         self.assertIn("/storage/roms/ports/classicube", conteudo)
         self.assertIn("/tmp/classicube", conteudo)
+        self.assertIn("--singleplayer", conteudo)
+        self.assertNotIn('"$@"', conteudo)
 
     def test_options_preset(self):
         self.assertTrue(OPTIONS.is_file(), "options.txt ausente")
@@ -130,8 +132,10 @@ class TestPortClassiCube(unittest.TestCase):
         self.assertTrue(gamelist.is_file(), "gamelist.xml ausente em ports_scripts/")
         txt = gamelist.read_text(encoding="utf-8")
         self.assertIn("<path>./ClassiCube.sh</path>", txt)
-        self.assertIn("<name>ClassiCube</name>", txt)
+        self.assertIn("<name>Classic Craft (ClassiCube)</name>", txt)
         self.assertIn("<image>./img/ClassiCube.png</image>", txt)
+        self.assertIn("<thumbnail>./img/ClassiCube.png</thumbnail>", txt)
+        self.assertIn("<marquee>./img/ClassiCube.png</marquee>", txt)
 
         img = SCRIPTS_DIR / "img" / "ClassiCube.png"
         self.assertTrue(img.is_file(), "img/ClassiCube.png ausente")
@@ -139,6 +143,10 @@ class TestPortClassiCube(unittest.TestCase):
 
         img_alt = SCRIPTS_DIR / "images" / "ClassiCube-image.png"
         self.assertTrue(img_alt.is_file(), "images/ClassiCube-image.png ausente")
+        img_thumb = SCRIPTS_DIR / "images" / "ClassiCube-thumb.png"
+        self.assertTrue(img_thumb.is_file(), "images/ClassiCube-thumb.png ausente")
+        img_marquee = SCRIPTS_DIR / "images" / "ClassiCube-marquee.png"
+        self.assertTrue(img_marquee.is_file(), "images/ClassiCube-marquee.png ausente")
 
 
 if __name__ == "__main__":

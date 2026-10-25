@@ -39,8 +39,13 @@ class TemasExtrasTest(unittest.TestCase):
             else:
                 self.fail(f"Camada inesperada para tema: {ext.layer}")
 
-        self.assertEqual(set(storage_themes.keys()), {"Minimal EmuELEC", "Graphite OGA"})
-        self.assertEqual(set(roms_themes.keys()), {"Switch", "Crystal", "Epic Cody"})
+        self.assertEqual(set(storage_themes.keys()), {"Minimal EmuELEC", "Graphite OGA", "Epic Cody"})
+        self.assertEqual(set(roms_themes.keys()), {"Switch", "Crystal"})
+        self.assertIn(("storage", ".config/emulationstation/themes/NES-BOX"), self.feat.removes)
+
+        nesbox = self.feat_dir / "roms" / "themes" / "NES-BOX"
+        self.assertTrue(nesbox.is_dir(), "NES-BOX ausente em roms/themes/")
+        self.assertTrue((nesbox / "theme.xml").is_file(), "theme.xml do NES-BOX ausente")
 
     def test_roms_themes_cache_have_no_symlinks(self):
         cache = ROOT / "work" / "cache" / "external"
