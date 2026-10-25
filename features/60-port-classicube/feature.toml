@@ -1,0 +1,9 @@
+# Port nativo do ClassiCube (reimplementação leve do Minecraft Classic em C99)
+# Otimizado para Allwinner A33 (Mali-400 MP2 via OpenGL ES 2.0 nativo e SDL2).
+# Inclui ativos offline (texturas e áudio) e lançador para o menu Ports do EmulationStation.
+
+schema = 1
+name = "Port ClassiCube"
+description = "Port nativo do ClassiCube em C99/GLES 2.0 com texturas clássicas e áudio offline nos Ports do EmulationStation."
+order = 60
+enabled = true
