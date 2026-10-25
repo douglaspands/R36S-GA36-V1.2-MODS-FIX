@@ -366,60 +366,28 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     (30) e `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq` (600000).
   - Fica no SYSTEM, então vale com qualquer gravação dele.
 
-- **`50-temas-extras`**: quatro temas do EmulationStation instalados na p8 ao lado
-  do NES-BOX, que continua sendo o padrão (o NES-BOX não cobre 15 sistemas da
-  imagem; o `51-tema-nes-box-v2` abaixo completa essa lacuna num tema à parte):
-  **Minimal EmuELEC**, **Switch**,
-  **Graphite OGA** e **Crystal**. Somam cerca de 348 MiB (limite de 400 MiB,
-  conferido pelo build). Não entram no git: o build baixa cada um de um commit
-  fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira vez
-  precisa de rede; depois, `./build.sh --offline` basta.
+- **`50-temas-extras`**: cinco temas extras do EmulationStation além do NES-BOX de
+  fábrica (que continua sendo o padrão imutável). Para não sobrecarregar a partição
+  `storage` (p8, ext4 com tamanho fixo), os temas são divididos entre o sistema e o
+  cartão:
+  - **Na partição do sistema (`storage`, p8 ext4):** temas leves, ocupando cerca de 37 MiB:
+    - **Minimal EmuELEC** (em `.config/emulationstation/themes/Minimal EmuELEC`)
+    - **Graphite OGA** (em `.config/emulationstation/themes/Graphite OGA`)
+  - **Na partição de ROMs (`roms`, p1 FAT32):** temas mais ricos em mídia e espaço,
+    instalados em `themes/` na raiz FAT32 (visíveis no aparelho em `/storage/roms/themes/`):
+    - **Switch** (em `themes/Switch`)
+    - **Crystal** (em `themes/Crystal`)
+    - **Epic Cody** (em `themes/Epic Cody`, tema 4:3 640x480 do CodyV59 adaptado para o RG351V)
+  - Somam cerca de 553 MiB descompactados (limite de 700 MiB no `budget_mib`,
+    conferido pelo build). Não entram no git: o build baixa cada um de um commit
+    fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira vez
+    precisa de rede; depois, `./build.sh --offline` basta.
   - Para escolher: no EmulationStation, Start > Configurações da interface > Tema.
-  - Ficam no `/storage`, então só chegam com `--wipe-storage`.
-  - Com `--keep-storage`, copie pelo PC: monte a partição ext4 `R36-STORAGE` do
-    cartão e copie os diretórios de `.config/emulationstation/themes/` de um
-    cartão (ou de um build) para o mesmo caminho dela.
-  - Se o cartão já tinha os temas antigos (versões anteriores do projeto) e foi
-    gravado com `--keep-storage`, troque de tema se um GPi estiver ativo e depois
-    apague pelo PC os três diretórios `Mario (GPi)`, `Sonic (GPi)` e
-    `Crash (GPi)` de `.config/emulationstation/themes/`.
-
-- **`51-tema-nes-box-v2`**: o tema **NES-BOX-V2**, instalado na p8 ao lado do
-  NES-BOX. O NES-BOX continua sendo o padrão e não muda. O V2 é uma cópia dele
-  (cerca de 21 MiB, tirada da própria imagem base) mais uma pasta para cada um dos
-  15 sistemas do `es_systems.cfg` que o NES-BOX não cobre, que no original aparecem
-  sem logo e sem arte de personagem: `pce-cd`, `tic-80`, `sharpx1`, `prboom`,
-  `ecwolf`, `megadrivemsu`, `ggh`, `wii`, `pgm2`, `fmtmarty`, `mplayer`,
-  `freej2me`, `gmloader`, `karaoke` e `imageviewer`.
-  - Sete deles só diferem de um sistema existente no nome e apontam para a arte
-    dele (`pce-cd` usa a de `pcenginecd`, e assim por diante). Os outros oito têm
-    arte própria: logo oficial quando existe (`wii`, `pgm2`, `fmtmarty`, `mplayer`,
-    `gmloader`), arte de personagem do Wikimedia Commons (`wii`, `fmtmarty`) e o
-    resto criado (ícone temático com o nome, ou círculo com ícone). Cada arquivo tem
-    origem registrada em `features/51-tema-nes-box-v2/LEIA-ME.txt`.
-  - Para escolher: no EmulationStation, Start > Configurações da interface > Tema >
-    NES-BOX-V2.
-  - Fica no `/storage`, então só chega com `--wipe-storage`. Com `--keep-storage`,
-    copie pelo PC: monte a partição ext4 `R36-STORAGE` do cartão e copie o diretório
-    `NES-BOX-V2` de `.config/emulationstation/themes/` de um build para o mesmo
-    caminho dela.
-  - A cópia do NES-BOX **não está no git**: o Readme do tema (Travis Wilson) proíbe
-    compartilhar versões modificadas e reusar os gráficos em outros projetos, então
-    é para uso pessoal nesta imagem. Depois de clonar o repositório, e antes de
-    gerar a imagem, rode (precisa da imagem base em `base/`, de `debugfs`, de
-    ImageMagick 7 e de `uv`):
-
-    ```bash
-    features/51-tema-nes-box-v2/gerar.sh
-    ```
-
-    O mesmo comando refaz as pastas novas e o `LEIA-ME.txt` a partir do
-    `fontes.toml`. A arte oficial é baixada uma vez para `work/cache/nes-box-v2/`
-    (sha256 conferido); o build não baixa nada e funciona com `--offline`.
-  - O teste `tests/test_tema_nes_box_v2.py` cruza o `es_systems.cfg` da base com o
-    V2 e falha se faltar pasta, arquivo de imagem, origem ou o `gerar.sh` não tiver
-    sido rodado.
-  - Para desligar, ponha `enabled = false` no `feature.toml`.
+  - Como os temas mais pesados ficam na partição FAT32 (`R36-ROMS`), você pode
+    inclusive adicionar outros temas ou customizá-los diretamente pelo computador
+    (Windows, Mac ou Linux) colocando as pastas em `themes/` na raiz do cartão.
+  - Com `--keep-storage` e `--keep-roms`, os temas existentes no cartão não são
+    apagados.
 
 - **`52-psp-desempenho`**: o `ppsspp.ini` global (PPSSPP standalone) fica mais
   leve para o A33 (4x Cortex-A7, Mali-400 MP2), valendo para qualquer jogo de
@@ -507,8 +475,8 @@ Uma feature é um diretório em `features/`. Veja o exemplo comentado em
    budget_mib = 400                  # opcional: o build falha se o extraído passar disso
 
    [[external]]
-   layer = "storage"
-   dest = ".config/emulationstation/themes/Crystal"
+   layer = "roms"
+   dest = "themes/Crystal"
    url = "https://codeload.github.com/dm2912/Crystal/tar.gz/<commit>"   # use um commit, não um branch
    sha256 = "<sha256 do .tar.gz>"    # sha256sum arquivo.tar.gz
    strip = 1                         # níveis de diretório removidos do início (opcional)

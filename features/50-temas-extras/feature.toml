@@ -1,29 +1,22 @@
-# Temas extras do EmulationStation, instalados na p8 ao lado do NES-BOX (que
-# continua sendo o tema padrão). O build baixa cada tema de um commit fixo,
-# confere o sha256 e guarda em work/cache/external/. Os temas não entram no git.
+# Temas extras do EmulationStation: Minimal e Graphite ficam na partição p8
+# (/storage), enquanto Switch, Crystal e Epic Cody ficam na partição de ROMs
+# (p1, FAT32 em /storage/roms/themes/) ao lado dos jogos. O NES-BOX de fábrica
+# continua sendo o tema padrão imutável. O build baixa cada tema de um commit
+# fixo, confere o sha256 e guarda em work/cache/external/. Os temas não entram no git.
 # Escolha no aparelho: Menu > Configurações da interface > Tema.
-# Ficam no /storage, então só chegam com --wipe-storage.
 
 schema = 1
 name = "Temas extras"
-description = "Temas Minimal, Switch, Graphite e Crystal para o EmulationStation."
+description = "Temas Minimal, Graphite, Switch, Crystal e Epic Cody para o EmulationStation."
 order = 50
 enabled = true
-budget_mib = 400
+budget_mib = 700
 
 [[external]]
 layer = "storage"
 dest = ".config/emulationstation/themes/Minimal EmuELEC"
 url = "https://codeload.github.com/EmuELEC/es-theme-minimal-EmuELEC/tar.gz/628546bade3c08a3904c4105fab35c8d1ae49432"
 sha256 = "31ebe08db71bc1a8ab30ee387acbc01617fc2e257dedfa9095cc87c92b48724d"
-strip = 1
-exclude = [".git*", "*.md", "screenshots/*"]
-
-[[external]]
-layer = "storage"
-dest = ".config/emulationstation/themes/Switch"
-url = "https://codeload.github.com/Jetup13/es-theme-switch/tar.gz/2066a6e21569590fc94ab875921e575c798785fa"
-sha256 = "7ea436d346da1a0d8f9ae3a0bffcfd20276a7906ba157219d4e8bb22c92a24c7"
 strip = 1
 exclude = [".git*", "*.md", "screenshots/*"]
 
@@ -36,9 +29,25 @@ strip = 1
 exclude = [".git*", "*.md", "screenshots/*"]
 
 [[external]]
-layer = "storage"
-dest = ".config/emulationstation/themes/Crystal"
+layer = "roms"
+dest = "themes/Switch"
+url = "https://codeload.github.com/Jetup13/es-theme-switch/tar.gz/2066a6e21569590fc94ab875921e575c798785fa"
+sha256 = "7ea436d346da1a0d8f9ae3a0bffcfd20276a7906ba157219d4e8bb22c92a24c7"
+strip = 1
+exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "roms"
+dest = "themes/Crystal"
 url = "https://codeload.github.com/dm2912/Crystal/tar.gz/8f1fca3b8b673f5c8211b34329d974a727b10930"
 sha256 = "c8275150f585afe6941b050e91de30152b9b5ede0dd475751bb38b0f33823c31"
 strip = 1
 exclude = [".git*", "*.md", "screenshots/*"]
+
+[[external]]
+layer = "roms"
+dest = "themes/Epic Cody"
+url = "https://codeload.github.com/CodyV59/es-theme-epic-cody-RG351V/tar.gz/b810e33851f2df0f86e9e2570cddab3a40961f8f"
+sha256 = "4a0d1e11850e0a1f0ae54ba3f4c067aefa44751e6fa7996a799493308dbe5d55"
+strip = 1
+exclude = [".git*", "*.md"]
