@@ -1,11 +1,12 @@
 # Shaders para Game Boy Advance (GBA) no R36S (Allwinner A33).
-# Instala o shader gba-modern-remaster (correção cromática sRGB D65 e
-# interpolação adaptativa de bordas) em /usr/share/common-shaders/gba, a pasta
-# de baixo do overlay /tmp/shaders. Não fica ligado por padrão: o usuário o
-# escolhe no EmulationStation (opção "SHADER SET"), que lista /tmp/shaders.
+# Instala o shader gba-modern-remaster (cor viva que preserva o vermelho
+# e filtro sharp-bilinear) em /usr/share/common-shaders/gba, a pasta
+# de baixo do overlay /tmp/shaders. Fica ligado por padrão nos jogos de GBA: o
+# r36-shader-gba-prepara cria, no boot, o preset automático do RetroArch de cada
+# core de GBA. Para desligar, um arquivo r36-gba-sem-shader na raiz da p1.
 
 schema = 1
 name = "Shaders GBA"
-description = "Shader gba-modern-remaster (correção de cor sRGB D65 e suavização sem cintilação), desligado por padrão e selecionável no SHADER SET do EmulationStation."
+description = "Shader gba-modern-remaster (cor viva, vermelho preservado e filtro sharp-bilinear), ligado por padrão nos jogos de GBA, com chave para desligar na p1."
 order = 54
 enabled = true

@@ -456,19 +456,45 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     na lista de cores.
 
 - **`54-shaders-gba`**: o shader `gba-modern-remaster` para Game Boy Advance,
-  que corrige as cores supersaturadas feitas para a tela sem luz do GBA (ponto
-  branco sRGB D65) e suaviza as bordas sem cintilar, numa só passada GLSL leve
-  para a Mali-400.
-  - **Vem desligado.** Para ligar: no EmulationStation, abra as configurações
-    avançadas do sistema GBA (ou as configurações de jogo, para todos os
-    sistemas) e escolha `gba/gba-modern-remaster.glslp` em "SHADER SET". Para
-    desligar, volte a opção para nenhum.
+  que dá cor viva à imagem (vibrance, curva em S e realce) sem lavar o vermelho,
+  suaviza as bordas com um filtro sharp-bilinear que não cintila nem borra e
+  desenha uma grade LCD leve entre os pixels (aspecto de tela de console), numa
+  só passada GLSL leve para a Mali-400.
+  - Parâmetros no menu do RetroArch (Shaders, Shader Parameters), com o padrão:
+    `VIBRANCE` 0,45; `SATURATION` 1,10; `HIGHLIGHT ROLLOFF` 0,35 (quanto do
+    reforço de cor sai dos tons claros; nenhuma cor fica abaixo da original, e
+    pele, amarelo e pastéis ganham cor sem clarear); `S-CURVE Contrast` 0,28; `HIGHLIGHT SHOULDER` 0,05;
+    `PIXEL SOFTNESS` 0,15; `LCD GRID (0=Off)` 0,10, bem sutil (0 desliga a grade);
+    `BRIGHTNESS` 0 (de -0,30 a 0,30, clareia ou escurece tudo).
+  - **Vem ligado nos jogos de GBA**, sem escolher nada no ES. O
+    `r36-shader-gba-prepara.service` roda no boot, antes do ES, e liga o shader
+    de dois jeitos: acrescenta `gba.shaderset=gba/gba-modern-remaster.glslp` ao
+    `emuelec.conf` (o que a opção "SHADER SET" do ES grava) quando essa chave
+    não existe, e cria o preset automático do RetroArch de cada core de GBA
+    (`config/gpSP/gpSP.glslp`, `mGBA/mGBA.glslp`, `VBA-M/VBA-M.glslp` e
+    `VBA Next/VBA Next.glslp`) apontando para
+    `/usr/share/common-shaders/gba/gba-modern-remaster.glslp`, no SYSTEM. Uma
+    escolha sua em `gba.shaderset` (inclusive `none`) e um preset que já existe,
+    como um que você salvou com outros valores, nunca são sobrescritos. Funciona
+    com `--keep-storage`, porque nasce no boot.
+  - **Diagnóstico:** o serviço deixa o que fez em `R36-ROMS/r36-shader-gba.log`
+    (legível pelo PC). Se o shader não entrar, o log mostra se a chave e os
+    presets foram criados.
+  - **Desligar:** crie um arquivo vazio chamado `r36-gba-sem-shader` na raiz da
+    `R36-ROMS` (pelo PC). No boot seguinte o serviço apaga só o que ele mesmo
+    criou (a linha `gba.shaderset` exata e os presets de uma linha) e não os
+    recria; apagar o arquivo religa o shader. Os valores do shader se ajustam no
+    menu do RetroArch (Shaders, Shader Parameters).
   - Os arquivos ficam em `/usr/share/common-shaders/gba/` (SYSTEM), a camada de
     baixo de `/tmp/shaders`, que é a pasta que o ES lista. Chegam ao cartão em
     qualquer gravação do `system`, inclusive com `--keep-storage`.
-  - A feature não cria preset automático do RetroArch. Se o cartão recebeu a
-    versão de teste anterior com `--wipe-storage`, ela deixou presets que
-    mantêm o shader ligado; gravar a p8 de novo com `--wipe-storage` os remove.
+  - Uma cópia do shader na p8 (`/storage/shaders/gba/`) esconde a do SYSTEM, e
+    presets que a referenciam mantêm o shader antigo ligado. Isso ficou na p8
+    depois de versões de teste e de gravações do `system`, e o shader parecia
+    não mudar. O mesmo serviço apaga, a cada boot, a cópia da p8 que difere da
+    do SYSTEM e os presets que contêm só a referência a ela; cópia idêntica,
+    outros presets e outros shaders seus ficam. Consequência: edições suas no
+    `gba-modern-remaster.glsl` dentro da p8 não sobrevivem ao boot.
 
 - **`58-ports-exec`**: copiar um port pelo PC e jogar. A p1 (FAT32) não guarda
   permissão de execução e pode estar montada com `noexec`, então o

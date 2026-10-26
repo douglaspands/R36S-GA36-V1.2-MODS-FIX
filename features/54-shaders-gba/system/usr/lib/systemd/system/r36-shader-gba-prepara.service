@@ -1,0 +1,19 @@
+[Unit]
+Description=Prepara o shader gba-modern-remaster como padrão do GBA (R36S)
+# Sem After=emuelec-autostart.service: o autostart só termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o mount_romfs.sh montar /storage/roms.
+# After=tmp-shaders.mount: o overlay falha neste kernel (sem overlayfs) e o script monta
+# /storage/shaders em /tmp/shaders por bind depois dessa tentativa; o mount não depende de
+# nada daqui, então não há ciclo.
+After=tmp-shaders.mount
+Before=emustation.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/shader-gba-prepara
+RemainAfterExit=yes
+TimeoutStartSec=60
+
+[Install]
+WantedBy=emuelec.target

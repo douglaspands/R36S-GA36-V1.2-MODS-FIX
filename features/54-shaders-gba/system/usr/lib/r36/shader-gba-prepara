@@ -1,0 +1,140 @@
+#!/bin/sh
+# Prepara o shader gba-modern-remaster como padrão dos jogos de GBA:
+#  1. Atualiza, no mesmo arquivo, a cópia do shader na p8 que difere da do SYSTEM, e
+#     remove os presets que só a referenciam. A p8 é a camada de cima do overlay
+#     /tmp/shaders, então uma cópia velha esconderia a do SYSTEM. Se /tmp/shaders não
+#     estiver montado (o kernel não tem overlayfs), monta /storage/shaders ali por bind.
+#  2. Liga o shader como o EmulationStation liga: gba.shaderset no emuelec.conf, se
+#     a chave não existir (uma escolha do usuário, inclusive outra, é respeitada).
+#  3. Cria, se faltar, o preset automático do RetroArch de cada core de GBA,
+#     apontando para o shader do SYSTEM. O RetroArch 1.17 o procura em
+#     rgui_config_directory (no cartão é "/config", que não existe), na pasta do
+#     retroarch.cfg e em video_shader_dir/presets; o preset vai em config/<core>/ e
+#     em <core>/ na pasta do retroarch.cfg. Um preset que já existe, inclusive um que
+#     o usuário salvou, nunca é sobrescrito.
+#  4. Chave para desligar: um arquivo vazio chamado r36-gba-sem-shader na raiz da p1
+#     (R36-ROMS, pelo PC) desfaz os passos 2 e 3 (só o que este script criou).
+# Deixa o resultado em r36-shader-gba.log na raiz da p1, legível pelo PC, com os
+# atributos do framebuffer (diagnóstico do tearing).
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+SRC="$ROOT/usr/share/common-shaders/gba"
+DIR="$ROOT/storage/shaders/gba"
+RADIR="$ROOT/storage/.config/retroarch"
+CONFIG="$RADIR/config"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+OLD_REF='#reference "/storage/shaders/gba/gba-modern-remaster.glslp"'
+TMP_REF='#reference "/tmp/shaders/gba/gba-modern-remaster.glslp"'
+REF='#reference "/usr/share/common-shaders/gba/gba-modern-remaster.glslp"'
+SETLINE='gba.shaderset=gba/gba-modern-remaster.glslp'
+OFF="$ROOT/storage/roms/r36-gba-sem-shader"
+LOG="$ROOT/storage/roms/r36-shader-gba.log"
+# Nomes dos cores de GBA como o RetroArch os grava em config/ (gpSP é o padrão), um por linha
+CORES="gpSP
+mGBA
+VBA-M
+VBA Next"
+
+[ -f "$SRC/gba-modern-remaster.glsl" ] || exit 0
+
+linhas() { grep -v '^[[:space:]]*$' "$1" | sort -u; }
+nosso() { [ -f "$1" ] && { [ "$(linhas "$1")" = "$REF" ] || [ "$(linhas "$1")" = "$TMP_REF" ]; }; }
+registro() { [ -n "$MONTADA" ] && printf '%s\n' "$1" >> "$LOG"; }
+
+# 1. Cópia velha na p8. O emuelec_autostart.sh copia /usr/share/common-shaders para
+# /storage/shaders a cada boot com rsync --ignore-existing, que nunca atualiza: depois
+# de gravar um system novo, a cópia do build anterior fica por cima no overlay. Ela é
+# regravada no mesmo arquivo; apagar com o overlay montado deixa a pasta gba invisível
+# em /tmp/shaders até o próximo boot.
+for arq in gba-modern-remaster.glsl gba-modern-remaster.glslp; do
+    if [ -f "$DIR/$arq" ] && ! cmp -s "$SRC/$arq" "$DIR/$arq"; then
+        cat "$SRC/$arq" > "$DIR/$arq" && VELHA=sim
+    fi
+done
+# 1b. /tmp/shaders sem overlay. O kernel 3.4 não tem overlayfs, então o tmp-shaders.mount
+# falha e /tmp/shaders, de onde o ES tira a lista do "SHADER SET" (emuelec-utils
+# getshaders) e onde o RetroArch procura o video_shader que o ES grava, fica vazio. A p8
+# tem a cópia de todos os shaders do SYSTEM (rsync do emuelec_autostart.sh): um bind dela
+# ali faz o papel do overlay.
+if [ -z "$ROOT" ] && ! grep -q ' /tmp/shaders ' /proc/mounts; then
+    mkdir -p /tmp/shaders && mount -o bind /storage/shaders /tmp/shaders && BIND=sim
+fi
+if [ -n "$VELHA" ]; then
+    for preset in "$CONFIG"/*/*.glslp; do
+        [ -f "$preset" ] || continue
+        [ "$(linhas "$preset")" = "$OLD_REF" ] && rm -f "$preset"
+    done
+fi
+
+# A chave fica na p1, que o mount_romfs.sh monta dentro do emuelec-autostart: espera a
+# montagem (até 20 s) em vez de ordenar o serviço depois dele, o que trava o boot. Sem
+# p1 depois disso, segue sem chave: o padrão é shader ligado.
+MONTADA=
+if [ -z "$ROOT" ]; then
+    i=0
+    until mountpoint -q /storage/roms 2>/dev/null; do
+        [ "$i" -ge 20 ] && break
+        sleep 1
+        i=$((i + 1))
+    done
+    mountpoint -q /storage/roms 2>/dev/null && MONTADA=sim
+elif [ -d "$ROOT/storage/roms" ]; then
+    MONTADA=sim
+fi
+[ -n "$MONTADA" ] && : > "$LOG"
+registro "r36-shader-gba-prepara $(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"
+[ -n "$VELHA" ] && registro "copia velha do shader na p8 atualizada com a do SYSTEM"
+[ -n "$BIND" ] && registro "/tmp/shaders sem overlay: /storage/shaders montado ali por bind"
+if [ -z "$ROOT" ]; then
+    if [ -f /tmp/shaders/gba/gba-modern-remaster.glslp ]; then
+        registro "/tmp/shaders/gba/gba-modern-remaster.glslp visivel (lista do ES)"
+    else
+        registro "AVISO: /tmp/shaders/gba/gba-modern-remaster.glslp nao visivel"
+        registro "$(ls -la /storage/shaders /storage/shaders/gba 2>&1)"
+    fi
+fi
+# Diagnóstico do tearing: buffer duplo no framebuffer (virtual_size com o dobro da
+# altura) é o que deixa o driver da Mali trocar o quadro no retrace
+for fb in "$ROOT"/sys/class/graphics/fb[0-9]; do
+    [ -d "$fb" ] || continue
+    for attr in name modes mode virtual_size bits_per_pixel stride pan rotate; do
+        [ -r "$fb/$attr" ] && registro "${fb##*/} $attr: $(tr '\n' ' ' < "$fb/$attr" | sed 's/ *$//')"
+    done
+done
+[ -f "$RADIR/retroarch.cfg" ] &&
+    registro "retroarch.cfg: $(grep -E '^(rgui_config_directory|auto_shaders_enable|video_shader_enable|video_shader) ' "$RADIR/retroarch.cfg" | tr '\n' ' ')"
+if [ -e "$OFF" ]; then DESLIGADO=sim; registro "chave r36-gba-sem-shader encontrada: shader desligado"; fi
+
+# 2. gba.shaderset no emuelec.conf
+if [ -f "$EMUCONF" ]; then
+    if [ -n "$DESLIGADO" ]; then
+        if grep -qx "$SETLINE" "$EMUCONF"; then
+            grep -vx "$SETLINE" "$EMUCONF" > "$EMUCONF.r36tmp" && cat "$EMUCONF.r36tmp" > "$EMUCONF"
+            rm -f "$EMUCONF.r36tmp"
+            registro "emuelec.conf: $SETLINE removida"
+        fi
+    elif grep -q '^gba\.shaderset=' "$EMUCONF"; then
+        registro "emuelec.conf: gba.shaderset ja existe ($(grep '^gba\.shaderset=' "$EMUCONF" | head -1)), mantida"
+    else
+        # garante quebra de linha no fim antes de acrescentar
+        [ -n "$(tail -c1 "$EMUCONF")" ] && printf '\n' >> "$EMUCONF"
+        printf '%s\n' "$SETLINE" >> "$EMUCONF" && registro "emuelec.conf: $SETLINE criada"
+    fi
+else
+    registro "emuelec.conf ausente: so os presets de core"
+fi
+
+# 3. Presets automáticos dos cores de GBA (ou remoção, com a chave)
+printf '%s\n' "$CORES" | while IFS= read -r core; do
+    for base in "$CONFIG" "$RADIR"; do
+        preset="$base/$core/$core.glslp"
+        if [ -n "$DESLIGADO" ]; then
+            nosso "$preset" && rm -f "$preset"
+        elif [ ! -e "$preset" ]; then
+            mkdir -p "$base/$core" && printf '%s\n' "$REF" > "$preset" &&
+                registro "preset $core criado em ${preset#"$ROOT"}"
+        fi
+    done
+done
+exit 0

@@ -8,3 +8,6 @@ out/
 __pycache__/
 *.pyc
 .venv/
+
+# Exemplos gerados para validação visual
+var/
