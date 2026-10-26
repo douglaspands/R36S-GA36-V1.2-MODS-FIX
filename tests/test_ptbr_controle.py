@@ -140,7 +140,7 @@ class RunEmuMaxperf(TempDirCase):
                 "-mpv /storage/.config/splash/loading-game.png",
             ],
         )
-        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 17)
+        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 21)  # 17 + 2 linhas do audio-ganho por Speaker Function
         self.assertEqual(bloco_maxperf("\n".join(nova)).count("get_ee_setting maxperf"), 1)
 
 

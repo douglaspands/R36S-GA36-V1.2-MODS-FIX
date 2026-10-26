@@ -1,0 +1,51 @@
+#!/bin/sh
+# Amostrador do codec (feature 46-audio, diagnóstico): nos primeiros minutos depois do
+# boot, lê o dump da interface de registradores do driver (audio_reg_debug/audio_reg) a
+# cada poucos segundos e grava em r36-audio-dac.log, na raiz da p1, o dump completo
+# toda vez que o estado do codec muda. Serve para ver o volume digital do DAC e o ganho
+# analógico COM áudio tocando (a música de fundo do menu, depois um jogo), que o dump
+# do boot, com o DAC parado, não mostra. Só lê: nenhuma escrita em registrador.
+# Estado comparado: DAC_Digital_Part_Control, DAC_FIFO_Control, os registradores
+# analógicos e os controles do mixer; os contadores e o FIFO mudam o tempo todo e ficam
+# de fora da comparação (aparecem no dump gravado).
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário e
+# encurtam R36_AMOSTRA_DURACAO/R36_AMOSTRA_PASSO.
+
+ROOT="${R36_ROOT:-}"
+REG="$ROOT/sys/devices/platform/sunxi-pcm-codec/audio_reg_debug/audio_reg"
+ROMS="$ROOT/storage/roms"
+LOG="$ROMS/r36-audio-dac.log"
+DURACAO="${R36_AMOSTRA_DURACAO:-600}"
+PASSO="${R36_AMOSTRA_PASSO:-3}"
+MAX_BYTES=65536
+
+[ -r "$REG" ] || exit 0
+
+ctl() { amixer cget "name=$1" 2>/dev/null | sed -n 's/.*: values=//p' | tr '\n' ' ' | sed 's/ *$//'; }
+montada() {
+    if [ -z "$ROOT" ]; then mountpoint -q /storage/roms 2>/dev/null; else [ -d "$ROMS" ]; fi
+}
+
+t=0
+ultimo=
+iniciado=
+while [ "$t" -lt "$DURACAO" ]; do
+    if montada; then
+        dump=$(head -c 8192 "$REG" 2>/dev/null)
+        mixer="speaker volume control=$(ctl 'speaker volume control') headphone volume control=$(ctl 'headphone volume control') Audio speaker out=$(ctl 'Audio speaker out') Audio headphone out=$(ctl 'Audio headphone out') Speaker Function=$(ctl 'Speaker Function')"
+        estado=$(printf '%s\n%s\n' "$dump" "$mixer" |
+            grep -E '^(DAC_Digital_Part_Control|DAC_FIFO_Control|Headphone_Volume_Control|Left_Output|Right_Output|DAC_Analog|Phonein|Linein|MIC|PA_|Phoneout|Lineout|Mic|Left_ADC|Right_ADC|ADC_ANALIG|speaker volume control)')
+        if [ "$estado" != "$ultimo" ]; then
+            if [ -z "$iniciado" ]; then : > "$LOG" || exit 0; iniciado=sim; fi
+            [ "$(wc -c < "$LOG")" -gt "$MAX_BYTES" ] && exit 0
+            {
+                printf '== t=%s s (uptime) ==\n' "$(cut -d' ' -f1 "$ROOT/proc/uptime" 2>/dev/null)"
+                printf '%s\n%s\n\n' "$mixer" "$dump"
+            } >> "$LOG"
+            ultimo=$estado
+        fi
+    fi
+    sleep "$PASSO"
+    t=$((t + PASSO))
+done
+exit 0

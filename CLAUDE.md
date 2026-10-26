@@ -81,9 +81,32 @@ do aparelho que não se deduzem do código.
   preset found at` do `emuelec.log` (p8, `.config/emuelec/logs/`, legível sem
   root) diz qual valeu; o log é sobrescrito a cada jogo.
 - **Vídeo e som no RetroArch:** contexto `fbdev_mali` (o vsync depende só do
-  driver da Mali) e áudio `sdl2` síncrono, sem controle de taxa. `video_threaded`
+  driver da Mali) e áudio `sdl2` síncrono (`audio_sync` e `audio_rate_control`
+  ligados na base; a feature `46-audio` sobe `audio_latency` de 64 para 96 e baixa
+  `audio_resampler_quality` de 2 para 1 contra os pipocos). `video_threaded`
   tem de ficar `true`: trocar pelo menu trava o aparelho, o RetroArch grava o
   `retroarch.cfg` na hora, e sem a thread o som fica ruim.
+- **Cadeia de ganho do som:** o codec é o `sunxi-pcm-codec` (A33). O ganho de
+  saída é um só, analógico: o `speaker volume control` (0 a 63, sem dB) e o
+  `Headphone_Volume_Control` do codec andam juntos. O FEX traz
+  `DAC_VOL_CTRL_SPK`/`_HEADPHONE` = `0x8d8d`, mas com som tocando esse valor não
+  aparece em nenhum registrador e o DAC toca em 0 dB (`DAC_Digital_Part_Control` =
+  `0x105`): não há ganho digital a mover. O driver zera o `speaker volume control`
+  e o `headphone volume control` ao fechar o stream e devolve o valor ao abrir, então
+  um 0 lido com o aparelho parado é o estado ocioso. O registrador do codec se lê em
+  `/sys/devices/platform/sunxi-pcm-codec/audio_reg_debug/audio_reg` (o
+  `audio_reg_debug` é um diretório). Os botões de volume (`udt_events.sh`) só mexem
+  no `speaker volume control`, com `(v*43+50)/100 + 20` (20 a 63; o volume 0 não
+  silencia), e nenhum script aplica o `audio.volume` no boot. O `Speaker Function`
+  tem os nomes trocados neste clone (`spk` com fone, `h2w/state` 1 ou 2). A feature
+  `46-audio` centraliza isso no `/usr/lib/r36/audio-ganho` (`aplica`, `volume <v>`),
+  que silencia o volume 0 e aplica o volume salvo (em `r36-audio.volume`, p8; o ES
+  regrava o `emuelec.conf` com o `audio.volume` antigo ao reiniciar pelo menu, então
+  o `emuelec.conf` não é fonte confiável), chamado depois de cada
+  `Speaker Function` (boot, abrir e sair de jogo, acordar); qualquer script novo
+  que mexa em volume ou em `Speaker Function` deve chamá-lo. O arquivo
+  `r36-audio-original` na raiz da p1 volta ao som de fábrica. O `r36-audio.log` e o
+  `r36-audio-dac.log` (p1) só leem o codec.
 - **Shaders e `/tmp/shaders`:** o menu do RetroArch lista `video_shader_dir`
   (`~/shaders` = `/storage/shaders`, p8). O "SHADER SET" do ES lista
   `/tmp/shaders`, que fica vazio sem overlay; o `r36-shader-gba-prepara` monta

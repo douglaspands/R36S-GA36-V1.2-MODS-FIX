@@ -1,0 +1,13 @@
+# Saída de som do R36S (codec interno do Allwinner A33 e amplificador externo).
+# Faz o volume 0 silenciar (na base ele dá speaker volume control = 20), aplica o
+# volume salvo no boot e dá folga ao buffer de áudio do RetroArch (pipocos). O
+# ganho de saída é um só, analógico: o DAC toca em 0 dB, então não há ganho
+# digital a redistribuir. O r36-audio.log e o r36-audio-dac.log na p1 registram o
+# que o aparelho expõe; um arquivo r36-audio-original na raiz da p1 volta ao som
+# de fábrica.
+
+schema = 1
+name = "Áudio"
+description = "Volume 0 mudo, volume salvo aplicado no boot e mais folga no buffer do RetroArch contra os pipocos, com diagnóstico em r36-audio.log e r36-audio-dac.log e chave r36-audio-original na p1 para voltar ao som de fábrica."
+order = 46
+enabled = true

@@ -386,6 +386,45 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     (30) e `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq` (600000).
   - Fica no SYSTEM, então vale com qualquer gravação dele.
 
+- **`46-audio`**: volume 0 mudo, volume salvo no boot e menos pipocos no som.
+  - **Volume:** o ganho de saída é um só, analógico (`speaker volume control`, 0 a
+    63); o DAC toca em 0 dB, então não há ganho digital a redistribuir. Na base o
+    volume 0 dá `speaker volume control` = 20 e não silencia, e o `audio.volume`
+    salvo só vale depois do primeiro toque num botão de volume. A feature faz o
+    volume 0 silenciar (`speaker volume control` = 0), aplica o `audio.volume`
+    salvo (padrão 29) já no boot e mantém a escala de fábrica acima de 0. O volume
+    fica também em `r36-audio.volume` (p8, ao lado do `emuelec.conf`), que vale mais
+    que o `audio.volume` do `emuelec.conf`: o EmulationStation regrava o
+    `emuelec.conf` com o valor antigo ao reiniciar pelo menu. Tudo
+    passa pelo `/usr/lib/r36/audio-ganho`, que o boot, o `emuelecRunEmu.sh` (abrir
+    e sair de jogo), o `udt_pwr_events.sh` (acordar) e o `udt_events.sh` (botões de
+    volume) chamam; os dois últimos são cópias da base com a chamada acrescentada.
+    O chiado com som tocando vem do amplificador analógico e a feature não o
+    altera.
+  - **Pipocos:** no `retroarch.cfg` da p8, `audio_latency` `64` vira `96` (cerca
+    de 32 ms a mais de atraso) e `audio_resampler_quality` `2` vira `1` (resampler
+    mais leve). Só mudam enquanto estiverem no valor de fábrica: um valor
+    escolhido no menu do RetroArch é respeitado, e é pelo menu que se volta a
+    `64` ou `128`, por exemplo.
+  - **`r36-audio.log`:** a cada boot a feature grava na raiz da p1 os controles do
+    mixer, a interface de registradores do driver do codec, o efeito de um
+    `Speaker Function` e o que o `audio-ganho` aplicou. Sem nenhuma escrita em
+    registrador. O dump do boot é feito com o DAC parado; por isso o
+    `r36-audio-amostra.service` (só leitura, 10 minutos depois do boot) grava em
+    `r36-audio-dac.log` o dump do codec a cada mudança de estado, com a música do
+    menu e os jogos tocando.
+  - **Voltar ao som de fábrica sem regravar:** crie um arquivo vazio
+    `r36-audio-original` na raiz da p1 (`R36-ROMS`, pelo PC) e ligue o aparelho:
+    o volume 0 volta a dar `speaker volume control` = 20 (sem mudo) e
+    `audio_latency`/`audio_resampler_quality` voltam a `64`/`2` (se estiverem nos
+    valores da feature). Apague o arquivo para religar a correção. Serve para
+    comparar, no mesmo cartão, com o jogo em pausa.
+  - **Desligar:** `enabled = false` em `features/46-audio/feature.toml` e gerar de
+    novo; os scripts da base voltam. As chaves do RetroArch já gravadas na p8
+    voltam a `64`/`2` ligando o aparelho uma vez com `r36-audio-original` antes
+    de gravar o build sem a feature, ou pelo menu do RetroArch.
+  - Fica no SYSTEM, então vale com `--part system` ou `--keep-storage`.
+
 - **`50-temas-extras`**: cinco temas extras do EmulationStation além do NES-BOX de
   fábrica (que continua sendo o padrão imutável). Para não sobrecarregar a partição
   `storage` (p8, ext4 com tamanho fixo), os temas são divididos entre o sistema e o

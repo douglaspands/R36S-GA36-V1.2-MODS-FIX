@@ -553,6 +553,8 @@ case "$current_state" in
         amixer cset name='Speaker Function' headset
         ;;
 esac
+# R36: reaplica o ganho de áudio (o Speaker Function é trocado aqui)
+if [ -x /usr/lib/r36/audio-ganho ]; then /usr/lib/r36/audio-ganho aplica; fi
 
 
 echo "............runthis $RUNTHIS: $(date +"%Y-%m-%d %H:%M:%S.%3N"), : $(( $(date +%s) * 1000 + $(date +%N) / 1000000 ))"
@@ -661,6 +663,8 @@ case "$current_state" in
         amixer cset name='Speaker Function' headset
         ;;
 esac
+# R36: reaplica o ganho de áudio (o Speaker Function é trocado aqui)
+if [ -x /usr/lib/r36/audio-ganho ]; then /usr/lib/r36/audio-ganho aplica; fi
 
 #if [[ "${BTENABLED}" == "1" ]]; then
 	# Restart the bluetooth agent

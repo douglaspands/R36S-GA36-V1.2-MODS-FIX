@@ -1,0 +1,16 @@
+[Unit]
+Description=Prepara o som (ganho, buffer do RetroArch e diagnostico) do R36S
+# Sem After=emuelec-autostart.service: o autostart so termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o mount_romfs.sh montar /storage/roms.
+After=sound.target
+Before=emustation.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/audio-prepara
+RemainAfterExit=yes
+TimeoutStartSec=60
+
+[Install]
+WantedBy=emuelec.target

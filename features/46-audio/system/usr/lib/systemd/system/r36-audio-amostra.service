@@ -1,0 +1,12 @@
+[Unit]
+Description=Amostra o codec de audio com som tocando (diagnostico, R36S)
+# Sem Before/After do ES nem do autostart: o servico e simple, roda em paralelo e nao
+# segura o boot. O script espera a p1 montar.
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/r36/audio-amostra
+Nice=10
+
+[Install]
+WantedBy=emuelec.target
