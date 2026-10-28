@@ -1,0 +1,13 @@
+# Percentual de bateria do R36S calculado pela tensão e pela corrente. O capacity do
+# kernel (driver axp22) fica em 100% por mais de uma hora, cai de 100 a 5% em um terço
+# do tempo e fica em 5% por mais de uma hora; o serviço calcula o percentual, publica por
+# mount --bind sobre /sys/class/power_supply/battery/capacity e o ES, o RetroArch e o
+# udt_battery.sh (LED e desligamento) leem o valor novo. A curva fica em
+# /usr/lib/r36/bateria-curva.conf; um r36-bateria-curva.conf na raiz da p1 a substitui, e um
+# r36-bateria-original volta ao valor do kernel. O r36-bateria.log na p1 registra o bind.
+
+schema = 1
+name = "Percentual de bateria"
+description = "Calcula o percentual da bateria pela tensão e pela corrente (curva monotônica ajustável) e o publica no capacity que o ES, o RetroArch, o LED e o desligamento leem, com r36-bateria.log na p1, curva trocável por r36-bateria-curva.conf e chave r36-bateria-original para voltar ao valor do kernel."
+order = 48
+enabled = true

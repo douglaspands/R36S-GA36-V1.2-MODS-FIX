@@ -69,8 +69,8 @@ class ThermalLogCase(TempDirCase):
         escreve(bat / "battery/capacity", "87\n")
         escreve(bat / "battery/voltage_now", "3950000\n")
         escreve(bat / "battery/current_now", "-450000\n")
-        escreve(bat / "battery/charge_now", "1200000\n")
-        escreve(bat / "battery/charge_full", "2000000\n")
+        escreve(bat / "battery/uevent", "POWER_SUPPLY_NAME=battery\nPOWER_SUPPLY_CAPACITY=87\n")
+        escreve(self.sys / "devices/virtual/disp/disp/attr/lcdbl", "128\n")
         escreve(z / "trip_point_0_temp", "90000\n")
         escreve(self.sys / "class/thermal/cooling_device0/type", "thermal-cpufreq-0\n")
         escreve(self.sys / "class/thermal/cooling_device0/cur_state", "2\n")
@@ -113,15 +113,6 @@ class ThermalLogCase(TempDirCase):
         cab, linha = self.linhas()[:2]
         return dict(zip(cab.split(","), linha.split(",")))
 
-    def estimativa(self, mv, status="Discharging"):
-        """bat_pct_est de uma única leitura (--once usa a tensão crua)."""
-        bat = self.sys / "class/power_supply/battery"
-        escreve(bat / "voltage_now", f"{mv * 1000}\n")
-        escreve(bat / "status", status + "\n")
-        self.log.unlink(missing_ok=True)
-        self.run_once()
-        return self.colunas()["bat_pct_est"]
-
 
 class Registro(ThermalLogCase):
     def test_cabecalho_e_linha_tem_as_mesmas_colunas(self):
@@ -132,7 +123,7 @@ class Registro(ThermalLogCase):
             cab,
             "date,uptime_s,boot,temp_soc_thermal,cpu_mhz,cpu_max_mhz,governor,cpus_online,"
             "cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,"
-            "bat_current,bat_charge_now,bat_charge_full,bat_pct_est,"
+            "bat_current,bat_pct_pub,lcdbl,"
             "system,emulator,core,rom",
         )
 
@@ -152,28 +143,46 @@ class Registro(ThermalLogCase):
         self.assertEqual(c["bat_voltage"], "3950")  # µV viram mV
         self.assertEqual(c["dram_mhz"], "")  # sem devfreq na árvore falsa
 
-    def test_corrente_e_carga_da_bateria(self):
+    def test_corrente_e_brilho(self):
         self.run_once()
         cab, linha = self.linhas()
         self.assertEqual(len(cab.split(",")), len(linha.split(",")))
         c = self.colunas()
         self.assertEqual(c["bat_current"], "-450")  # µA com sinal viram mA
-        self.assertEqual(c["bat_charge_now"], "1200")  # µAh viram mAh
-        self.assertEqual(c["bat_charge_full"], "2000")
+        self.assertEqual(c["lcdbl"], "128")
+        for removida in ("bat_charge_now", "bat_charge_full", "bat_pct_est"):
+            self.assertNotIn(removida, c)
+
+    def test_percentual_do_kernel_e_o_publicado(self):
+        # o capacity está sobreposto pelo valor publicado; o uevent mostra o do kernel
+        bat = self.sys / "class/power_supply/battery"
+        for kernel, pub in (("5", "41"), ("100", "73")):
+            escreve(bat / "uevent", f"POWER_SUPPLY_NAME=battery\nPOWER_SUPPLY_CAPACITY={kernel}\n")
+            escreve(bat / "capacity", pub + "\n")
+            self.log.unlink(missing_ok=True)
+            self.run_once()
+            c = self.colunas()
+            self.assertEqual((c["bat_pct"], c["bat_pct_pub"]), (kernel, pub))
+
+    def test_sem_uevent_o_percentual_do_kernel_fica_vazio(self):
+        (self.sys / "class/power_supply/battery/uevent").unlink()
+        self.run_once()
+        c = self.colunas()
+        self.assertEqual((c["bat_pct"], c["bat_pct_pub"]), ("", "87"))
 
     def test_corrente_positiva(self):
         escreve(self.sys / "class/power_supply/battery/current_now", "300000\n")
         self.run_once()
         self.assertEqual(self.colunas()["bat_current"], "300")
 
-    def test_corrente_e_carga_ausentes_ficam_vazias(self):
-        for n in ("current_now", "charge_now", "charge_full"):
-            (self.sys / "class/power_supply/battery" / n).unlink()
+    def test_corrente_e_brilho_ilegiveis_ficam_vazios(self):
+        (self.sys / "class/power_supply/battery/current_now").unlink()
+        (self.sys / "devices/virtual/disp/disp/attr/lcdbl").unlink()
         self.run_once()
         cab, linha = self.linhas()
         self.assertEqual(len(cab.split(",")), len(linha.split(",")))
         c = self.colunas()
-        self.assertEqual([c[k] for k in ("bat_current", "bat_charge_now", "bat_charge_full")], [""] * 3)
+        self.assertEqual((c["bat_current"], c["lcdbl"]), ("", ""))
         self.assertEqual(c["bat_voltage"], "3950")
         self.assertEqual(c["bat_pct"], "87")
 
@@ -246,7 +255,7 @@ class Registro(ThermalLogCase):
         self.assertEqual(self.colunas()["system"], "")
 
     def test_leituras_que_falham_ficam_vazias(self):
-        (self.sys / "class/power_supply/battery/capacity").unlink()
+        (self.sys / "class/power_supply/battery/uevent").unlink()
         (self.sys / "class/power_supply/battery/voltage_now").unlink()
         (self.sys / "devices/system/cpu/cpu0/cpufreq/scaling_max_freq").unlink()
         (self.sys / "devices/platform/sunxi-ddrfreq/dsm/scene").unlink()
@@ -264,62 +273,18 @@ class Registro(ThermalLogCase):
         self.assertEqual(sum(1 for x in linhas if x.startswith("date,")), 1)
 
 
-class EstimativaSombra(ThermalLogCase):
-    def test_pontos_da_curva(self):
-        for mv, pct in ((4200, "100"), (3300, "0"), (3750, "40"), (3900, "65"), (3500, "4")):
-            self.assertEqual(self.estimativa(mv), pct, mv)
-
-    def test_fora_da_curva_e_cortado(self):
-        self.assertEqual(self.estimativa(3000), "0")
-        self.assertEqual(self.estimativa(3299), "0")
-        self.assertEqual(self.estimativa(4350), "100")
-
-    def test_carregando_ou_cheio_fica_vazia(self):
-        for status in ("Charging", "Full"):
-            self.assertEqual(self.estimativa(4100, status), "", status)
-            cab, linha = self.linhas()
-            self.assertEqual(len(cab.split(",")), len(linha.split(",")))
-
-    def test_sem_tensao_fica_vazia(self):
-        (self.sys / "class/power_supply/battery/voltage_now").unlink()
-        self.run_once()
-        self.assertEqual(self.colunas()["bat_pct_est"], "")
-
-    def test_sem_bateria_fica_vazia(self):
+class SemEfeitos(ThermalLogCase):
+    def test_sem_bateria_as_colunas_ficam_vazias(self):
         (self.sys / "class/power_supply/battery/type").unlink()
         self.run_once()
         c = self.colunas()
-        self.assertEqual((c["bat_voltage"], c["bat_pct_est"]), ("", ""))
+        self.assertEqual((c["bat_voltage"], c["bat_pct"], c["bat_pct_pub"]), ("", "", ""))
 
     def test_nao_publica_nada_alem_do_csv_e_do_retrato(self):
         antes = {p for p in self.sys.rglob("*")}
         self.run_once()
         self.assertEqual({p.name for p in self.roms.iterdir()}, {"r36-thermal.csv", "r36-sysinfo.txt"})
         self.assertEqual({p for p in self.sys.rglob("*")}, antes)
-
-    def test_filtro_suaviza_a_queda_entre_amostras(self):
-        bat = self.sys / "class/power_supply/battery"
-        escreve(bat / "voltage_now", "4000000\n")
-        cont = self.tmp / "sleeps"
-        # 1º ciclo: 4000 mV; 2º: 3800 mV (pico de carga); no 3º o sleep falso encerra o laço
-        self.stub("sleep", f'n=$(cat "{cont}" 2>/dev/null || echo 0)\nn=$((n + 1))\necho $n >"{cont}"\n'
-                           f'[ $n -eq 2 ] && echo 3800000 >"{bat}/voltage_now"\n'
-                           f'[ $n -eq 3 ] && kill $PPID\nexit 0\n')
-        env = dict(
-            os.environ,
-            PATH=f"{self.bin}:{os.environ['PATH']}",
-            R36_PROC=str(self.proc), R36_SYS=str(self.sys), R36_ROMS=str(self.roms),
-            R36_TEST_FREE_KB=str(self.free_kb),
-        )
-        subprocess.run(["sh", str(SCRIPT)], env=env, capture_output=True, timeout=30)
-        linhas = self.linhas()
-        self.assertEqual(len(linhas), 3)
-        cab = linhas[0].split(",")
-        est = [int(dict(zip(cab, l.split(",")))["bat_pct_est"]) for l in linhas[1:]]
-        self.assertEqual(est[0], 78)
-        self.assertLess(est[1], est[0])
-        cru = int(self.estimativa(3800))
-        self.assertLess(est[0] - est[1], est[0] - cru)
 
 
 class Limites(ThermalLogCase):
@@ -394,8 +359,7 @@ class Retrato(ThermalLogCase):
         self.assertIn(f"{ps}/battery/uevent: POWER_SUPPLY_CAPACITY=87", sec)
         self.assertIn(f"{ps}/ac/uevent: POWER_SUPPLY_ONLINE=0", sec)
         for n, v in (("status", "Discharging"), ("capacity", "87"), ("voltage_now", "3950000"),
-                     ("current_now", "-450000"), ("charge_now", "1200000"), ("charge_full", "2000000"),
-                     ("charge_full_design", "2200000"), ("capacity_level", "Normal")):
+                     ("current_now", "-450000"), ("charge_full_design", "2200000"), ("capacity_level", "Normal")):
             self.assertIn(f"{ps}/battery/{n}: {v}", sec)
         dm = [l for l in sec.splitlines() if l.startswith("dmesg: ")]
         self.assertEqual(len(dm), 80)
@@ -403,8 +367,27 @@ class Retrato(ThermalLogCase):
         self.assertEqual(dm[-1], "dmesg: [    99.000] axp22: linha 99")
         self.assertNotIn("outra coisa", txt)
 
+    def test_atributos_do_axppower_no_retrato(self):
+        ax = self.sys / "class/axppower"
+        escreve(ax / "axpdebug", "reg 0x01 = 0x40\n")
+        escreve(ax / "ocv", "4012\n")
+        (ax / "sub").mkdir()
+        self.run_once()
+        sec = self.sysinfo.read_text().split("== bateria ==\n")[1]
+        self.assertIn(f"{ax}/axpdebug: reg 0x01 = 0x40", sec)
+        self.assertIn(f"{ax}/ocv: 4012", sec)
+        self.assertNotIn(f"{ax}/sub", sec)
+
+    def test_axppower_ausente_marcado_e_demais_seguem(self):
+        self.run_once()
+        sec = self.sysinfo.read_text().split("== bateria ==\n")[1]
+        self.assertIn(f"{self.sys}/class/axppower: (ausente)", sec)
+        self.assertIn("dmesg (axp): (ausente)", sec)
+        self.assertEqual(len(self.linhas()), 2)
+
     def test_secao_da_bateria_ausente_nao_trava(self):
         (self.sys / "class/power_supply/battery/type").unlink()
+        (self.sys / "class/power_supply/battery/uevent").unlink()
         self.run_once()  # check=True: termina com sucesso
         sec = self.sysinfo.read_text().split("== bateria ==\n")[1]
         self.assertIn(f"{self.sys}/class/power_supply/<Battery>: (ausente)", sec)

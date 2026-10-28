@@ -315,15 +315,15 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     `cpu3` (ocupação em %, no intervalo; vazio se o núcleo está desligado),
     `dram_scene`, `dram_mhz` (clock da DRAM, do `cur_freq` do devfreq),
     `bat_status`, `bat_pct`, `bat_voltage` (mV), `bat_current` (mA, com o sinal
-    que o kernel informa), `bat_charge_now` e `bat_charge_full` (mAh, o que o
-    driver acredita ter), `bat_pct_est`, `system`, `emulator`, `core` e `rom`
-    (os quatro últimos vêm do `emuelecRunEmu.sh` em execução e ficam vazios no
-    menu). Sem hora certa no relógio, `uptime_s` e `boot` ordenam e separam as
-    sessões. Os campos de bateria que o kernel não expõe ficam vazios.
-  - **`bat_pct_est`:** percentual estimado só pela tensão (curva genérica de
-    Li-ion, com filtro de 4 amostras), vazio com o carregador ligado. Serve só
-    para comparar com o `bat_pct` do kernel: não aparece no ES nem no RetroArch e
-    não altera o `capacity`.
+    que o kernel informa), `bat_pct_pub`, `lcdbl` (brilho da tela, 0 a 255),
+    `system`, `emulator`, `core` e `rom` (os quatro últimos vêm do
+    `emuelecRunEmu.sh` em execução e ficam vazios no menu). Sem hora certa no
+    relógio, `uptime_s` e `boot` ordenam e separam as sessões. Os campos que o
+    kernel não expõe ficam vazios.
+  - **`bat_pct` e `bat_pct_pub`:** `bat_pct` é o percentual do kernel, lido do
+    `uevent` da bateria (`POWER_SUPPLY_CAPACITY`); `bat_pct_pub` é o que o
+    aparelho publica em `capacity`, ou seja, o que o ES mostra. Sem a
+    `48-bateria-percentual` os dois são iguais.
   - **Retrato do sistema:** uma vez por boot, no primeiro ciclo em que o log
     pode gravar, o serviço grava `R36-ROMS/r36-sysinfo.txt` (substitui o do boot
     anterior): governors e clocks disponíveis, teto e máximo, tunables do
@@ -333,18 +333,36 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     não dá para conferir no aparelho (sem Wi-Fi nem SSH). A seção `== bateria ==`
     traz o `uevent` de cada `power_supply` (`caminho/uevent: CHAVE=valor`), os
     campos da bateria (`status`, `capacity`, `voltage_now`, `current_now`,
-    `charge_now`, `charge_full`, `charge_full_design`, `capacity_level`) e as
-    últimas 80 linhas do `dmesg` que citam o `axp`, com o prefixo `dmesg:`.
-  - **Diagnóstico da bateria:** para medir o erro do percentual do ES, siga a
-    descarga completa. Carregue a bateria a 100%, ligue o aparelho e use-o (um
-    trecho no menu e um em jogo) até desligar sozinho. No PC, copie
-    `r36-thermal.csv`, `r36-thermal.1.csv` e `r36-sysinfo.txt` da `R36-ROMS` e
-    rode `uv run python -I tools/analisa_bateria.py r36-thermal.1.csv r36-thermal.csv`.
-    O resumo, por boot, traz tensão, `bat_pct` e `bat_pct_est` do início, a
-    diferença entre os dois percentuais e a queda por hora de cada um nas linhas em
-    `Discharging`. **Antes de gravar o cartão**, copie os CSVs que quer guardar: a
-    primeira gravação com as colunas novas move o `r36-thermal.csv` antigo para
-    `r36-thermal.1.csv` e apaga o `.1` que já existia.
+    `charge_full_design`, `capacity_level`), um `caminho: valor` por atributo legível
+    de `/sys/class/axppower` (inclusive o `axpdebug` do driver) e as últimas 80
+    linhas do `dmesg` que citam o `axp`, com o prefixo `dmesg:`.
+  - **Diagnóstico da bateria (roteiro de coleta e validação):** para medir o erro
+    do percentual, siga uma descarga completa. Carregue a bateria a 100%, ligue o
+    aparelho e use-o (um trecho no menu e um em jogo) até desligar sozinho. No PC,
+    copie `r36-thermal.csv`, `r36-thermal.1.csv` e `r36-sysinfo.txt` da `R36-ROMS` e
+    rode `uv run python -I tools/analisa_bateria.py r36-thermal.1.csv r36-thermal.csv`
+    (os arquivos do mais antigo para o mais novo; `--desde <boot>` escolhe um
+    ciclo). O script junta os boots de uma descarga num ciclo, integra a corrente
+    (`bat_current`) em mAh e imprime, por ciclo, a duração, os mAh entregues, o erro
+    médio e máximo (em pontos) do `bat_pct` do kernel e do `bat_pct_pub` publicado
+    contra a carga restante calculada por essa integração, e os patamares em que o
+    kernel ficou parado em 100% e em 5% (minutos, mAh e tensões). A referência só
+    vale se o ciclo termina em desligamento (o script avisa quando não). Na
+    descarga de 26/10: 264 min, 2640 mAh, erro médio de 16,6 pontos no kernel, que
+    ficou 71 min em 100% e 86 min em 5%.
+  - **Validar e reajustar a curva da `48-bateria-percentual`:** faça um segundo
+    ciclo completo com a correção ligada. O critério é o erro médio do
+    `bat_pct_pub` no `analisa_bateria.py`: até cerca de 5 pontos, a curva fica. Acima
+    disso, gere uma nova com
+    `uv run python -I tools/ajusta_curva_bateria.py r36-thermal.1.csv r36-thermal.csv`
+    (usa o último ciclo, ou `--desde <boot>`; escreve `r36-bateria-curva.conf` com a
+    resistência de menor erro e cerca de 12 pontos; um ciclo que não termina em
+    desligamento exige `--aceita-relativo`) e copie o arquivo para a raiz da
+    `R36-ROMS`, sem regravar o `system`.
+  - **Antes de gravar o cartão**, copie os CSVs que quer guardar: o cabeçalho
+    novo (sem `bat_charge_now`, `bat_charge_full` e `bat_pct_est`, com `bat_pct_pub`
+    e `lcdbl`) faz a primeira gravação mover o `r36-thermal.csv` antigo para
+    `r36-thermal.1.csv` e apagar o `.1` que já existia.
   - **Limites:** o arquivo vira `r36-thermal.1.csv` ao passar de 1 MB (2 MB no
     máximo, somando os dois), e nada é gravado com menos de 64 MB livres na p1
     ou se `/storage/roms` não estiver montado. A gravação não usa `sync`: numa
@@ -423,6 +441,47 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     novo; os scripts da base voltam. As chaves do RetroArch já gravadas na p8
     voltam a `64`/`2` ligando o aparelho uma vez com `r36-audio-original` antes
     de gravar o build sem a feature, ou pelo menu do RetroArch.
+  - Fica no SYSTEM, então vale com `--part system` ou `--keep-storage`.
+
+- **`48-bateria-percentual`**: percentual de bateria calculado pela tensão e pela
+  corrente, no lugar do `capacity` do kernel. Na descarga completa de 26/10 o
+  `capacity` do driver ficou em 100% por 71 min, caiu de 100 a 5% em 90 min e ficou
+  em 5% por 86 min (erro médio de 16,6 pontos contra a carga integrada), então o LED
+  vermelho acendia com cerca de 50% de carga e depois não havia mais aviso. O
+  `r36-bateria.service` (`Before=emustation.service`, sem esperar o autostart) roda o
+  `/usr/lib/r36/bateria-percentual`: a cada 5 s soma à tensão a queda `R x corrente`,
+  filtra, converte por uma curva que nunca diminui com a tensão
+  (`/usr/lib/r36/bateria-curva.conf`) e publica o resultado em
+  `/sys/class/power_supply/battery/capacity` por `mount --bind`. Assim o ES, o
+  RetroArch, o LED de bateria baixa e o desligamento do `udt_battery.sh` passam a
+  ler o valor calculado, sem alterar o kernel nem esse script.
+  - **Comportamento:** em descarga o valor só cai (sair de um jogo e a tensão subir
+    não o eleva); com o carregador (`Charging`/`Full`) mostra o `capacity` do kernel e,
+    ao tirar o carregador, recomeça da curva. Com a tensão lida em 3450 mV ou menos o
+    valor é 0 e em 3500 mV ou mais é pelo menos 1, para o desligamento (que exige
+    `capacity` 0 com 3400 mV) acontecer no fim da carga e nunca antes dela. O
+    desligamento forçado a 3350 mV não depende do serviço.
+  - **`r36-bateria.log`:** a cada boot a feature grava na raiz da p1 se o `bind`
+    pegou, a curva usada (a do `system` ou a do cartão) e o motivo de qualquer falha
+    ou recusa. Se o kernel 3.4.39 recusar o `bind`, ou ele não valer na leitura, o
+    serviço desfaz e o `capacity` continua o do kernel, sem afetar o boot.
+  - **Curva e chave pela p1 (sem regravar o `system`):** um `r36-bateria-curva.conf`
+    na raiz da p1 (`R36-ROMS`, pelo PC) substitui a curva do `system` no boot
+    seguinte se for válido (pelo menos 2 pontos `ponto=mV,%` com mV crescente e
+    percentual que não diminui); se não for, o log diz o motivo e vale a do `system`.
+    Gere um com `tools/ajusta_curva_bateria.py` (veja o roteiro na `43-registro-termico`).
+    Um arquivo vazio `r36-bateria-original` na raiz da p1 desliga a correção: o
+    serviço desfaz o `bind` e o `capacity` volta a ser o do kernel. A p1 só monta
+    durante o autostart, depois do primeiro valor publicado, então a chave e a curva
+    do cartão passam a valer alguns segundos depois do início do boot, e antes disso
+    vale a curva do `system`.
+  - **Conferir no aparelho:** `systemctl is-active r36-bateria` (`active`) e
+    `cat /sys/class/power_supply/battery/capacity` (o valor calculado; o do kernel
+    continua na coluna `bat_pct` do `r36-thermal.csv`, lida do `uevent`, ao lado de
+    `bat_pct_pub`, o publicado). O `r36-bateria.log` diz `bind ok` quando pegou.
+    `/usr/lib/r36/bateria-percentual valida <arquivo>` confere um arquivo de curva.
+  - **Desligar:** `enabled = false` em `features/48-bateria-percentual/feature.toml`
+    e gerar de novo, ou `r36-bateria-original` na p1 sem regravar.
   - Fica no SYSTEM, então vale com `--part system` ou `--keep-storage`.
 
 - **`50-temas-extras`**: cinco temas extras do EmulationStation além do NES-BOX de

@@ -1,0 +1,20 @@
+[Unit]
+Description=Percentual da bateria do R36S calculado pela tensao e pela corrente
+# Sem After=emuelec-autostart.service: o autostart so termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O ExecStartPre publica o primeiro valor antes do ES iniciar (o ES nao chega a ler o
+# capacity do kernel); o laco procura a chave e a curva do cartao quando o
+# mount_romfs.sh monta /storage/roms.
+Before=emustation.service
+
+[Service]
+Type=simple
+ExecStartPre=/usr/lib/r36/bateria-percentual publica
+ExecStart=/usr/lib/r36/bateria-percentual laco
+ExecStopPost=/usr/lib/r36/bateria-percentual desmonta
+Restart=on-failure
+RestartSec=10
+Nice=19
+
+[Install]
+WantedBy=emuelec.target

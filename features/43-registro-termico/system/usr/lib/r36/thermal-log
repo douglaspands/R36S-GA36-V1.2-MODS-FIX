@@ -13,6 +13,7 @@ ROMS=${R36_ROMS:-/storage/roms}
 LOG=${R36_LOG:-$ROMS/r36-thermal.csv}
 LOG1=${LOG%.csv}.1.csv
 SYSINFO=${R36_SYSINFO:-$ROMS/r36-sysinfo.txt}
+LCDBL=${R36_LCDBL:-$SYS/devices/virtual/disp/disp/attr/lcdbl}
 INTERVAL=${R36_INTERVAL:-5}
 ONCE_DELAY=${R36_ONCE_DELAY:-1}
 MAX_BYTES=${R36_MAX_BYTES:-1048576}
@@ -57,7 +58,7 @@ for z in "$SYS"/class/thermal/thermal_zone*; do
   ZCOLS="$ZCOLS,temp_$t"
 done
 
-HEADER="date,uptime_s,boot${ZCOLS},cpu_mhz,cpu_max_mhz,governor,cpus_online,cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,bat_current,bat_charge_now,bat_charge_full,bat_pct_est,system,emulator,core,rom"
+HEADER="date,uptime_s,boot${ZCOLS},cpu_mhz,cpu_max_mhz,governor,cpus_online,cpu0,cpu1,cpu2,cpu3,dram_scene,dram_mhz,bat_status,bat_pct,bat_voltage,bat_current,bat_pct_pub,lcdbl,system,emulator,core,rom"
 
 # Bateria: primeira power_supply do tipo Battery.
 BAT=
@@ -150,23 +151,10 @@ game() {
   printf ',,,'
 }
 
-# Percentual (0-100) estimado só pela tensão em mV: curva genérica de Li-ion, com
-# interpolação linear entre os pontos. É uma hipótese para comparar com o kernel.
-pct_est() {
-  awk -v v="$1" '
-    BEGIN {
-      n = split("3300 3500 3600 3700 3800 3900 4000 4100 4200", mv, " ")
-      split("0 4 12 30 50 65 78 90 100", pc, " ")
-      if (v <= mv[1]) { print 0; exit }
-      if (v >= mv[n]) { print 100; exit }
-      for (i = 2; i <= n; i++) {
-        if (v <= mv[i]) {
-          p = pc[i - 1] + (v - mv[i - 1]) * (pc[i] - pc[i - 1]) / (mv[i] - mv[i - 1])
-          print int(p + 0.5)
-          exit
-        }
-      }
-    }'
+# Valor de uma chave KEY=valor do uevent; vazio se o arquivo ou a chave não existem.
+uev() {
+  [ -r "$1" ] || return 0
+  sed -n "s/^$2=//p" "$1" 2>/dev/null | head -n 1
 }
 
 # Garante um log com o cabeçalho atual; troca o antigo se o formato mudou.
@@ -275,6 +263,13 @@ sysinfo_body() {
   else
     echo "$SYS/class/power_supply/<Battery>: (ausente)"
   fi
+  if [ -d "$SYS/class/axppower" ]; then
+    for f in "$SYS"/class/axppower/*; do
+      [ -f "$f" ] && [ -r "$f" ] && si "$f"
+    done
+  else
+    echo "$SYS/class/axppower: (ausente)"
+  fi
   ax=$(dmesg 2>/dev/null | grep -i axp | tail -n 80)
   if [ -n "$ax" ]; then
     printf '%s\n' "$ax" | sed 's/^/dmesg: /'
@@ -344,46 +339,28 @@ EOT
   bpct=
   bmv=
   bma=
-  bcn=
-  bcf=
+  bpub=
   if [ -n "$BAT" ]; then
     bst=$(rd "$BAT/status")
-    bpct=$(num "$(rd "$BAT/capacity")")
+    # bat_pct é o do kernel (uevent): o capacity pode estar sobreposto pelo valor publicado
+    bpct=$(num "$(uev "$BAT/uevent" POWER_SUPPLY_CAPACITY)")
+    bpub=$(num "$(rd "$BAT/capacity")")
     bmv=$(num "$(rd "$BAT/voltage_now")")
     [ -n "$bmv" ] && bmv=$((bmv / 1000))
     bma=$(snum "$(rd "$BAT/current_now")")
     [ -n "$bma" ] && bma=$((bma / 1000))
-    bcn=$(num "$(rd "$BAT/charge_now")")
-    [ -n "$bcn" ] && bcn=$((bcn / 1000))
-    bcf=$(num "$(rd "$BAT/charge_full")")
-    [ -n "$bcf" ] && bcf=$((bcf / 1000))
   fi
-
-  # Estimativa sombra: só vai para o CSV. Com carregador ou sem tensão não vale e o
-  # filtro recomeça; a primeira amostra (ou o --once) usa a tensão crua.
-  best=
-  case $bst in
-    Charging|Full) BATF= ;;
-    *)
-      if [ -n "$bmv" ]; then
-        if [ -z "$BATF" ]; then BATF=$bmv; else BATF=$((BATF + (bmv - BATF) / 4)); fi
-        best=$(pct_est "$BATF")
-      else
-        BATF=
-      fi
-      ;;
-  esac
+  lcdbl=$(num "$(rd "$LCDBL")")
 
   ensure_log
   rotate_if_big
-  printf '%s,%s,%s%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+  printf '%s,%s,%s%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$(date '+%F %T')" "$up" "$boot" "$temps" "$khz" "$kmax" "$gov" "$online" \
-    "$busy" "$scene" "$dmhz" "$bst" "$bpct" "$bmv" "$bma" "$bcn" "$bcf" "$best" \
+    "$busy" "$scene" "$dmhz" "$bst" "$bpct" "$bmv" "$bma" "$bpub" "$lcdbl" \
     "$(game)" >>"$LOG" 2>/dev/null
 }
 
 PREV=$(cpu_snapshot)
-BATF=
 
 if [ "$1" = "--once" ]; then
   sleep "$ONCE_DELAY"
