@@ -1,5 +1,5 @@
 schema = 1
 name = "Controle posicional no RetroArch"
-description = "micro_gamepad com botões de face pela posição física (baixo = B) e Select como hotkey."
+description = "micro_gamepad com botões de face pela posição física (baixo = B), FN como hotkey (botão próprio, BTN_MODE) e o Select livre para o jogo."
 order = 20
 enabled = true

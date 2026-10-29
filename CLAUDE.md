@@ -106,6 +106,28 @@ do aparelho que não se deduzem do código.
   `gpsp_frame_mixing = "enabled"` e `gpsp_boot_mode = "bios"` (Boot to BIOS) no `config/gpSP/gpSP.opt` da p8 se a chave não
   existir (um `gpSP.opt` que já tem `gpsp_boot_mode = "game"` mantém o valor); o arquivo vazio
   `r36-gpsp-sem-ghost` na raiz da p1 remove só a linha do blending.
+- **Botão FN:** o driver `udt_joystick` o expõe em
+  `/sys/devices/platform/micro_gamepad/fn_key` (código 464, `KEY_FN`, de fábrica).
+  O `/usr/lib/r36/fn-remapeia` (feature `20-controle-posicional`, `r36-fn.service`)
+  grava 316 (`BTN_MODE`) no boot e, no fim, grava `input_enable_hotkey_btn` no
+  `/storage/joypads/micro_gamepad.cfg` da p8 (só essa linha, sem criar o arquivo): `10`
+  se a escrita no `fn_key` foi aceita, `8` (o Select) em qualquer outro caso
+  (`r36-fn-original`, `sem-fn_key`, escrita recusada). O valor que o `fn_key` devolve na
+  leitura **não é o código** (no aparelho voltou `-1088990680` com o 316 gravado): vale o
+  sucesso da escrita e o evento 316 no log. O arquivo da feature traz `8`, o
+  padrão seguro. Que o 316 é o botão 10 do RetroArch é só hipótese (numeração do
+  autoconfig), confirmada no aparelho (o FN abre o menu). O arquivo vazio `r36-fn-original` na raiz da p1 deixa o
+  464 e o hotkey em 8. O `emuelecRunEmu.sh` da base traz comentado o ramo do `nds` com
+  `echo "318"` (`BTN_THUMBR`) e o `echo "464"` que devolve o FN: se um dia for
+  descomentado, sobrescreve o 316. O estado do serviço (`fn_key` antes e depois, uptimes
+  `uptime_inicio`, `uptime_fn_key`, `uptime_fim`) fica em `/run/r36-fn.estado`, sem log
+  na p1. O `fn_key` só existe depois de o
+  `udt_joystick` carregar, bem depois do início do serviço: o `fn-remapeia` espera por
+  ele até 60 s (`TimeoutStartSec=120`) e, se não vier, sai com 0 e grava
+  `modo=sem-fn_key`. No
+  EmulationStation o FN fica sem função, **reservado** para funções futuras (brilho):
+  nenhuma feature traz `es_input.cfg` com a entrada `id="10"` do `micro_gamepad`
+  (`tests/test_fn.py` garante).
 - **Cadeia de ganho do som:** o codec é o `sunxi-pcm-codec` (A33). O ganho de
   saída é um só, analógico: o `speaker volume control` (0 a 63, sem dB) e o
   `Headphone_Volume_Control` do codec andam juntos. O FEX traz

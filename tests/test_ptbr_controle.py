@@ -82,6 +82,55 @@ class PtBrSaoPaulo(unittest.TestCase):
             self.assertNotRegex(valor, r"^/(config|saves|logs|overlays)\b", chave)
 
 
+MICRO_GAMEPAD_CFG = '''input_device = "micro_gamepad"
+input_driver = "sdl2"
+input_vendor_id = "26989"
+input_product_id = "24431"
+
+input_gun_trigger_mbtn = "1"
+
+input_b_btn = "1"
+input_y_btn = "3"
+input_a_btn = "0"
+input_x_btn = "2"
+
+input_up_btn = "13"
+input_down_btn = "14"
+input_left_btn = "15"
+input_right_btn = "16"
+
+input_select_btn = "8"
+input_start_btn = "9"
+
+input_l_btn = "4"
+input_r_btn = "5"
+input_l2_btn = "6"
+input_r2_btn = "7"
+input_l3_btn = "11"
+input_r3_btn = "12"
+
+input_l_x_minus_axis = "-0"
+input_l_x_plus_axis = "+0"
+input_l_y_minus_axis = "-1"
+input_l_y_plus_axis = "+1"
+input_r_x_minus_axis = "-2"
+input_r_x_plus_axis = "+2"
+input_r_y_minus_axis = "-3"
+input_r_y_plus_axis = "+3"
+
+input_enable_hotkey_btn = "8"
+input_menu_toggle_btn = "2"
+input_screenshot_btn = "3"
+input_pause_toggle_btn = "1"
+input_fps_toggle_btn = "0"
+input_load_state_btn = "4"
+input_save_state_btn = "5"
+input_hold_slowmotion_btn = "6"
+input_hold_fast_forward_btn = "7"
+input_exit_emulator_btn = "9"
+'''
+
+
 class ControlePosicional(unittest.TestCase):
     def setUp(self):
         self.c = parse_cfg(F20)
@@ -100,6 +149,14 @@ class ControlePosicional(unittest.TestCase):
 
     def test_hotkey_no_select(self):
         self.assertEqual(self.c["input_enable_hotkey_btn"], "8")
+
+    def test_autoconfig_sem_bind_do_fn(self):
+        # o FN vira o BTN_MODE no driver (feature 20, fn-remapeia), que grava o hotkey 10 no cfg
+        # da p8 no boot; o arquivo da imagem não ganha bind novo e fica com o padrão seguro 8
+        atual = F20.read_text()
+        self.assertEqual(atual, MICRO_GAMEPAD_CFG)
+        self.assertEqual(self.c["input_enable_hotkey_btn"], "8")
+        self.assertEqual(self.c["input_menu_toggle_btn"], "2")
 
     def test_direcional_livre_de_atalhos(self):
         dpad = {f"input_{d}_btn" for d in ("up", "down", "left", "right")}

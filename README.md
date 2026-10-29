@@ -250,21 +250,37 @@ que em muitos sistemas é um tmpfs pequeno.
     trocar a imagem base, reconfira a cópia: `tests/test_ptbr_controle.py` compara
     o script com o da base e só aceita essas diferenças.
 - **`20-controle-posicional`**: no RetroArch, os botões de face seguem a posição
-  física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o Select.
+  física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o FN (o Select
+  vale como hotkey só quando o FN não está remapeado).
 
 | Atalho (no jogo)  | Ação                  |
 |-------------------|-----------------------|
-| Select + X        | menu do RetroArch     |
-| Select + Y        | screenshot            |
-| Select + L / R    | carregar / salvar estado |
-| Select + L2       | câmera lenta          |
-| Select + R2       | avanço rápido         |
-| Select + baixo    | pausa                 |
-| Select + direita  | FPS                   |
-| Select + Start    | sair                  |
+| FN + X            | menu do RetroArch     |
+| FN + Y            | screenshot            |
+| FN + L / R        | carregar / salvar estado |
+| FN + L2           | câmera lenta          |
+| FN + R2           | avanço rápido         |
+| FN + baixo        | pausa                 |
+| FN + direita      | FPS                   |
+| FN + Start        | sair                  |
 
 Os arquivos dessas duas ficam no `/storage`, então o efeito só aparece num cartão
 gravado com `--wipe-storage` (com `--keep-storage` nada muda).
+
+  - **Botão FN:** no boot o aparelho troca o código do FN (`fn_key`, de 464 para 316,
+    `BTN_MODE`) e grava o hotkey do RetroArch no `micro_gamepad.cfg` da `R36-STORAGE`
+    (`input_enable_hotkey_btn = "10"`, o FN). O Select fica livre para o jogo: FN + X
+    abre o menu, FN + R salva estado, e Select + X não abre o menu. Esta parte fica no
+    SYSTEM e vale com qualquer gravação dele (o serviço atualiza só a linha do hotkey).
+    Se o `fn_key` não aparecer, ou o driver recusar a escrita do código, o hotkey volta a ser o
+    Select (`"8"`), e o menu nunca depende do FN. Para devolver o FN de fábrica e o
+    hotkey ao Select, crie o arquivo vazio `r36-fn-original` na raiz da `R36-ROMS` e
+    religue. No EmulationStation o FN fica sem função, reservado para funções futuras
+    (como o brilho): nenhuma feature o mapeia no `es_input.cfg`.
+    Teste no aparelho: abra um jogo e aperte FN + X (menu), FN + R (salvar estado) e
+    Select + X (não abre o menu). O `fn_key` só aparece quando o driver do gamepad carrega,
+    uns segundos depois do início do serviço, que espera até 60 s por ele; se ele não
+    aparecer, o FN fica de fábrica e o hotkey continua o Select.
 
 - **`30-telas-icone-controle`**: uma única imagem, o ícone de controle sem
   texto, do boot até o jogo: no boot (antes do EmulationStation), no carregamento

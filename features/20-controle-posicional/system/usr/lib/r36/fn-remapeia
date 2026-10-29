@@ -1,0 +1,92 @@
+#!/bin/sh
+# Faz o botão FN do R36S valer como hotkey do RetroArch (feature 20):
+# troca o código que o driver udt_joystick emite para o FN (fn_key, 464 = KEY_FN
+# de fábrica) por 316 (BTN_MODE, o botão 10 do micro_gamepad), e o Select fica só
+# como Select. Com o arquivo vazio r36-fn-original na raiz da p1 (R36-ROMS, pelo PC)
+# não escreve e o FN fica em 464.
+# O fn_key só existe depois que o udt_joystick carrega, o que acontece depois do
+# início deste serviço: o script espera por ele até 60 s (R36_FN_ESPERA_FN nos
+# testes). Se não aparecer, grava modo=sem-fn_key no estado e sai sem erro.
+# A p1 é montada pelo mount_romfs.sh dentro do emuelec-autostart: o script espera a
+# montagem (até 20 s, R36_FN_ESPERA nos testes) em vez de ordenar o serviço depois
+# dele, o que trava o boot. Sem p1, troca o código mesmo assim.
+# No fim grava input_enable_hotkey_btn em /storage/joypads/micro_gamepad.cfg (p8), só
+# essa linha e só se o arquivo existir: 10 (o FN) se a escrita no fn_key foi aceita
+# (código de saída 0); 8 (o Select, como na base) em qualquer outro caso, para o menu
+# nunca depender de um FN que não chegou. O valor que o fn_key devolve na leitura
+# não é o código (no aparelho volta outro número), então vale só o sucesso da escrita.
+# O fn_key de antes e de depois (só registro) e o uptime (início, fn_key, fim) vão para
+# /run/r36-fn.estado. O script termina sempre com código 0.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+FN="$ROOT/sys/devices/platform/micro_gamepad/fn_key"
+OFF="$ROOT/storage/roms/r36-fn-original"
+CFG="$ROOT/storage/joypads/micro_gamepad.cfg"
+ESTADO="$ROOT/run/r36-fn.estado"
+UPTIME="$ROOT/proc/uptime"
+ESPERA_FN="${R36_FN_ESPERA_FN:-60}"
+ESPERA="${R36_FN_ESPERA:-20}"
+CODIGO=316
+
+uptime_s() {
+    up=""
+    [ -r "$UPTIME" ] && read -r up _ < "$UPTIME"
+    printf '%s' "${up%%.*}"
+}
+
+grava_estado() {
+    mkdir -p "$(dirname "$ESTADO")" 2>/dev/null
+    printf 'modo=%s\nantes=%s\ndepois=%s\nuptime_inicio=%s\nuptime_fn_key=%s\nuptime_fim=%s\n' \
+        "$1" "$2" "$3" "$INICIO" "$UP_FN" "$(uptime_s)" > "$ESTADO" 2>/dev/null
+}
+
+# 10 = FN (BTN_MODE), 8 = Select; não cria o cfg e só troca a linha do hotkey
+grava_hotkey() {
+    [ -f "$CFG" ] || return 0
+    sed -i "s/^\([[:space:]]*input_enable_hotkey_btn[[:space:]]*=\).*/\1 \"$1\"/" "$CFG" 2>/dev/null
+}
+
+INICIO="$(uptime_s)"
+UP_FN=""
+
+i=0
+until [ -e "$FN" ]; do
+    if [ "$i" -ge "$ESPERA_FN" ]; then
+        grava_estado sem-fn_key "" ""
+        grava_hotkey 8
+        exit 0
+    fi
+    sleep 1
+    i=$((i + 1))
+done
+UP_FN="$(uptime_s)"
+
+p1_montada() {
+    if [ -z "$ROOT" ]; then mountpoint -q /storage/roms 2>/dev/null; else [ -d "$ROOT/storage/roms" ]; fi
+}
+i=0
+until p1_montada; do
+    [ "$i" -ge "$ESPERA" ] && break
+    sleep 1
+    i=$((i + 1))
+done
+
+ANTES="$(cat "$FN" 2>/dev/null)"
+ESCREVEU=nao
+if p1_montada && [ -e "$OFF" ]; then
+    MODO=original
+else
+    MODO=remapeado
+    printf '%s\n' "$CODIGO" > "$FN" 2>/dev/null && ESCREVEU=sim
+fi
+DEPOIS="$(cat "$FN" 2>/dev/null)"
+
+if [ "$ESCREVEU" = sim ]; then
+    grava_hotkey 10
+else
+    grava_hotkey 8
+fi
+
+grava_estado "$MODO" "$ANTES" "$DEPOIS"
+exit 0

@@ -1,0 +1,15 @@
+[Unit]
+Description=Faz o botao FN valer como o Select no RetroArch (R36S)
+# Sem Before/After do ES nem do autostart: o autostart so termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o udt_joystick criar o fn_key (ate 60 s) e o mount_romfs.sh
+# montar /storage/roms (ate 20 s); o TimeoutStartSec cobre as duas esperas.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/fn-remapeia
+RemainAfterExit=yes
+TimeoutStartSec=120
+
+[Install]
+WantedBy=emuelec.target
