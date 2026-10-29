@@ -31,13 +31,17 @@ As mudanças de idioma e fuso SHALL preservar todas as outras chaves dos arquivo
 - **WHEN** cada arquivo de configuração alterado pela feature é comparado com o original de fábrica
 - **THEN** as únicas diferenças são as chaves de idioma, fuso e menu definidas por este change
 
-### Requirement: Menu do RetroArch em inglês
-A imagem gerada SHALL deixar o menu do RetroArch em inglês, o idioma da imagem base, enquanto o sistema e o EmulationStation continuam em português do Brasil.
+### Requirement: Menu do RetroArch em português do Brasil
+A imagem gerada SHALL deixar o menu do RetroArch em português do Brasil, junto com o sistema e o EmulationStation, declarando `user_language = "7"` no `retroarch.cfg` de fábrica da p8.
 
 #### Scenario: Menu aberto durante um jogo
-- **WHEN** o usuário abre o menu do RetroArch durante um jogo
-- **THEN** os textos do menu aparecem em inglês
+- **WHEN** o usuário abre o menu do RetroArch durante um jogo, numa p8 gravada pela imagem
+- **THEN** os textos do menu aparecem em português do Brasil
 
 #### Scenario: Configuração conferida no PC
 - **WHEN** a p8 da imagem gerada é inspecionada
-- **THEN** a configuração do RetroArch declara `user_language` com o valor da imagem base (`0`), e a do EmulationStation continua com `Language` = `pt_BR`
+- **THEN** a configuração do RetroArch declara `user_language = "7"` e a do EmulationStation declara `Language` = `pt_BR`
+
+#### Scenario: Idioma trocado pelo usuário
+- **WHEN** o usuário escolhe outro idioma em Settings > User Interface > Language e salva
+- **THEN** o RetroArch mantém o idioma escolhido

@@ -4,6 +4,17 @@ Este repositório gera imagens de cartão SD para um **clone do R36S** com placa
 **GA36-MB V1.2**. Cada mudança pedida vira uma *feature* versionada, e cada build
 gera uma imagem nova, identificada pelo horário em que foi gerada.
 
+## Para quem é
+
+O aparelho é feito para **crianças de 7 anos brincarem** (o filho de quem mantém
+este repositório). Isso orienta as escolhas das features: tudo na tela no idioma
+dele (português do Brasil no sistema, no EmulationStation e no menu do RetroArch),
+porque ler na própria língua facilita muito a leitura de quem está aprendendo;
+menos avisos e animações no caminho entre ligar e jogar; imagem e som agradáveis
+(shader do GBA, sem o ghosting do LCD, áudio sem chiado); e menu simples. Ao
+propor uma mudança, pergunte se ela ajuda uma criança dessa idade a achar e abrir
+um jogo sozinha.
+
 ## O aparelho e por que só esta base funciona
 
 - O SoC é um **Allwinner A33**, remarcado como RK3326. Imagens "genéricas" de
@@ -191,10 +202,11 @@ que em muitos sistemas é um tmpfs pequeno.
 ## Features habilitadas
 
 - **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema e no EmulationStation, fuso
-  `America/Sao_Paulo` e menu RGUI no RetroArch. O menu do RetroArch fica em
-  inglês por padrão (`user_language = "0"`, o valor da imagem base); para o
-  português, use o próprio menu: Settings > User Interface > Language >
-  Portuguese (Brazil). Também troca
+  `America/Sao_Paulo` e menu RGUI no RetroArch, que também fica em português do
+  Brasil (`user_language = "7"`, para a criança ler os menus na própria língua).
+  Numa p8 mantida com `--keep-storage` o idioma que ela já tem continua; para
+  trocar, Configurações > Interface do usuário > Idioma (Settings > User
+  Interface > Language). Também troca
   vários padrões de fábrica (cada um dá para voltar pelos menus):
   - proporção de tela "Core provided" (`global.ratio=core`) em vez de 4/3; para
     outra, use o menu do EmulationStation (Configurações de jogos > Proporção);
@@ -597,6 +609,37 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     do SYSTEM e os presets que contêm só a referência a ela; cópia idêntica,
     outros presets e outros shaders seus ficam. Consequência: edições suas no
     `gba-modern-remaster.glsl` dentro da p8 não sobrevivem ao boot.
+
+- **`56-retroarch-ajustes`**: ajustes do RetroArch, pensados para a criança jogar sem
+  tropeçar em menus e avisos.
+  - **Shader do ES:** o shader escolhido em "SHADER SET" (por jogo, sistema ou
+    global) passa a valer no jogo; o `shaderset-aplica`, chamado pelo
+    `emuelecRunEmu.sh`, grava `video_shader` e `video_shader_enable` no
+    `retroarch.cfg` e passa o preset ao RetroArch por `--set-shader` (o RetroArch
+    1.17 ignora o `video_shader` do cfg quando o jogo não tem preset automático,
+    como no SNES). `none` abre sem shader. Vale também para o padrão do GBA.
+  - **Salvar pelo menu:** o `retroarch.cfg` de fábrica apontava
+    `rgui_config_directory`, `savefile_directory`, `log_dir` e
+    `osk_overlay_directory` para pastas que não existem (`/config`, `/saves`,
+    `/logs`, `/overlays/keyboards`); salvar opções de core, override ou preset
+    dava erro. No boot, o serviço `r36-retroarch-prepara` troca esses quatro
+    valores por pastas da p8, só se ainda forem os de fábrica. O `retroarch.cfg`
+    de um cartão novo já nasce certo.
+  - **gpSP sem ghosting:** `gpsp_frame_mixing = "enabled"` (Interframe Blending)
+    em `config/gpSP/gpSP.opt`, só se a chave não existir. Para desligar, crie um
+    arquivo vazio chamado `r36-gpsp-sem-ghost` na raiz da `R36-ROMS`; a opção também
+    se muda em Core Options.
+  - **gpSP com BIOS:** `gpsp_boot_mode = "bios"` (Boot mode: Boot to BIOS) no mesmo
+    `gpSP.opt`, também só se a chave não existir.
+  - **Aparência e uso:** o `retroarch.cfg` de fábrica traz o viewport personalizado
+    768x672, `rgui_aspect_ratio = "11"`, sem a animação ao carregar conteúdo
+    (`menu_show_load_content_animation = "false"`) e sem o aviso de autoconfig do
+    controle (`notification_show_autoconfig = "false"`). Só chegam com uma p8 nova
+    (`--wipe-storage`); com `--keep-storage` o valor que o cartão já tem continua, e
+    tudo se muda pelo menu.
+  - Com `r36-diagnostico` na p1, o `r36-retroarch.log` mostra o que o serviço fez e
+    o `r36-shader-gba.log` ganha uma linha por jogo. O `gpSP.opt` chega ao cartão
+    com `--part system` ou `--keep-storage`.
 
 - **`58-ports-exec`**: copiar um port pelo PC e jogar. A p1 (FAT32) não guarda
   permissão de execução e pode estar montada com `noexec`, então o

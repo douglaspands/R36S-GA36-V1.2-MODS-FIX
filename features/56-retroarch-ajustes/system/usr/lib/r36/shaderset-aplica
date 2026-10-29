@@ -1,0 +1,80 @@
+#!/bin/sh
+# Aplica ao jogo o shader escolhido em "SHADER SET" do EmulationStation.
+# Uso: shaderset-aplica <sistema> <rom>   (chamado pelo emuelecRunEmu.sh, antes do jogo)
+# O setsettings.sh da base só passa --set-shader para o valor true ou 1; um caminho como
+# gba/gba-modern-remaster.glslp não gera nada. Este script repete a busca dele no
+# emuelec.conf (jogo, sistema, global) e, para um caminho, grava no retroarch.cfg
+#   video_shader = "/tmp/shaders/<valor>"   e   video_shader_enable = "true"
+# none, false, 0 ou vazio só apagam as duas linhas (nada de shader do jogo anterior);
+# true e 1 ficam com o setsettings.sh. O emuelecRunEmu.sh apaga as duas linhas depois de
+# cada jogo.
+# Com o arquivo vazio r36-diagnostico na raiz da p1, acrescenta uma linha por jogo a
+# r36-shader-gba.log. R36_ROOT fica vazio no aparelho; os testes apontam para um
+# diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+RACFG="$ROOT/storage/.config/retroarch/retroarch.cfg"
+LOG="$ROOT/storage/roms/r36-shader-gba.log"
+DIAG="$ROOT/storage/roms/r36-diagnostico"
+
+SISTEMA=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+ROM="${2##*/}"
+
+# Mesma busca do get_setting do setsettings.sh: primeiro valor do jogo, depois do sistema,
+# depois o global
+busca() {
+    [ -f "$EMUCONF" ] || return 0
+    achado=
+    while IFS= read -r linha; do
+        case "$linha" in
+            "$SISTEMA[\"$ROM\"]"*shaderset=*) achado=${linha##*shaderset=}; break ;;
+        esac
+    done < "$EMUCONF"
+    if [ -z "$achado" ]; then
+        while IFS= read -r linha; do
+            case "$linha" in
+                "$SISTEMA.shaderset="*|"$SISTEMA-shaderset="*) achado=${linha#*shaderset=}; break ;;
+            esac
+        done < "$EMUCONF"
+    fi
+    if [ -z "$achado" ]; then
+        while IFS= read -r linha; do
+            case "$linha" in
+                global[.-]*shaderset=*) achado=${linha##*shaderset=}; break ;;
+            esac
+        done < "$EMUCONF"
+    fi
+    printf '%s' "$achado"
+}
+
+# tira espaços e CR das pontas
+VALOR=$(busca | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+RESULTADO=
+
+case "$VALOR" in
+    true|1) RESULTADO="deixado ao setsettings.sh" ;;
+    *)
+        if [ -f "$RACFG" ]; then
+            grep -Ev '^(video_shader|video_shader_enable)[[:space:]]*=' "$RACFG" > "$RACFG.r36tmp"
+            case "$VALOR" in
+                ""|none|false|0) RESULTADO="sem shader" ;;
+                *)
+                    printf 'video_shader = "/tmp/shaders/%s"\nvideo_shader_enable = "true"\n' "$VALOR" >> "$RACFG.r36tmp"
+                    RESULTADO="video_shader=/tmp/shaders/$VALOR"
+                    # o RetroArch 1.17 só carrega o preset pela linha de comando; o
+                    # emuelecRunEmu.sh coloca esta saída antes do --config
+                    printf '%s\n' "--set-shader \"/tmp/shaders/$VALOR\""
+                    ;;
+            esac
+            cat "$RACFG.r36tmp" > "$RACFG"
+            rm -f "$RACFG.r36tmp"
+        else
+            RESULTADO="retroarch.cfg ausente"
+        fi
+        ;;
+esac
+
+[ -e "$DIAG" ] && printf '%s shaderset-aplica sistema=%s rom=%s shaderset=%s -> %s\n' \
+    "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" "$SISTEMA" "$ROM" "${VALOR:-(nenhum)}" "$RESULTADO" >> "$LOG"
+exit 0

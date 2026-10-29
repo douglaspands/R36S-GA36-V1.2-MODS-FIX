@@ -1,0 +1,90 @@
+#!/bin/sh
+# Ajustes do RetroArch no boot, na p8:
+#  1. Pastas do retroarch.cfg. A imagem de fábrica aponta rgui_config_directory,
+#     savefile_directory, log_dir e osk_overlay_directory para /config, /saves, /logs e
+#     /overlays/keyboards, que não existem numa raiz somente leitura (salvar opções de core,
+#     override ou preset pelo menu dá erro). Cada chave é trocada só se a linha ainda for a
+#     de fábrica, no mesmo arquivo; um valor diferente (escolha do usuário) fica como está.
+#  2. gpSP.opt: acrescenta gpsp_boot_mode = "bios" (Boot to BIOS) e gpsp_frame_mixing = "enabled" (interframe blending, o ghosting do
+#     LCD) se a chave não existir; um valor existente não é alterado. Com o arquivo vazio
+#     r36-gpsp-sem-ghost na raiz da p1, remove só a linha "enabled".
+# Com o arquivo vazio r36-diagnostico na raiz da p1, deixa o resultado em r36-retroarch.log.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+RADIR="$ROOT/storage/.config/retroarch"
+RACFG="$RADIR/retroarch.cfg"
+OPT="$RADIR/config/gpSP/gpSP.opt"
+OFF="$ROOT/storage/roms/r36-gpsp-sem-ghost"
+LOG="$ROOT/storage/roms/r36-retroarch.log"
+DIAG="$ROOT/storage/roms/r36-diagnostico"
+CHAVE='gpsp_frame_mixing'
+LINHA='gpsp_frame_mixing = "enabled"'
+
+# A chave fica na p1, que o mount_romfs.sh monta dentro do emuelec-autostart: espera a
+# montagem (até 20 s) em vez de ordenar o serviço depois dele, o que trava o boot. Sem p1
+# depois disso, segue sem chave: o blending fica ligado.
+MONTADA=
+if [ -z "$ROOT" ]; then
+    i=0
+    until mountpoint -q /storage/roms 2>/dev/null; do
+        [ "$i" -ge 20 ] && break
+        sleep 1
+        i=$((i + 1))
+    done
+    mountpoint -q /storage/roms 2>/dev/null && MONTADA=sim
+elif [ -d "$ROOT/storage/roms" ]; then
+    MONTADA=sim
+fi
+LOGA=
+[ -n "$MONTADA" ] && [ -e "$DIAG" ] && LOGA=sim
+[ -n "$LOGA" ] && : > "$LOG"
+registro() { [ -n "$LOGA" ] && printf '%s\n' "$1" >> "$LOG"; }
+registro "r36-retroarch-prepara $(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"
+
+# 1. Pastas do retroarch.cfg
+troca() { # chave valor-de-fábrica valor-novo
+    if grep -qx "$1 = \"$2\"" "$RACFG"; then
+        sed "s|^$1 = \"$2\"\$|$1 = \"$3\"|" "$RACFG" > "$RACFG.r36tmp" && cat "$RACFG.r36tmp" > "$RACFG"
+        rm -f "$RACFG.r36tmp"
+        registro "retroarch.cfg: $1 trocada de $2 para $3"
+    fi
+}
+if [ -f "$RACFG" ]; then
+    troca rgui_config_directory /config '~/.config/retroarch/config'
+    troca savefile_directory /saves '~/savefiles'
+    troca log_dir /logs '~/.config/emuelec/logs'
+    troca osk_overlay_directory /overlays/keyboards '~/overlays/keyboards'
+    registro "retroarch.cfg: $(grep -E '^(rgui_config_directory|savefile_directory|log_dir|osk_overlay_directory) ' "$RACFG" | tr '\n' ' ')"
+else
+    registro "retroarch.cfg ausente"
+fi
+
+# 2. gpSP.opt
+garante() { # chave valor: cria o arquivo ou acrescenta a linha só se a chave não existir
+    if [ -f "$OPT" ]; then
+        if grep -q "^$1[[:space:]]*=" "$OPT"; then
+            registro "gpSP.opt: $1 ja existe ($(grep "^$1[[:space:]]*=" "$OPT" | head -1)), mantida"
+        else
+            # garante quebra de linha no fim antes de acrescentar
+            [ -n "$(tail -c1 "$OPT")" ] && printf '\n' >> "$OPT"
+            printf '%s = "%s"\n' "$1" "$2" >> "$OPT" && registro "gpSP.opt: $1 = \"$2\" acrescentada"
+        fi
+    elif mkdir -p "${OPT%/*}" && printf '%s = "%s"\n' "$1" "$2" > "$OPT"; then
+        registro "gpSP.opt criado com $1 = \"$2\""
+    fi
+}
+# Boot mode: o gpSP precisa iniciar pela BIOS (o jogo de GBA depende dela neste aparelho)
+garante gpsp_boot_mode bios
+if [ -e "$OFF" ]; then
+    if [ -f "$OPT" ] && grep -qx "$LINHA" "$OPT"; then
+        grep -vx "$LINHA" "$OPT" > "$OPT.r36tmp" && cat "$OPT.r36tmp" > "$OPT"
+        rm -f "$OPT.r36tmp"
+        registro "gpSP.opt: chave r36-gpsp-sem-ghost, $LINHA removida"
+    else
+        registro "gpSP.opt: chave r36-gpsp-sem-ghost, nada a remover"
+    fi
+else
+    garante "$CHAVE" enabled
+fi
+exit 0

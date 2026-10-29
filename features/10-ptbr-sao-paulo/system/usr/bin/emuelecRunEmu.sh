@@ -478,6 +478,12 @@ fi
 
 SHADERSET=$(setsettings.sh "${PLATFORM}" "${ROMNAME_SHADER}" "${CORE}" --controllers="${CONTROLLERCONFIG}" --snapshot="${SNAPSHOT}")
 #echo "${SHADERSET}" # Only needed for debug
+# R36: o setsettings.sh só trata shaderset true ou 1; grava o video_shader do SHADER SET do ES
+if [ -x /usr/lib/r36/shaderset-aplica ]; then
+    R36_SHADER=$(/usr/lib/r36/shaderset-aplica "${PLATFORM}" "${ROMNAME_SHADER}")
+    # R36: o RetroArch 1.17 ignora o video_shader do cfg; o preset entra por --set-shader
+    [ -n "${R36_SHADER}" ] && SHADERSET="${R36_SHADER}"
+fi
 
 if [[ ${SHADERSET} != 0 ]]; then
     RUNTHIS=$(echo ${RUNTHIS} | sed "s|--config|${SHADERSET} --config|")

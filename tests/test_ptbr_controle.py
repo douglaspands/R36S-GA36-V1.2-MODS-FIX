@@ -53,11 +53,33 @@ class PtBrSaoPaulo(unittest.TestCase):
 
     def test_retroarch_cfg(self):
         c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
-        self.assertEqual(c["user_language"], "0")
+        self.assertEqual(c["user_language"], "7")  # português do Brasil: a criança lê o menu na própria língua
         c2 = parse_cfg(F10 / "emuelec" / "configs" / "emuelec.conf")
         self.assertEqual(c2["system.language"], "pt_BR")
         self.assertEqual(c["menu_driver"], "rgui")
         self.assertEqual(c["menu_swap_ok_cancel_buttons"], "false")
+
+    def test_retroarch_cfg_padroes_de_aparencia_e_uso(self):
+        c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
+        self.assertEqual(c["custom_viewport_width"], "768")
+        self.assertEqual(c["custom_viewport_height"], "672")
+        self.assertEqual(c["rgui_aspect_ratio"], "11")
+        self.assertEqual(c["menu_show_load_content_animation"], "false")
+        self.assertEqual(c["notification_show_autoconfig"], "false")
+
+    def test_retroarch_cfg_pastas_existem_e_sao_graveis(self):
+        c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
+        self.assertEqual(c["rgui_config_directory"], "~/.config/retroarch/config")
+        self.assertEqual(c["savefile_directory"], "~/savefiles")
+        self.assertEqual(c["log_dir"], "~/.config/emuelec/logs")
+        self.assertEqual(c["osk_overlay_directory"], "~/overlays/keyboards")
+        for chave, valor in c.items():
+            if not re.search(r"_(directory|dir)$", chave) or chave == "recording_config_directory":
+                continue
+            if valor in ("", "default", "true", "false"):  # não são caminhos
+                continue
+            self.assertTrue(valor.startswith(("~", "/usr", "/tmp", "/storage")), f"{chave} = {valor}")
+            self.assertNotRegex(valor, r"^/(config|saves|logs|overlays)\b", chave)
 
 
 class ControlePosicional(unittest.TestCase):
@@ -108,6 +130,16 @@ class RunEmuMaxperf(TempDirCase):
         self.assertTrue(os.access(RUNEMU, os.X_OK))
         subprocess.run(["bash", "-n", str(RUNEMU)], check=True)
 
+    def test_shaderset_aplica_depois_do_setsettings_e_antes_do_jogo(self):
+        txt = RUNEMU.read_text()
+        chamada = txt.index('/usr/lib/r36/shaderset-aplica "${PLATFORM}" "${ROMNAME_SHADER}"')
+        self.assertLess(txt.index('SHADERSET=$(setsettings.sh'), chamada)
+        self.assertLess(chamada, txt.index("eval ${RUNTHIS} >> ${EMUELECLOG}"))
+        self.assertIn("[ -x /usr/lib/r36/shaderset-aplica ]", txt)
+        # a saída (--set-shader) entra no SHADERSET antes de ir para a linha do RetroArch
+        self.assertIn('SHADERSET="${R36_SHADER}"', txt)
+        self.assertLess(chamada, txt.index("if [[ ${SHADERSET} != 0 ]]"))
+
     def test_sem_maxperf_incondicional(self):
         linhas = [l.strip() for l in RUNEMU.read_text().splitlines()]
         antes = linhas[: linhas.index("# R36: máximo desempenho só quando a chave maxperf (jogo, sistema ou global) vale 1")]
@@ -140,7 +172,7 @@ class RunEmuMaxperf(TempDirCase):
                 "-mpv /storage/.config/splash/loading-game.png",
             ],
         )
-        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 21)  # 17 + 2 linhas do audio-ganho por Speaker Function
+        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 27)  # 17 + 2 linhas do audio-ganho por Speaker Function + 6 do shaderset-aplica
         self.assertEqual(bloco_maxperf("\n".join(nova)).count("get_ee_setting maxperf"), 1)
 
 

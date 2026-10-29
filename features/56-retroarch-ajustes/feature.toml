@@ -1,0 +1,14 @@
+# Ajustes do RetroArch no R36S (Allwinner A33).
+# 1. shaderset-aplica: o "SHADER SET" do EmulationStation (jogo, sistema ou global, no
+#    emuelec.conf) vale no jogo. O setsettings.sh da base só passa --set-shader quando o
+#    valor é true ou 1; um caminho .glslp não gera nada.
+# 2. r36-retroarch-prepara (boot): põe no retroarch.cfg da p8 pastas que existem e são
+#    graváveis no lugar de /config, /saves, /logs e /overlays/keyboards (a raiz é somente
+#    leitura), e liga o interframe blending do gpSP (gpsp_frame_mixing). Para desligar o
+#    blending, um arquivo r36-gpsp-sem-ghost na raiz da p1.
+
+schema = 1
+name = "Ajustes do RetroArch"
+description = "Shader do SHADER SET do ES aplicado ao jogo, pastas de configuração do RetroArch na p8 (salvar pelo menu funciona) e interframe blending do gpSP ligado por padrão, com chave para desligar na p1."
+order = 56
+enabled = true

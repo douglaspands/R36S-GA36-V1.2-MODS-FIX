@@ -63,14 +63,22 @@ do aparelho que não se deduzem do código.
   espera o ES).
 - **Shaders no EmuELEC:** a lista "SHADER SET" do ES vem de `emuelec-utils
   getshaders` (`find /tmp/shaders -name '*.glslp'`), e o valor escolhido vai para
-  `<sistema>.shaderset` no `emuelec.conf` (p8). O próprio binário do ES escreve
-  `video_shader`/`video_shader_enable` no `retroarch.cfg` antes do jogo; o ramo
-  `shaderset` do `setsettings.sh` só imprime para `true`/`1` e não serve. O
+  `<sistema>.shaderset` no `emuelec.conf` (p8). Quem grava
+  `video_shader`/`video_shader_enable` no `retroarch.cfg` antes do jogo é o
+  `/usr/lib/r36/shaderset-aplica` (feature `56-retroarch-ajustes`), chamado pelo
+  `emuelecRunEmu.sh`: o ramo `shaderset` do `setsettings.sh` só imprime para
+  `true`/`1` e não serve, e o ES não grava nada. O RetroArch 1.17 **ignora o
+  `video_shader` do `retroarch.cfg`** quando o jogo não tem preset automático (SNES, por
+  exemplo): o preset só entra por `--set-shader`, e por isso o `shaderset-aplica` também
+  imprime `--set-shader "/tmp/shaders/<preset>"`, que o `emuelecRunEmu.sh` põe em
+  `SHADERSET` antes do `--config`. O
   RetroArch é o 1.17: **sem `video_shader_enable = "true"` nenhum shader vale**,
   nem preset automático, e o `emuelecRunEmu.sh` apaga essa linha depois de cada
   jogo, então ela só existe quando há `shaderset`. O preset automático de core é
-  procurado em `rgui_config_directory` (no nosso `retroarch.cfg` é `/config`, que
-  não existe), na pasta do `retroarch.cfg` (`/storage/.config/retroarch/<core>/`)
+  procurado em `rgui_config_directory` (de fábrica `/config`, que não existe numa
+  raiz somente leitura e fazia salvar pelo menu dar erro; o `r36-retroarch-prepara`
+  e o `retroarch.cfg` da feature 10 usam `~/.config/retroarch/config`; `/saves`,
+  `/logs` e `/overlays/keyboards` também foram trocados por pastas da p8), na pasta do `retroarch.cfg` (`/storage/.config/retroarch/<core>/`)
   e em `video_shader_dir/presets` (`/storage/shaders/presets/`). Os scripts estão
   no SYSTEM; leia-os com `mcopy` e `unsquashfs -cat` na imagem do build, sem
   montar. Veja a Decisão 11 na `design.md` da change `shader-gba-vivo-r36s`.
@@ -88,11 +96,16 @@ do aparelho que não se deduzem do código.
   `retroarch.cfg` na hora, e sem a thread o som fica ruim.
 - **Logs de diagnóstico sob chave:** os logs de áudio (`r36-audio.log`,
   `r36-audio-dac.log`), de bateria (`r36-bateria.log`) e de shader
-  (`r36-shader-gba.log`) só são gravados na p1 com o arquivo vazio `r36-diagnostico`
+  (`r36-shader-gba.log`, também a linha por jogo do `shaderset-aplica`), do
+  `r36-retroarch.log` (correção do `retroarch.cfg`) só são gravados na p1 com o arquivo vazio `r36-diagnostico`
   na raiz dela (o registro térmico fica fora). Ao pedir um desses logs ao usuário,
   lembre-o de criar a chave e religar antes de reproduzir o problema. Logs antigos
   não são apagados pelo aparelho. Feature nova que grave log de diagnóstico na p1
   deve usar a mesma chave. Veja a capability `diagnostic-logs`.
+- **gpSP sem ghosting:** a feature `56-retroarch-ajustes` põe
+  `gpsp_frame_mixing = "enabled"` e `gpsp_boot_mode = "bios"` (Boot to BIOS) no `config/gpSP/gpSP.opt` da p8 se a chave não
+  existir (um `gpSP.opt` que já tem `gpsp_boot_mode = "game"` mantém o valor); o arquivo vazio
+  `r36-gpsp-sem-ghost` na raiz da p1 remove só a linha do blending.
 - **Cadeia de ganho do som:** o codec é o `sunxi-pcm-codec` (A33). O ganho de
   saída é um só, analógico: o `speaker volume control` (0 a 63, sem dB) e o
   `Headphone_Volume_Control` do codec andam juntos. O FEX traz
