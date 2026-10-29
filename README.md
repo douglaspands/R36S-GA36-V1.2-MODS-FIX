@@ -424,11 +424,13 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     mais leve). Só mudam enquanto estiverem no valor de fábrica: um valor
     escolhido no menu do RetroArch é respeitado, e é pelo menu que se volta a
     `64` ou `128`, por exemplo.
-  - **`r36-audio.log`:** a cada boot a feature grava na raiz da p1 os controles do
+  - **`r36-audio.log`:** com a chave `r36-diagnostico` na p1 (veja "Diagnóstico"), a
+    cada boot a feature grava na raiz da p1 os controles do
     mixer, a interface de registradores do driver do codec, o efeito de um
     `Speaker Function` e o que o `audio-ganho` aplicou. Sem nenhuma escrita em
     registrador. O dump do boot é feito com o DAC parado; por isso o
-    `r36-audio-amostra.service` (só leitura, 10 minutos depois do boot) grava em
+    `r36-audio-amostra.service` (só leitura, 10 minutos depois do boot, também só
+    com a chave) grava em
     `r36-audio-dac.log` o dump do codec a cada mudança de estado, com a música do
     menu e os jogos tocando.
   - **Voltar ao som de fábrica sem regravar:** crie um arquivo vazio
@@ -461,7 +463,8 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     valor é 0 e em 3500 mV ou mais é pelo menos 1, para o desligamento (que exige
     `capacity` 0 com 3400 mV) acontecer no fim da carga e nunca antes dela. O
     desligamento forçado a 3350 mV não depende do serviço.
-  - **`r36-bateria.log`:** a cada boot a feature grava na raiz da p1 se o `bind`
+  - **`r36-bateria.log`:** com a chave `r36-diagnostico` na p1 (veja "Diagnóstico"),
+    a cada boot a feature grava na raiz da p1 se o `bind`
     pegou, a curva usada (a do `system` ou a do cartão) e o motivo de qualquer falha
     ou recusa. Se o kernel 3.4.39 recusar o `bind`, ou ele não valer na leitura, o
     serviço desfaz e o `capacity` continua o do kernel, sem afetar o boot.
@@ -478,7 +481,8 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   - **Conferir no aparelho:** `systemctl is-active r36-bateria` (`active`) e
     `cat /sys/class/power_supply/battery/capacity` (o valor calculado; o do kernel
     continua na coluna `bat_pct` do `r36-thermal.csv`, lida do `uevent`, ao lado de
-    `bat_pct_pub`, o publicado). O `r36-bateria.log` diz `bind ok` quando pegou.
+    `bat_pct_pub`, o publicado). Com a chave `r36-diagnostico`, o `r36-bateria.log` diz `bind ok` quando pegou; sem ela,
+    veja `journalctl -t r36-bateria` ou o `/run/r36-bateria/log`.
     `/usr/lib/r36/bateria-percentual valida <arquivo>` confere um arquivo de curva.
   - **Desligar:** `enabled = false` em `features/48-bateria-percentual/feature.toml`
     e gerar de novo, ou `r36-bateria-original` na p1 sem regravar.
@@ -575,9 +579,9 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     escolha sua em `gba.shaderset` (inclusive `none`) e um preset que já existe,
     como um que você salvou com outros valores, nunca são sobrescritos. Funciona
     com `--keep-storage`, porque nasce no boot.
-  - **Diagnóstico:** o serviço deixa o que fez em `R36-ROMS/r36-shader-gba.log`
-    (legível pelo PC). Se o shader não entrar, o log mostra se a chave e os
-    presets foram criados.
+  - **Diagnóstico:** com a chave `r36-diagnostico` na p1 (veja "Diagnóstico"), o
+    serviço deixa o que fez em `R36-ROMS/r36-shader-gba.log` (legível pelo PC). Se o
+    shader não entrar, o log mostra se a chave e os presets foram criados.
   - **Desligar:** crie um arquivo vazio chamado `r36-gba-sem-shader` na raiz da
     `R36-ROMS` (pelo PC). No boot seguinte o serviço apaga só o que ele mesmo
     criou (a linha `gba.shaderset` exata e os presets de uma linha) e não os
@@ -684,6 +688,25 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
 
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
+
+### Diagnóstico
+
+Os logs de investigação de áudio, bateria e shader ficam desligados por padrão, para o
+aparelho não escrever na p1 a cada boot. Para ligá-los, crie um arquivo vazio
+`r36-diagnostico` na raiz da `R36-ROMS` (pelo PC, sem root) e ligue o aparelho:
+
+```sh
+touch /run/media/douglas/R36-ROMS/r36-diagnostico
+```
+
+Com a chave, o aparelho grava na raiz da p1 `r36-audio.log` e `r36-audio-dac.log`
+(feature `46-audio`), `r36-bateria.log` (`48-bateria-percentual`) e
+`r36-shader-gba.log` (`54-shaders-gba`), com o mesmo conteúdo de sempre. Sem a chave,
+nenhum deles é criado nem alterado, e o som, o percentual da bateria e o shader
+funcionam do mesmo jeito. Os logs que já estão no cartão não são apagados pelo
+aparelho: apague-os pelo PC.
+O registro térmico (`r36-thermal.csv`, `r36-sysinfo.txt`)
+não depende da chave.
 
 ## Criar uma feature
 

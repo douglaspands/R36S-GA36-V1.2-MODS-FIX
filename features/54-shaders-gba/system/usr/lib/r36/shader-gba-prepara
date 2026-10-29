@@ -14,8 +14,9 @@
 #     o usuário salvou, nunca é sobrescrito.
 #  4. Chave para desligar: um arquivo vazio chamado r36-gba-sem-shader na raiz da p1
 #     (R36-ROMS, pelo PC) desfaz os passos 2 e 3 (só o que este script criou).
-# Deixa o resultado em r36-shader-gba.log na raiz da p1, legível pelo PC, com os
-# atributos do framebuffer (diagnóstico do tearing).
+# Com o arquivo vazio r36-diagnostico na raiz da p1, deixa o resultado em
+# r36-shader-gba.log na raiz da p1, legível pelo PC, com os atributos do framebuffer
+# (diagnóstico do tearing). Sem a chave não grava log; o resto não muda.
 # R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
 
 ROOT="${R36_ROOT:-}"
@@ -30,6 +31,7 @@ REF='#reference "/usr/share/common-shaders/gba/gba-modern-remaster.glslp"'
 SETLINE='gba.shaderset=gba/gba-modern-remaster.glslp'
 OFF="$ROOT/storage/roms/r36-gba-sem-shader"
 LOG="$ROOT/storage/roms/r36-shader-gba.log"
+DIAG="$ROOT/storage/roms/r36-diagnostico"
 # Nomes dos cores de GBA como o RetroArch os grava em config/ (gpSP é o padrão), um por linha
 CORES="gpSP
 mGBA
@@ -40,7 +42,7 @@ VBA Next"
 
 linhas() { grep -v '^[[:space:]]*$' "$1" | sort -u; }
 nosso() { [ -f "$1" ] && { [ "$(linhas "$1")" = "$REF" ] || [ "$(linhas "$1")" = "$TMP_REF" ]; }; }
-registro() { [ -n "$MONTADA" ] && printf '%s\n' "$1" >> "$LOG"; }
+registro() { [ -n "$LOGA" ] && printf '%s\n' "$1" >> "$LOG"; }
 
 # 1. Cópia velha na p8. O emuelec_autostart.sh copia /usr/share/common-shaders para
 # /storage/shaders a cada boot com rsync --ignore-existing, que nunca atualiza: depois
@@ -82,28 +84,34 @@ if [ -z "$ROOT" ]; then
 elif [ -d "$ROOT/storage/roms" ]; then
     MONTADA=sim
 fi
-[ -n "$MONTADA" ] && : > "$LOG"
+# O log só existe com a chave r36-diagnostico na p1; sem ela, nada é gravado nem lido
+# só para o log (o log antigo da p1 fica como está).
+LOGA=
+[ -n "$MONTADA" ] && [ -e "$DIAG" ] && LOGA=sim
+[ -n "$LOGA" ] && : > "$LOG"
 registro "r36-shader-gba-prepara $(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"
 [ -n "$VELHA" ] && registro "copia velha do shader na p8 atualizada com a do SYSTEM"
 [ -n "$BIND" ] && registro "/tmp/shaders sem overlay: /storage/shaders montado ali por bind"
-if [ -z "$ROOT" ]; then
-    if [ -f /tmp/shaders/gba/gba-modern-remaster.glslp ]; then
-        registro "/tmp/shaders/gba/gba-modern-remaster.glslp visivel (lista do ES)"
-    else
-        registro "AVISO: /tmp/shaders/gba/gba-modern-remaster.glslp nao visivel"
-        registro "$(ls -la /storage/shaders /storage/shaders/gba 2>&1)"
+if [ -n "$LOGA" ]; then
+    if [ -z "$ROOT" ]; then
+        if [ -f /tmp/shaders/gba/gba-modern-remaster.glslp ]; then
+            registro "/tmp/shaders/gba/gba-modern-remaster.glslp visivel (lista do ES)"
+        else
+            registro "AVISO: /tmp/shaders/gba/gba-modern-remaster.glslp nao visivel"
+            registro "$(ls -la /storage/shaders /storage/shaders/gba 2>&1)"
+        fi
     fi
-fi
-# Diagnóstico do tearing: buffer duplo no framebuffer (virtual_size com o dobro da
-# altura) é o que deixa o driver da Mali trocar o quadro no retrace
-for fb in "$ROOT"/sys/class/graphics/fb[0-9]; do
-    [ -d "$fb" ] || continue
-    for attr in name modes mode virtual_size bits_per_pixel stride pan rotate; do
-        [ -r "$fb/$attr" ] && registro "${fb##*/} $attr: $(tr '\n' ' ' < "$fb/$attr" | sed 's/ *$//')"
+    # Diagnóstico do tearing: buffer duplo no framebuffer (virtual_size com o dobro da
+    # altura) é o que deixa o driver da Mali trocar o quadro no retrace
+    for fb in "$ROOT"/sys/class/graphics/fb[0-9]; do
+        [ -d "$fb" ] || continue
+        for attr in name modes mode virtual_size bits_per_pixel stride pan rotate; do
+            [ -r "$fb/$attr" ] && registro "${fb##*/} $attr: $(tr '\n' ' ' < "$fb/$attr" | sed 's/ *$//')"
+        done
     done
-done
-[ -f "$RADIR/retroarch.cfg" ] &&
-    registro "retroarch.cfg: $(grep -E '^(rgui_config_directory|auto_shaders_enable|video_shader_enable|video_shader) ' "$RADIR/retroarch.cfg" | tr '\n' ' ')"
+    [ -f "$RADIR/retroarch.cfg" ] &&
+        registro "retroarch.cfg: $(grep -E '^(rgui_config_directory|auto_shaders_enable|video_shader_enable|video_shader) ' "$RADIR/retroarch.cfg" | tr '\n' ' ')"
+fi
 if [ -e "$OFF" ]; then DESLIGADO=sim; registro "chave r36-gba-sem-shader encontrada: shader desligado"; fi
 
 # 2. gba.shaderset no emuelec.conf

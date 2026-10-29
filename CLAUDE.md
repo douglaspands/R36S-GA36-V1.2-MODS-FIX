@@ -86,6 +86,13 @@ do aparelho que não se deduzem do código.
   `audio_resampler_quality` de 2 para 1 contra os pipocos). `video_threaded`
   tem de ficar `true`: trocar pelo menu trava o aparelho, o RetroArch grava o
   `retroarch.cfg` na hora, e sem a thread o som fica ruim.
+- **Logs de diagnóstico sob chave:** os logs de áudio (`r36-audio.log`,
+  `r36-audio-dac.log`), de bateria (`r36-bateria.log`) e de shader
+  (`r36-shader-gba.log`) só são gravados na p1 com o arquivo vazio `r36-diagnostico`
+  na raiz dela (o registro térmico fica fora). Ao pedir um desses logs ao usuário,
+  lembre-o de criar a chave e religar antes de reproduzir o problema. Logs antigos
+  não são apagados pelo aparelho. Feature nova que grave log de diagnóstico na p1
+  deve usar a mesma chave. Veja a capability `diagnostic-logs`.
 - **Cadeia de ganho do som:** o codec é o `sunxi-pcm-codec` (A33). O ganho de
   saída é um só, analógico: o `speaker volume control` (0 a 63, sem dB) e o
   `Headphone_Volume_Control` do codec andam juntos. O FEX traz
@@ -106,7 +113,7 @@ do aparelho que não se deduzem do código.
   `Speaker Function` (boot, abrir e sair de jogo, acordar); qualquer script novo
   que mexa em volume ou em `Speaker Function` deve chamá-lo. O arquivo
   `r36-audio-original` na raiz da p1 volta ao som de fábrica. O `r36-audio.log` e o
-  `r36-audio-dac.log` (p1) só leem o codec.
+  `r36-audio-dac.log` (p1) só leem o codec e só existem com `r36-diagnostico` na p1.
 - **Shaders e `/tmp/shaders`:** o menu do RetroArch lista `video_shader_dir`
   (`~/shaders` = `/storage/shaders`, p8). O "SHADER SET" do ES lista
   `/tmp/shaders`, que fica vazio sem overlay; o `r36-shader-gba-prepara` monta
@@ -175,6 +182,6 @@ Instruções para o usuário rodar (você não roda `sudo`; veja as regras acima
   os presets que só a referenciam, e liga o shader por padrão no GBA (`gba.shaderset=...` no `emuelec.conf`, se a
   chave não existe, e `<core>/<core>.glslp` em `config/` e na pasta do
   `retroarch.cfg`, com `#reference` ao arquivo do SYSTEM); o arquivo `r36-gba-sem-shader` na raiz da p1 desliga o padrão e o
-  `r36-shader-gba.log` na p1 mostra o que o serviço fez. Valores de parâmetros salvos pelo RetroArch num preset valem mais
+  `r36-shader-gba.log` na p1 (só com `r36-diagnostico`) mostra o que o serviço fez. Valores de parâmetros salvos pelo RetroArch num preset valem mais
   que os padrões do `#pragma parameter`. Para investigar a p8 sem alterar nada:
   `udisksctl mount -b /dev/sdc8` (ou `sudo mount -o ro`).

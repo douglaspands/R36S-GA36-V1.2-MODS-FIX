@@ -147,7 +147,9 @@ class AudioCase(TempDirCase):
 
 
 class AudioPrepara(AudioCase):
-    def prepara(self, **extra):
+    def prepara(self, diag=True, **extra):
+        if diag:
+            escreve(self.root / "storage/roms/r36-diagnostico", "")
         proc = self.roda(PREPARA, **extra)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         return proc
@@ -194,7 +196,7 @@ class AudioPrepara(AudioCase):
 
     def test_sem_p1_termina_com_zero_e_sem_log(self):
         (self.root / "storage/roms").rmdir()
-        proc = self.prepara()
+        proc = self.prepara(diag=False)
         self.assertFalse((self.root / "storage/roms").exists())
         # o buffer do RetroArch e o modo valem mesmo assim
         self.assertIn('audio_latency = "96"', self.cfg().splitlines())
@@ -252,6 +254,24 @@ class AudioPrepara(AudioCase):
         self.prepara()
         self.assertNotIn("boot antigo", self.log())
         self.assertEqual(self.log().count("r36-audio-prepara"), 1)
+
+    def test_sem_a_chave_nao_grava_log_mas_aplica_o_audio(self):
+        escreve(self.root / "sys/class/switch/h2w/state", "2\n")
+        escreve(self.root / "sys/devices/platform/sunxi-pcm-codec/audio_reg_debug", "0x00: 0x8d8d\n")
+        self.prepara(diag=False)
+        self.assertFalse((self.root / "storage/roms/r36-audio.log").exists())
+        self.assertIn('audio_latency = "96"', self.cfg().splitlines())
+        self.assertIn("cset name=Speaker Function spk", self.chamadas())
+        self.assertEqual((self.root / "run/r36-audio.modo").read_text().strip(), "corrigido")
+        # nada de leitura de diagnostico: so o cset do Speaker Function e o audio-ganho
+        self.assertNotIn("contents", self.chamadas())
+        self.assertFalse([c for c in self.chamadas() if c.startswith("cget") and "Speaker Function" in c])
+        self.assertTrue([c for c in self.chamadas() if c.startswith("cset")])
+
+    def test_sem_a_chave_o_log_antigo_fica_intacto(self):
+        escreve(self.root / "storage/roms/r36-audio.log", "boot antigo\n")
+        self.prepara(diag=False)
+        self.assertEqual(self.log(), "boot antigo\n")
 
     def test_nao_deixa_temporarios(self):
         self.prepara()
@@ -360,7 +380,9 @@ class AudioAmostra(AudioCase):
         escreve(self.root / "proc/uptime", "12.50 40.00\n")
         self.log = self.root / "storage/roms/r36-audio-dac.log"
 
-    def amostra(self, duracao="9", passo="3", **extra):
+    def amostra(self, duracao="9", passo="3", diag=True, **extra):
+        if diag:
+            escreve(self.root / "storage/roms/r36-diagnostico", "")
         proc = self.roda(AMOSTRA, R36_AMOSTRA_DURACAO=duracao, R36_AMOSTRA_PASSO=passo, **extra)
         self.assertEqual(proc.returncode, 0, proc.stderr)
 
@@ -392,8 +414,18 @@ class AudioAmostra(AudioCase):
 
     def test_sem_p1_nao_grava(self):
         (self.root / "storage/roms").rmdir()
-        self.amostra()
+        self.amostra(diag=False)
         self.assertFalse(self.log.exists())
+
+    def test_sem_a_chave_nao_le_o_codec_nem_cria_o_log(self):
+        self.amostra(diag=False)
+        self.assertFalse(self.log.exists())
+        self.assertEqual(self.chamadas(), [])
+
+    def test_sem_a_chave_o_log_antigo_fica_intacto(self):
+        escreve(self.log, "boot antigo\n")
+        self.amostra(diag=False)
+        self.assertEqual(self.log.read_text(), "boot antigo\n")
 
     def test_log_tem_tamanho_maximo(self):
         escreve(self.log, "x" * 70000)  # o log do boot anterior é substituído

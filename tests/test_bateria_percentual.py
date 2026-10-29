@@ -203,6 +203,7 @@ class CurvaTrocavel(BateriaCase):
         self.assertEqual(r.stdout.strip(), "50")
 
     def test_curva_do_cartao_valida_troca_a_curva(self):
+        (self.roms / "r36-diagnostico").write_text("")
         (self.roms / "r36-bateria-curva.conf").write_text("r_mohm=0\nponto=3000,10\nponto=5000,90\n")
         self.bateria(4000, 800)
         r = self.roda("laco")
@@ -310,6 +311,7 @@ class Publicacao(BateriaCase):
         self.assertEqual(len(self.chamado()), n)
 
     def test_chave_na_p1_desmonta_e_encerra(self):
+        (self.roms / "r36-diagnostico").write_text("")
         self.bateria(3900, 300)
         self.roda("publica")
         (self.roms / "r36-bateria-original").write_text("")
@@ -339,6 +341,7 @@ class Publicacao(BateriaCase):
         self.assertIn("bind ok", self.log())
 
     def test_log_da_p1_traz_o_bind_e_a_curva_do_boot(self):
+        (self.roms / "r36-diagnostico").write_text("")
         self.bateria(3900, 300)
         self.roda("publica")
         self.roda("laco")
@@ -346,6 +349,31 @@ class Publicacao(BateriaCase):
         self.assertIn("curva do system", txt)
         self.assertIn("bind ok", txt)
         self.assertIn("laco iniciado", txt)
+
+    def test_sem_a_chave_de_diagnostico_nao_grava_o_log_na_p1(self):
+        self.bateria(3900, 300)
+        self.roda("publica")
+        r = self.roda("laco")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse((self.roms / "r36-bateria.log").exists())
+        self.assertEqual(self.publicado(), str(self.calcula(3900, 300)))
+        self.assertIn("bind ok", self.log())
+
+    def test_sem_a_chave_de_diagnostico_o_log_antigo_da_p1_fica(self):
+        (self.roms / "r36-bateria.log").write_text("boot antigo\n")
+        self.bateria(3900, 300)
+        self.roda("publica")
+        self.roda("laco")
+        self.assertEqual((self.roms / "r36-bateria.log").read_text(), "boot antigo\n")
+
+    def test_sem_a_chave_de_diagnostico_a_chave_original_ainda_vale(self):
+        (self.roms / "r36-bateria-original").write_text("")
+        self.bateria(3900, 300)
+        self.roda("publica")
+        r = self.roda("laco", R36_CICLOS="")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.chamado()[-1], f"umount {self.alvo()}")
+        self.assertFalse((self.roms / "r36-bateria.log").exists())
 
     def test_sem_bateria_nao_publica_e_nao_falha(self):
         (self.real / "type").write_text("Mains\n")

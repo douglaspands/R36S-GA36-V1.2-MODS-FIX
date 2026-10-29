@@ -293,11 +293,39 @@ class TestPreparoDoShaderPadrao(unittest.TestCase):
         self.system_com_shader()
         roms = self.root / "storage" / "roms"
         roms.mkdir(parents=True)
+        (roms / "r36-diagnostico").write_text("")
         self.emuconf("gba.core=gpsp\n")
         self.roda()
         log = (roms / "r36-shader-gba.log").read_text()
         self.assertIn("gba.shaderset", log)
         self.assertIn("preset gpSP criado", log)
+
+    def test_sem_a_chave_de_diagnostico_nao_cria_o_log_e_o_resto_vale(self):
+        self.system_com_shader()
+        roms = self.root / "storage" / "roms"
+        roms.mkdir(parents=True)
+        conf = self.emuconf("gba.core=gpsp\n")
+        fb = self.root / "sys" / "class" / "graphics" / "fb0"
+        fb.mkdir(parents=True)
+        (fb / "modes").write_text("U:640x480p-60\n")
+        self.roda()
+        self.assertFalse((roms / "r36-shader-gba.log").exists())
+        self.assertIn("gba.shaderset=", conf.read_text())
+        self.assertTrue((self.config / "gpSP" / "gpSP.glslp").exists())
+        # a chave de desligar continua valendo sem a de diagnostico
+        (roms / "r36-gba-sem-shader").write_text("")
+        self.roda()
+        self.assertNotIn("gba.shaderset=", conf.read_text())
+        self.assertFalse((self.config / "gpSP" / "gpSP.glslp").exists())
+        self.assertFalse((roms / "r36-shader-gba.log").exists())
+
+    def test_sem_a_chave_de_diagnostico_o_log_antigo_fica(self):
+        self.system_com_shader()
+        roms = self.root / "storage" / "roms"
+        roms.mkdir(parents=True)
+        (roms / "r36-shader-gba.log").write_text("boot antigo\n")
+        self.roda()
+        self.assertEqual((roms / "r36-shader-gba.log").read_text(), "boot antigo\n")
 
     def test_tmp_shaders_por_bind_sem_overlayfs(self):
         # O kernel 3.4 não tem overlayfs: o tmp-shaders.mount falha e /tmp/shaders (lista do
@@ -311,6 +339,7 @@ class TestPreparoDoShaderPadrao(unittest.TestCase):
         self.system_com_shader()
         roms = self.root / "storage" / "roms"
         roms.mkdir(parents=True)
+        (roms / "r36-diagnostico").write_text("")
         fb = self.root / "sys" / "class" / "graphics" / "fb0"
         fb.mkdir(parents=True)
         (fb / "virtual_size").write_text("640,960\n")

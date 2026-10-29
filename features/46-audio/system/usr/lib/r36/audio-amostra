@@ -1,5 +1,7 @@
 #!/bin/sh
-# Amostrador do codec (feature 46-audio, diagnóstico): nos primeiros minutos depois do
+# Amostrador do codec (feature 46-audio, diagnóstico): só roda com o arquivo vazio
+# r36-diagnostico na raiz da p1; sem ele, termina assim que a p1 monta, sem ler nada.
+# Nos primeiros minutos depois do
 # boot, lê o dump da interface de registradores do driver (audio_reg_debug/audio_reg) a
 # cada poucos segundos e grava em r36-audio-dac.log, na raiz da p1, o dump completo
 # toda vez que o estado do codec muda. Serve para ver o volume digital do DAC e o ganho
@@ -31,6 +33,7 @@ ultimo=
 iniciado=
 while [ "$t" -lt "$DURACAO" ]; do
     if montada; then
+        [ -e "$ROMS/r36-diagnostico" ] || exit 0
         dump=$(head -c 8192 "$REG" 2>/dev/null)
         mixer="speaker volume control=$(ctl 'speaker volume control') headphone volume control=$(ctl 'headphone volume control') Audio speaker out=$(ctl 'Audio speaker out') Audio headphone out=$(ctl 'Audio headphone out') Speaker Function=$(ctl 'Speaker Function')"
         estado=$(printf '%s\n%s\n' "$dump" "$mixer" |

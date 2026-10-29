@@ -4,10 +4,11 @@
 # mount --bind sobre /sys/class/power_supply/battery/capacity e o ES, o RetroArch e o
 # udt_battery.sh (LED e desligamento) leem o valor novo. A curva fica em
 # /usr/lib/r36/bateria-curva.conf; um r36-bateria-curva.conf na raiz da p1 a substitui, e um
-# r36-bateria-original volta ao valor do kernel. O r36-bateria.log na p1 registra o bind.
+# r36-bateria-original volta ao valor do kernel. O r36-bateria.log na p1 registra o bind,
+# mas só com o arquivo vazio r36-diagnostico na raiz da p1.
 
 schema = 1
 name = "Percentual de bateria"
-description = "Calcula o percentual da bateria pela tensão e pela corrente (curva monotônica ajustável) e o publica no capacity que o ES, o RetroArch, o LED e o desligamento leem, com r36-bateria.log na p1, curva trocável por r36-bateria-curva.conf e chave r36-bateria-original para voltar ao valor do kernel."
+description = "Calcula o percentual da bateria pela tensão e pela corrente (curva monotônica ajustável) e o publica no capacity que o ES, o RetroArch, o LED e o desligamento leem, com r36-bateria.log na p1 (só com a chave r36-diagnostico), curva trocável por r36-bateria-curva.conf e chave r36-bateria-original para voltar ao valor do kernel."
 order = 48
 enabled = true
