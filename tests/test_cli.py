@@ -20,7 +20,7 @@ class BuildCliTest(unittest.TestCase):
     def test_help_lists_options(self):
         _a, code, out, _e = parse("--help")
         self.assertEqual(code, 0)
-        for opt in ("--size-mib", "--features", "--no-features", "--fast", "--idioma", "--help"):
+        for opt in ("--size-mib", "--features", "--no-features", "--fast", "--idioma", "--timestamp", "--help"):
             self.assertIn(opt, out)
         self.assertIn("uso: ./build.sh", out)
         # o padrão é inglês, e português pede --idioma pt_BR
@@ -35,8 +35,11 @@ class BuildCliTest(unittest.TestCase):
 
     def test_defaults(self):
         a, code, *_ = parse()
-        self.assertEqual((a.size_mib, a.features, a.no_features, a.fast), (None, None, False, False))
+        self.assertEqual((a.size_mib, a.features, a.no_features, a.fast, a.timestamp), (None, None, False, False, None))
         self.assertEqual(a.idioma, "en_US")
+
+    def test_timestamp(self):
+        self.assertEqual(parse("--timestamp", "20261030-120000")[0].timestamp, "20261030-120000")
 
     def test_idioma(self):
         self.assertEqual(parse("--idioma", "pt_BR")[0].idioma, "pt_BR")
@@ -61,6 +64,9 @@ class BuildCliTest(unittest.TestCase):
             (("--idioma", "pt_br"), "idioma 'pt_br' desconhecido"),
             (("--idioma",), "exige um valor"),
             (("--no-features", "--idioma", "en_US"), "o idioma exige as features"),
+            (("--timestamp", "20261030"), "formato AAAAMMDD-HHMMSS"),
+            (("--timestamp", "2026-10-30-12:00:00"), "formato AAAAMMDD-HHMMSS"),
+            (("--timestamp",), "exige um valor"),
         ]
         for argv, msg in cases:
             with self.subTest(argv=argv):

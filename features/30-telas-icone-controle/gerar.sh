@@ -40,4 +40,7 @@ for destino in "$aqui/system/usr/config/emulationstation/resources" \
     cp "$tmp/tela.png" "$destino/logo.png"
 done
 
-echo "telas geradas em {system/usr/config,storage/.config}/{splash,emulationstation/resources}"
+# Gera o bootlogo.bmp do U-Boot na partição boot (p2)
+python3 -I "$aqui/gerar_bootlogo.py"
+
+echo "telas geradas em {system/usr/config,storage/.config}/{splash,emulationstation/resources} e boot/bootlogo.bmp"

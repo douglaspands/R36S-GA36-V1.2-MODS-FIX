@@ -1,0 +1,13 @@
+[Unit]
+Description=Sincroniza audio.volume e brightness.level no emuelec.conf no encerramento
+DefaultDependencies=no
+Before=shutdown.target reboot.target poweroff.target halt.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/conf-sync
+TimeoutStartSec=10
+
+[Install]
+WantedBy=shutdown.target reboot.target poweroff.target halt.target

@@ -36,11 +36,22 @@ O nível de brilho SHALL ficar entre um piso e 100. O sistema SHALL NOT permitir
 - **THEN** o sistema ignora o valor, usa o padrão (80) e não trava
 
 ### Requirement: Nível persistente
-O sistema SHALL guardar o nível escolhido num arquivo próprio da p8 e SHALL aplicá-lo no boot, ao acordar da suspensão e a cada ajuste. O `brightness.level` do `emuelec.conf` SHALL NOT ser a fonte do nível quando o arquivo próprio existir.
+O sistema SHALL guardar o nível escolhido num arquivo próprio da p8 (`r36-brilho.level`) e SHALL aplicá-lo no boot, ao acordar da suspensão e a cada ajuste. O sistema SHALL manter `brightness.level=<valor>` no `emuelec.conf` sincronizado em tempo real com o nível salvo nos subcomandos de salvamento, boot e redefinição para o padrão, e SHALL restaurar o valor salvo no `emuelec.conf` durante o encerramento do sistema para evitar sobrescrita pelo EmulationStation.
 
 #### Scenario: Depois de reiniciar
 - **WHEN** o usuário reduz o brilho, desliga e liga o aparelho
-- **THEN** a tela volta ao nível escolhido, mesmo que o ES tenha regravado o `emuelec.conf` com `brightness.level` antigo
+- **THEN** a tela volta ao nível escolhido e o `emuelec.conf` contém o `brightness.level` correspondente ao valor ajustado
+
+#### Scenario: Ajuste em tempo real
+- **WHEN** o usuário ajusta o brilho pelo atalho FN + D-pad e solta a tecla
+- **THEN** `r36-brilho.level` e `brightness.level` no `emuelec.conf` são atualizados imediatamente com o novo nível
+
+### Requirement: Sincronização em tempo real na interface do EmulationStation
+O sistema SHALL sincronizar o valor de `brightness.level` diretamente no cache de memória do EmulationStation (`SystemConf`) ao salvar o brilho ajustado via FN + D-pad, de forma que o menu de configurações do sistema ("Configurações do Sistema" -> "BRILHO") reflita imediatamente o valor real sem necessidade de reiniciar o frontend.
+
+#### Scenario: Reflexão no menu de configurações do EmulationStation
+- **WHEN** o usuário altera o brilho através do atalho FN + D-pad enquanto o EmulationStation está em execução
+- **THEN** ao abrir o menu principal do EmulationStation ("Configurações do Sistema"), o controle deslizante de brilho exibe exatamente a nova porcentagem ajustada
 
 #### Scenario: Depois de dormir
 - **WHEN** o usuário reduz o brilho, suspende o aparelho pelo botão de energia e o acorda
@@ -52,7 +63,7 @@ O sistema SHALL guardar o nível escolhido num arquivo próprio da p8 e SHALL ap
 
 #### Scenario: Cartão que já tinha o arquivo
 - **WHEN** a p8 já tem o arquivo do nível e só o `system` é regravado
-- **THEN** o nível salvo continua valendo
+- **THEN** o nível salvo continua valendo e é sincronizado no `emuelec.conf`
 
 ### Requirement: Voltar ao brilho padrão
 O sistema SHALL voltar o brilho ao padrão (80) quando o usuário clicar o analógico esquerdo (L3) com o FN apertado, e no boot quando existir o arquivo vazio `r36-brilho-original` na raiz da p1. Em ambos os casos o nível salvo SHALL ser removido ou regravado com o padrão.

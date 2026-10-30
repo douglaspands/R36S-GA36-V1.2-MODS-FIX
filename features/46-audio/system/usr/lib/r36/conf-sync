@@ -1,0 +1,51 @@
+#!/bin/sh
+# Sincroniza audio.volume e brightness.level no emuelec.conf no encerramento (shutdown/reboot).
+# Impede que a sobrescrita de memória do EmulationStation reverta os valores reais salvos.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+VOLARQ="$ROOT/storage/.config/emuelec/configs/r36-audio.volume"
+BRILHOARQ="$ROOT/storage/.config/emuelec/configs/r36-brilho.level"
+
+[ -f "$EMUCONF" ] || exit 0
+
+atualiza_chave() {
+    chave="$1"
+    val="$2"
+    if grep -q "^${chave}=" "$EMUCONF"; then
+        sed "s|^${chave}=.*|${chave}=${val}|" "$EMUCONF" > "$EMUCONF.r36tmp" &&
+            cat "$EMUCONF.r36tmp" > "$EMUCONF"
+        rm -f "$EMUCONF.r36tmp"
+    else
+        [ -n "$(tail -c1 "$EMUCONF")" ] && printf '\n' >> "$EMUCONF"
+        printf '%s=%s\n' "$chave" "$val" >> "$EMUCONF"
+    fi
+}
+
+# Volume de áudio (r36-audio.volume)
+if [ -f "$VOLARQ" ]; then
+    v=$(head -n 1 "$VOLARQ" 2>/dev/null | tr -d '\r')
+    case "$v" in
+        ''|*[!0-9]*) ;;
+        *)
+            [ "$v" -gt 100 ] && v=100
+            atualiza_chave "audio.volume" "$v"
+            ;;
+    esac
+fi
+
+# Brilho da tela (r36-brilho.level)
+if [ -f "$BRILHOARQ" ]; then
+    b=$(head -n 1 "$BRILHOARQ" 2>/dev/null | tr -d '\r')
+    case "$b" in
+        ''|*[!0-9]*|0*|????*) ;;
+        *)
+            if [ "$b" -ge 10 ] && [ "$b" -le 100 ]; then
+                atualiza_chave "brightness.level" "$b"
+            fi
+            ;;
+    esac
+fi
+
+exit 0

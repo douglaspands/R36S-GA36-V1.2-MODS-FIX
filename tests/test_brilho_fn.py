@@ -2,6 +2,7 @@
 
 import os
 import stat
+import struct
 import subprocess
 import time
 import tomllib
@@ -14,6 +15,7 @@ from test_otimizacoes import UnitCase, diretivas
 F62 = ROOT / "features" / "62-brilho-fn"
 UNITS = "usr/lib/systemd/system"
 APLICA = F62 / "system" / "usr" / "lib" / "r36" / "brilho-aplica"
+ES_SYNC = F62 / "system" / "usr" / "lib" / "r36" / "brilho-es-sync"
 LCDBL = "sys/devices/virtual/disp/disp/attr/lcdbl"
 NIVEL = "storage/.config/emuelec/configs/r36-brilho.level"
 EMUCONF = "storage/.config/emuelec/configs/emuelec.conf"
@@ -223,15 +225,15 @@ class BrilhoAplica(BrilhoCase):
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(self.lcdbl(), escala(50))
 
-    def test_salva_grava_so_o_arquivo(self):
+    def test_salva_sincroniza_arquivo_e_emuelec_conf(self):
         escreve(self.root / EMUCONF, "brightness.level=80\n")
         self.ok("aplica")
         self.ok("ajusta", "-")
         self.ok("ajusta", "-")
         self.ok("salva")
         self.assertEqual(self.nivel(), "70\n")
-        # o emuelec.conf não muda
-        self.assertEqual((self.root / EMUCONF).read_text(), "brightness.level=80\n")
+        # o emuelec.conf sincroniza em tempo real
+        self.assertEqual((self.root / EMUCONF).read_text(), "brightness.level=70\n")
         self.assertEqual(self.lcdbl(), escala(70))
 
     def test_salva_sem_mudanca_nao_cria_o_arquivo(self):
@@ -264,12 +266,11 @@ class BrilhoAplica(BrilhoCase):
         self.ok("ajusta", "+")
         self.assertEqual(self.lcdbl(), escala(85))
 
-    def test_padrao_com_emuelec_conf_diferente_persiste_80_no_salva(self):
+    def test_padrao_com_emuelec_conf_diferente_persiste_80(self):
         escreve(self.root / EMUCONF, "brightness.level=50\n")
         escreve(self.root / NIVEL, "30\n")
         self.ok("padrao")
-        self.ok("salva")
-        self.assertEqual(self.nivel(), "80\n")
+        self.assertEqual((self.root / EMUCONF).read_text(), "brightness.level=80\n")
 
     def test_lcdbl_ausente_sai_com_zero_sem_gravar(self):
         (self.root / LCDBL).unlink()
@@ -688,6 +689,7 @@ class BrilhoBoot(BrilhoCase):
         self.ok("boot")
         self.assertEqual(self.lcdbl(), escala(35))
         self.assertEqual(self.nivel(), "35\n")
+        self.assertEqual((self.root / EMUCONF).read_text(), "brightness.level=35\n")
 
     def test_boot_sem_nivel_salvo_usa_o_emuelec_conf(self):
         escreve(self.root / EMUCONF, "brightness.level=60\n")
@@ -740,6 +742,69 @@ class BrilhoAoAcordar(unittest.TestCase):
         lcdbl = linhas.index("echo $scaled_value  > /sys/devices/virtual/disp/disp/attr/lcdbl")
         self.assertEqual(i, lcdbl + 1)
         self.assertLess(linhas.index("system_sleeping=0"), i)
+
+
+class BrilhoEsSyncTest(TempDirCase):
+    def test_script_executavel(self):
+        self.assertTrue(ES_SYNC.exists())
+        self.assertEqual(stat.S_IMODE(ES_SYNC.stat().st_mode), 0o755)
+        self.assertTrue(ES_SYNC.read_text().startswith("#!/usr/bin/env python3\n"))
+        proc = subprocess.run(["python3", "-I", "-m", "py_compile", str(ES_SYNC)], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+
+    def test_sincroniza_memoria_com_sucesso(self):
+        proc_dir = self.tmp / "mock_proc"
+        pid_dir = proc_dir / "1234"
+        pid_dir.mkdir(parents=True)
+        (pid_dir / "comm").write_text("emulationstation\n")
+
+        mem_file = pid_dir / "mem"
+        sysconf_addr = 0x1000
+        root_node = 0x2000
+        node_bright = 0x3000
+
+        with open(mem_file, "wb") as f:
+            f.seek(0x006f0f0c)
+            f.write(struct.pack("<I", sysconf_addr))
+            f.seek(sysconf_addr + 8)
+            f.write(struct.pack("<I", root_node))
+
+            # root_node ("emulator.default", esq=node_bright, dir=0)
+            f.seek(root_node + 8)
+            f.write(struct.pack("<IIII", node_bright, 0, root_node + 24, len(b"emulator.default")))
+            f.seek(root_node + 24)
+            f.write(b"emulator.default")
+
+            # node_bright ("brightness.level", esq=0, dir=0, val="80")
+            f.seek(node_bright + 8)
+            f.write(struct.pack("<IIII", 0, 0, node_bright + 24, len(b"brightness.level")))
+            f.seek(node_bright + 24)
+            f.write(b"brightness.level")
+            f.seek(node_bright + 40)
+            f.write(struct.pack("<II", node_bright + 48, 2))
+            f.seek(node_bright + 48)
+            f.write(b"80\x00")
+
+        env = dict(os.environ, R36_PROC=str(proc_dir), R36_ROOT=str(self.tmp))
+        res = subprocess.run(["python3", "-I", str(ES_SYNC), "45"], env=env, capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+
+        with open(mem_file, "rb") as f:
+            f.seek(node_bright + 40)
+            val_ptr, val_len = struct.unpack("<II", f.read(8))
+            f.seek(val_ptr)
+            val = f.read(val_len)
+            self.assertEqual(val, b"45")
+            self.assertEqual(val_len, 2)
+            self.assertEqual(val_ptr, node_bright + 48)
+
+    def test_processo_ausente_sai_com_zero(self):
+        proc_dir = self.tmp / "mock_proc"
+        proc_dir.mkdir(parents=True)
+        env = dict(os.environ, R36_PROC=str(proc_dir), R36_ROOT=str(self.tmp))
+        res = subprocess.run(["python3", "-I", str(ES_SYNC), "75"], env=env, capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+
 
 
 if __name__ == "__main__":

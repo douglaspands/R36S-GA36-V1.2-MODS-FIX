@@ -81,10 +81,21 @@ def pixels_rgb8(path):
 class TelasIconeControle(unittest.TestCase):
     def test_sha256_contra_leia_me(self):
         pares, _ = registrados()
-        esperados = {f"{c}/{n}" for c in CAMADAS for n in TELAS} | {"fonte-gamepad-2.svg"}
+        esperados = {f"{c}/{n}" for c in CAMADAS for n in TELAS} | {"fonte-gamepad-2.svg", "boot/bootlogo.bmp"}
         self.assertEqual(set(pares), esperados)
         for caminho, h in pares.items():
             self.assertEqual(sha256(F30 / caminho), h, caminho)
+
+    def test_bootlogo_bmp_valido(self):
+        logo = F30 / "boot" / "bootlogo.bmp"
+        self.assertTrue(logo.is_file(), "bootlogo.bmp ausente")
+        self.assertEqual(logo.stat().st_size, 921654, "tamanho de bootlogo.bmp deve ser 921654")
+        data = logo.read_bytes()
+        self.assertEqual(data[:2], b"BM", "assinatura BMP inválida")
+        magic, size, _, _, offset = struct.unpack("<2sIHHI", data[:14])
+        bi_size, w, h, planes, bpp, comp, img_size = struct.unpack("<IIIHHII", data[14:38])
+        self.assertEqual((size, offset, bi_size, w, h, planes, bpp, comp, img_size),
+                         (921654, 54, 40, 640, 480, 1, 24, 0, 921600))
 
     def test_camadas_so_com_as_telas(self):
         for c in CAMADAS:
@@ -203,13 +214,20 @@ class SemArteDeFabricaNaImagem(TempDirCase):
         self.assertEqual([p for p, h in sys_.items() if h == arte], [])
         self.assertEqual([p for p, h in sto.items() if h == arte], [])
 
-        # fora do escopo: vídeo de introdução, logo do U-Boot e tela de bateria
+        # fora do escopo: vídeo de introdução e tela de bateria
         for nome in FORA_DO_ESCOPO:
             caminho = f"usr/config/splash/{nome}"
             self.assertEqual(sys_[caminho], base_sys[caminho], caminho)
         for parte in ("bootarea", "env", "kernel"):
             self.assertEqual(sha256(feitas / f"{parte}.img"), sha256(base / f"{parte}.img"), parte)
-        self.assertEqual(hashes_boot(feitas, self.tmp), hashes_boot(base, self.tmp))
+
+        # O boot.img tem bootlogo.bmp substituído pela feature 30:
+        base_boot = hashes_boot(base, self.tmp)
+        feitas_boot = hashes_boot(feitas, self.tmp)
+        self.assertEqual(feitas_boot["bootlogo.bmp"], sha256(F30 / "boot" / "bootlogo.bmp"))
+        self.assertNotEqual(feitas_boot["bootlogo.bmp"], base_boot["bootlogo.bmp"])
+        self.assertEqual({k: v for k, v in feitas_boot.items() if k != "bootlogo.bmp"},
+                         {k: v for k, v in base_boot.items() if k != "bootlogo.bmp"})
 
 
 if __name__ == "__main__":

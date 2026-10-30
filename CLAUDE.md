@@ -228,10 +228,12 @@ do aparelho que não se deduzem do código.
   `udt_pwr_events.sh` zera o `lcdbl` ao suspender e o restaura do `emuelec.conf` ao
   acordar; o `emuelecRunEmu.sh` só copia o `brightness.level` para o `screen_brightness`
   do `retroarch.cfg`. A feature `62-brilho-fn` guarda o nível em
-  `r36-brilho.level` (p8, ao lado do `emuelec.conf`; o `emuelec.conf` não serve, o ES o
-  regrava), com piso 10, passo 5, teto 100 e padrão 80, e o `/usr/lib/r36/brilho-aplica`
+  `r36-brilho.level` (p8, ao lado do `emuelec.conf`), com piso 10, passo 5, teto 100 e padrão 80, e o `/usr/lib/r36/brilho-aplica`
   é o único que lê e grava esse nível (`aplica`, `ajusta +|-`, `salva`, `padrao`,
-  `boot`); script novo que mexa no `lcdbl` deve chamá-lo. O `r36-brilho.service` espera
+  `boot`); script novo que mexa no `lcdbl` deve chamá-lo. O `brilho-aplica` também sincroniza
+  `brightness.level` no `emuelec.conf` e na memória RAM do EmulationStation (`SystemConf`)
+  via `/usr/lib/r36/brilho-es-sync` (`/proc/<pid>/mem`), garantindo que o menu do sistema
+  (Configurações do Sistema -> Brilho) reflita o valor real imediatamente. O `r36-brilho.service` espera
   a p1 montar (ordem certa sem `After=`) e aplica o nível; o arquivo
   `r36-brilho-original` na raiz da p1 apaga o nível salvo a cada boot (volta a 80). O
   `udt_pwr_events.sh` (feature 46) chama `brilho-aplica aplica` logo depois de restaurar

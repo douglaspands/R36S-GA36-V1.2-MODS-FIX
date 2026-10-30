@@ -26,6 +26,10 @@ Os arquivos ficam iguais nas duas camadas:
   emulationstation/resources/logo.png                     fundo do carregamento do ES
   emulationstation/resources/splash.xml                   layout do carregamento do ES
 
+Além disso, a camada boot/ fornece o logo inicial do U-Boot com a placa:
+
+  boot/bootlogo.bmp                                       logo do U-Boot ("GA36-MB V1.2-20260416")
+
 O logo.png do storage só chega ao cartão com --wipe-storage. Num cartão gravado
 com --keep-storage, o ES continua lendo o logo.png antigo do /storage.
 
@@ -112,6 +116,7 @@ a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.confi
 a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/splash/loading-game.png
 a499914374e488394cbfcd4b63a68a533cb3719123e8fdef037043f4b48c4fcf  storage/.config/emulationstation/resources/logo.png
 93668880d6be7b7d6b34f0e53a193f0b25ab6d85011b746aafd373eeed50a0a8  storage/.config/emulationstation/resources/splash.xml
+cf5f1b8658b757def2f53212738139cd53c80ca6a05b0922f2a06337ebac55f4  boot/bootlogo.bmp
 
 Arte de fábrica substituída (não deve aparecer em nenhum arquivo da feature):
 f7e623e694d72afb240ead6250a05ba8409d607fa9dbc4a6ae6a40a612ad2bff

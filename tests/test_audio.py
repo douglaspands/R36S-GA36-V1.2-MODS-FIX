@@ -17,6 +17,7 @@ UNITS = "usr/lib/systemd/system"
 PREPARA = F46 / "system" / "usr" / "lib" / "r36" / "audio-prepara"
 GANHO = F46 / "system" / "usr" / "lib" / "r36" / "audio-ganho"
 AMOSTRA = F46 / "system" / "usr" / "lib" / "r36" / "audio-amostra"
+CONFSYNC = F46 / "system" / "usr" / "lib" / "r36" / "conf-sync"
 UDT_EVENTS = F46 / "system" / "usr" / "bin" / "udt_events.sh"
 UDT_PWR = F46 / "system" / "usr" / "bin" / "udt_pwr_events.sh"
 RUNEMU = ROOT / "features" / "10-ptbr-sao-paulo" / "system" / "usr" / "bin" / "emuelecRunEmu.sh"
@@ -50,10 +51,10 @@ class AudioFeature(UnitCase):
         self.assertTrue(dados["enabled"])
 
     def test_scripts(self):
-        for script in (PREPARA, GANHO, AMOSTRA, UDT_EVENTS, UDT_PWR):
+        for script in (PREPARA, GANHO, AMOSTRA, UDT_EVENTS, UDT_PWR, CONFSYNC):
             self.assert_script(script)
             self.assertEqual(stat.S_IMODE(script.stat().st_mode), 0o755, script)
-        for script in (PREPARA, GANHO, AMOSTRA):
+        for script in (PREPARA, GANHO, AMOSTRA, CONFSYNC):
             proc = subprocess.run(["sh", "-n", str(script)], capture_output=True, text=True)
             self.assertEqual(proc.returncode, 0, proc.stderr)
 
@@ -83,6 +84,17 @@ class AudioFeature(UnitCase):
         # em paralelo ao boot: sem ordenar contra o ES nem o autostart
         self.assertNotIn("Before", d)
         self.assertNotIn("After", d)
+
+    def test_unit_conf_sync(self):
+        unit = F46 / "system" / UNITS / "r36-conf-sync.service"
+        d = diretivas(unit)
+        self.assertEqual(d["Type"], ["oneshot"])
+        self.assertEqual(d["ExecStart"], ["/usr/lib/r36/conf-sync"])
+        self.assertEqual(d["DefaultDependencies"], ["no"])
+        self.assertIn("shutdown.target", d["Before"][0].split())
+        self.assertIn("local-fs.target", d["After"][0].split())
+        for want in ("shutdown.target.wants", "reboot.target.wants", "poweroff.target.wants", "halt.target.wants"):
+            self.assert_link(F46, want, "r36-conf-sync.service")
 
     def test_launcher_chama_audio_ganho_depois_de_cada_speaker_function(self):
         linhas = RUNEMU.read_text().splitlines()
@@ -360,6 +372,17 @@ class AudioGanho(AudioCase):
         proc = self.roda(GANHO, "xyz")
         self.assertEqual(proc.returncode, 1)
         self.assertEqual(self.chamadas(), [])
+
+    def test_conf_sync_preserva_audio_e_brilho(self):
+        escreve(self.root / "storage/.config/emuelec/configs/emuelec.conf",
+                "audio.volume=80\nbrightness.level=100\n")
+        escreve(self.root / "storage/.config/emuelec/configs/r36-audio.volume", "25\n")
+        escreve(self.root / "storage/.config/emuelec/configs/r36-brilho.level", "45\n")
+        proc = self.roda(CONFSYNC)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        conteudo = (self.root / "storage/.config/emuelec/configs/emuelec.conf").read_text()
+        self.assertIn("audio.volume=25\n", conteudo)
+        self.assertIn("brightness.level=45\n", conteudo)
 
 
 DUMP_PARADO = (

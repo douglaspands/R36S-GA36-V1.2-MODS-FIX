@@ -59,10 +59,11 @@ exemplos:
   ./build.sh --features 00-exemplo    só a feature 00-exemplo (mesmo desabilitada)
   ./build.sh --offline                usa só o cache de downloads das features
   ./build.sh --test                   marca o build como imagem de teste (sufixo -test)
+  ./build.sh --timestamp 20261030-120000 fixa o timestamp do build
 """
 
 
-def parse_args(argv):
+def _build_parser():
     p = PtParser(prog="./build.sh", description=HELP, epilog=EPILOG)
     p.add_argument("--size-mib", type=positive_int("--size-mib"), metavar="MIB",
                    help="tamanho do cartão em MiB (padrão 15000, mínimo 7000; "
@@ -81,13 +82,23 @@ def parse_args(argv):
     p.add_argument("--test", action="store_true",
                    help="marca o build como imagem de teste (intermediária): diretório e imagem "
                         "ganham o sufixo -test; o conteúdo não muda")
+    p.add_argument("--timestamp", metavar="AAAAMMDD-HHMMSS",
+                   help="timestamp do build no formato AAAAMMDD-HHMMSS (se omitido, usa a hora local atual)")
     p.add_argument("--idioma", metavar="CÓDIGO",
                    help=f"idioma de fábrica do EmuELEC, do EmulationStation e do RetroArch "
                         f"(padrão {IDIOMA_PADRAO}, inglês; para português do Brasil, --idioma pt_BR). "
                         f"Aceitos: {', '.join(IDIOMAS)}. Também entra no nome da imagem")
+    return p
+
+
+def parse_args(argv):
+    p = _build_parser()
     args = p.parse_args(argv)
     if args.features is not None and args.no_features:
         p.error("as opções --features e --no-features não podem ser usadas juntas")
+    if args.timestamp is not None:
+        if not re.match(r"^\d{8}-\d{6}$", args.timestamp):
+            p.error(f"--timestamp deve estar no formato AAAAMMDD-HHMMSS (recebido {args.timestamp!r})")
     if args.idioma is not None and args.idioma not in IDIOMAS:
         p.error(f"idioma {args.idioma!r} desconhecido; aceitos: {', '.join(IDIOMAS)}")
     if args.no_features and args.idioma is not None:
@@ -396,7 +407,8 @@ def main(argv=None):
     try:
         cfg = config.load()
         build(cfg, size_mib=args.size_mib, names=args.features, none=args.no_features, fast=args.fast,
-              offline=args.offline, test=args.test, idioma=args.idioma, idioma_opcional=args.idioma_opcional)
+              offline=args.offline, timestamp=args.timestamp, test=args.test, idioma=args.idioma,
+              idioma_opcional=args.idioma_opcional)
         return 0
     except R36Error as e:
         print(f"ERRO: {e}", file=sys.stderr)

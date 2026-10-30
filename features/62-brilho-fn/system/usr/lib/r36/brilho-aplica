@@ -10,10 +10,11 @@
 # padrao no FN + L3) e o udt_pwr_events.sh (aplica, ao acordar).
 #
 # Por que: a base só lê o brightness.level do emuelec.conf (no autostart e ao acordar) e
-# nenhum botão o muda; e o emuelec.conf não é fonte confiável, porque o ES o regrava. O
-# nível fica em r36-brilho.level (p8, ao lado do emuelec.conf), uma linha com um inteiro
-# de 10 (piso, a tela nunca apaga) a 100. Sem o arquivo vale o brightness.level do
-# emuelec.conf e, sem ele, 80; um valor fora da faixa ou que não seja número vira 80.
+# nenhum botão o muda. O nível fica em r36-brilho.level (p8, ao lado do emuelec.conf), uma
+# linha com um inteiro de 10 (piso, a tela nunca apaga) a 100, e é sincronizado em tempo
+# real no emuelec.conf (brightness.level) em salva, padrao e boot. Sem o arquivo vale o
+# brightness.level do emuelec.conf e, sem ele, 80; um valor fora da faixa ou que não seja
+# número vira 80.
 # Escala do lcdbl (0 a 255): (nível*255+50)/100, a mesma da base.
 # O nível em uso fica em /run/r36-brilho.atual: durante a repetição o lcdbl muda a cada
 # passo, mas o arquivo da p8 só é gravado uma vez, no salva.
@@ -68,7 +69,25 @@ nivel_atual() {
     echo "$v"
 }
 
+grava_emuelec() {
+    [ -f "$EMUCONF" ] || return 0
+    if grep -q '^brightness\.level=' "$EMUCONF"; then
+        sed "s|^brightness\.level=.*|brightness.level=$1|" "$EMUCONF" > "$EMUCONF.r36tmp" &&
+            cat "$EMUCONF.r36tmp" > "$EMUCONF"
+        rm -f "$EMUCONF.r36tmp"
+    else
+        [ -n "$(tail -c1 "$EMUCONF")" ] && printf '\n' >> "$EMUCONF"
+        printf 'brightness.level=%s\n' "$1" >> "$EMUCONF"
+    fi
+}
+
 escala() { echo $(( ($1 * 255 + 50) / 100 )); }
+
+sincroniza_es() {
+    SYNC_BIN="$ROOT/usr/lib/r36/brilho-es-sync"
+    [ -x "$SYNC_BIN" ] || return 0
+    python3 -I "$SYNC_BIN" "$1" 2>/dev/null || true
+}
 
 grava_tela() {
     escala "$1" > "$LCDBL" 2>/dev/null
@@ -84,7 +103,9 @@ aplica() {
 
 padrao() {
     rm -f "$NIVEL_ARQ"
+    grava_emuelec "$PADRAO"
     grava_tela "$PADRAO"
+    sincroniza_es "$PADRAO"
     registra "padrao nivel=$PADRAO lcdbl=$(escala "$PADRAO") (nivel salvo apagado)"
 }
 
@@ -108,6 +129,8 @@ boot() {
         padrao
     else
         aplica
+        grava_emuelec "$(nivel_salvo)"
+        sincroniza_es "$(nivel_salvo)"
     fi
 }
 
@@ -141,8 +164,11 @@ case "$1" in
         fi
         if [ "$mudou" = sim ]; then
             printf '%s\n' "$n" > "$NIVEL_ARQ" 2>/dev/null
+            grava_emuelec "$n"
+            sincroniza_es "$n"
             registra "salva nivel=$n lcdbl=$(escala "$n")"
         else
+            sincroniza_es "$n"
             registra "salva nivel=$n lcdbl=$(escala "$n") (sem mudanca, arquivo nao regravado)"
         fi
         ;;

@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+# Sincroniza o brightness.level na memória RAM do EmulationStation (SystemConf).
+# Quando o brilho é alterado via atalho FN + D-pad, o brilho físico e o emuelec.conf
+# são atualizados, mas o EmulationStation mantém um cache em memória (std::map)
+# que só é carregado no boot. Este script atualiza o nó "brightness.level" diretamente
+# no processo do EmulationStation via /proc/<pid>/mem para refletir no menu do sistema.
+import sys
+import os
+import struct
+import datetime
+
+SYSCONF_INSTANCE_PTR = 0x006f0f0c
+
+def find_es_pid(proc_dir):
+    for entry in os.listdir(proc_dir):
+        if entry.isdigit():
+            comm_path = os.path.join(proc_dir, entry, "comm")
+            try:
+                with open(comm_path, "r", errors="ignore") as f:
+                    comm = f.read().strip()
+                if comm in ("emulationstation", "emulationstatio"):
+                    return int(entry)
+            except Exception:
+                continue
+    return None
+
+def registra(root_dir, msg):
+    diag = os.path.join(root_dir, "storage/roms/r36-diagnostico")
+    if not os.path.exists(diag):
+        return
+    log_file = os.path.join(root_dir, "storage/roms/r36-brilho.log")
+    agora = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(f"{agora} brilho-es-sync {msg}\n")
+    except Exception:
+        pass
+
+def sync_brightness(level_val, proc_dir=None, root_dir=None):
+    if proc_dir is None:
+        proc_dir = os.environ.get("R36_PROC", "/proc")
+    if root_dir is None:
+        root_dir = os.environ.get("R36_ROOT", "")
+
+    pid = find_es_pid(proc_dir)
+    if not pid:
+        return False
+
+    mem_path = os.path.join(proc_dir, str(pid), "mem")
+    try:
+        with open(mem_path, "r+b") as mem:
+            # 1. Ponteiro do singleton SystemConf em 0x006f0f0c
+            mem.seek(SYSCONF_INSTANCE_PTR)
+            raw = mem.read(4)
+            if len(raw) < 4:
+                return False
+            sysconf_addr = struct.unpack("<I", raw)[0]
+            if not sysconf_addr:
+                return False
+
+            # 2. Raiz da árvore std::_Rb_tree em sysconf_addr + 8
+            mem.seek(sysconf_addr + 8)
+            raw = mem.read(4)
+            if len(raw) < 4:
+                return False
+            curr = struct.unpack("<I", raw)[0]
+            if not curr:
+                return False
+
+            target_key = b"brightness.level"
+            found_node = None
+            for _ in range(128):
+                if not curr:
+                    break
+                mem.seek(curr + 8)
+                node_data = mem.read(16)
+                if len(node_data) < 16:
+                    break
+                left, right, key_ptr, key_len = struct.unpack("<IIII", node_data)
+                if key_len == 0 or key_len > 128 or not key_ptr:
+                    break
+                mem.seek(key_ptr)
+                k = mem.read(key_len)
+                if k == target_key:
+                    found_node = curr
+                    break
+                elif target_key < k:
+                    curr = left
+                else:
+                    curr = right
+
+            if not found_node:
+                return False
+
+            # 3. Atualiza valor (std::string SSO em node + 40..63)
+            val_bytes = str(level_val).encode("ascii")
+            sso_addr = found_node + 48
+
+            # Grava buffer SSO (caracteres + terminador nulo)
+            mem.seek(sso_addr)
+            mem.write(val_bytes + b"\x00")
+
+            # Grava ponteiro val_ptr e tamanho val_len
+            mem.seek(found_node + 40)
+            mem.write(struct.pack("<II", sso_addr, len(val_bytes)))
+            mem.flush()
+
+            registra(root_dir, f"sincronizado pid={pid} nivel={level_val} node={hex(found_node)}")
+            return True
+    except Exception as e:
+        registra(root_dir, f"erro pid={pid}: {e}")
+        return False
+
+def main():
+    if len(sys.argv) < 2:
+        sys.exit(0)
+    try:
+        level_val = int(sys.argv[1])
+        if 10 <= level_val <= 100:
+            sync_brightness(level_val)
+    except Exception:
+        pass
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
