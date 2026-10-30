@@ -1,0 +1,196 @@
+#!/bin/bash
+# Atalho de brilho do R36S (feature 62-brilho-fn): com o FN apertado, D-pad cima sobe e
+# D-pad baixo desce o brilho, repetindo a cada 0,2 s enquanto a seta fica apertada (o
+# padrão do repeat_volume_ctrl do udt_events.sh); FN + clique do analógico esquerdo (L3)
+# volta ao padrão, uma vez por clique. Quem mexe no nível é o brilho-aplica: "ajusta" a
+# cada passo, "salva" uma vez ao soltar a seta ou o FN (o arquivo da p8 não é gravado a
+# cada passo) e "padrao" no FN + L3.
+#
+# O FN só chega como BTN_MODE (316) com o remapeamento da feature 20; com a chave
+# r36-fn-original ele fica em KEY_FN (464) e o atalho não age. O D-pad é aceito como
+# botão (BTN_DPAD_UP/DOWN), tecla (KEY_UP/DOWN) ou eixo (ABS_HAT0Y: -1 cima, 1 baixo,
+# 0 solta); qual delas o aparelho emite só se vê no r36-brilho.log. O L3 é aceito pelo
+# nome BTN_THUMBL ou pelo código 317 (hipótese pela numeração do micro_gamepad.cfg, botão 11).
+# O dispositivo é achado pelo nome (micro_gamepad) em /proc/bus/input/devices. Ele só
+# existe depois do insmod do udt_joystick, no fim do emuelec_autostart.sh: o script
+# espera até 120 s (R36_BRILHO_ESPERA nos testes) e, sem ele, sai com 0.
+# Com o arquivo vazio r36-diagnostico na raiz da p1, registra em r36-brilho.log o
+# dispositivo e a primeira vez que vê o FN, o L3 e cada forma de D-pad.
+# Carregado com ".", só define as funções (os testes usam o interpreta assim).
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+APLICA="${R36_BRILHO_APLICA:-/usr/lib/r36/brilho-aplica}"
+DEVICES="$ROOT/proc/bus/input/devices"
+LOG="$ROOT/storage/roms/r36-brilho.log"
+DIAG="$ROOT/storage/roms/r36-diagnostico"
+ESPERA="${R36_BRILHO_ESPERA:-120}"
+REPETE="${R36_BRILHO_REPETE:-0.2}"
+NOME_DISPOSITIVO="micro_gamepad"
+
+registra() {
+    [ -e "$DIAG" ] || return 0
+    printf '%s brilho-leitor %s\n' "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" "$1" >> "$LOG" 2>/dev/null
+    return 0
+}
+
+# /dev/input/eventN do micro_gamepad, pelo bloco "N: Name=" e a linha "H: Handlers="
+acha_dispositivo() {
+    local linha nome="" ev
+    [ -r "$DEVICES" ] || return 1
+    while IFS= read -r linha; do
+        case "$linha" in
+            "N: Name="*) nome="${linha#N: Name=}"; nome="${nome//\"/}" ;;
+            "H: Handlers="*)
+                if [ "$nome" = "$NOME_DISPOSITIVO" ]; then
+                    for ev in ${linha#H: Handlers=}; do
+                        case "$ev" in
+                            event[0-9]*) echo "/dev/input/$ev"; return 0 ;;
+                        esac
+                    done
+                fi
+                ;;
+            "") nome="" ;;
+        esac
+    done < "$DEVICES"
+    return 1
+}
+
+# Uma linha do evtest ("Event: time ..., type 1 (EV_KEY), code 316 (BTN_MODE), value 1")
+# vira EV_NOME (fn, cima, baixo, eixo ou l3), EV_VALOR e EV_CODE. Retorna 1 para o resto
+# (cabeçalho, SYN, outros botões, repetição automática do kernel com value 2).
+RE_EVENTO='^Event: time [0-9.]+, type [0-9]+ \([A-Z_]+\), code ([0-9]+) \(([A-Z0-9_]+)\), value (-?[0-9]+)$'
+interpreta() {
+    [[ $1 =~ $RE_EVENTO ]] || return 1
+    EV_CODE=${BASH_REMATCH[2]}
+    EV_VALOR=${BASH_REMATCH[3]}
+    case "$EV_CODE" in
+        BTN_MODE) EV_NOME=fn ;;
+        BTN_THUMBL) EV_NOME=l3 ;;
+        BTN_DPAD_UP|KEY_UP) EV_NOME=cima ;;
+        BTN_DPAD_DOWN|KEY_DOWN) EV_NOME=baixo ;;
+        ABS_HAT0Y) EV_NOME=eixo; return 0 ;;
+        *)
+            # o L3 também vale pelo código, qualquer que seja o nome que o evtest dê
+            [ "${BASH_REMATCH[1]}" = 317 ] || return 1
+            EV_NOME=l3
+            ;;
+    esac
+    case "$EV_VALOR" in
+        0|1) return 0 ;;
+    esac
+    return 1
+}
+
+# Estado: FN, CIMA e BAIXO apertados (0/1); PENDENTE quando houve ajuste ou reset ainda
+# não salvo; PID_REP da repetição.
+FN=0
+CIMA=0
+BAIXO=0
+PENDENTE=0
+PID_REP=""
+VISTOS=" "
+
+# o primeiro passo é imediato; a repetição roda num subshell que o para() mata. O
+# trap adia a saída até o passo em curso (ou o sleep) terminar, para o salva vir depois
+# do último ajusta.
+inicia() {
+    "$APLICA" ajusta "$1"
+    PENDENTE=1
+    ( trap 'exit 0' TERM; while :; do sleep "$REPETE"; "$APLICA" ajusta "$1"; done ) &
+    PID_REP=$!
+}
+
+para() {
+    [ -n "$PID_REP" ] || return 0
+    kill "$PID_REP" 2>/dev/null
+    wait "$PID_REP" 2>/dev/null
+    PID_REP=""
+}
+
+salva() {
+    [ "$PENDENTE" = 1 ] || return 0
+    "$APLICA" salva
+    PENDENTE=0
+}
+
+seta() { # cima|baixo 0|1
+    local antes
+    if [ "$1" = cima ]; then antes=$CIMA; CIMA=$2; else antes=$BAIXO; BAIXO=$2; fi
+    [ "$2" = "$antes" ] && return 0
+    if [ "$2" = 1 ]; then
+        [ "$FN" = 1 ] || return 0
+        para
+        if [ "$1" = cima ]; then inicia +; else inicia -; fi
+    else
+        para
+        salva
+    fi
+}
+
+trata() { # nome valor código
+    if [ "$VISTOS" = "${VISTOS/ $3 /}" ]; then
+        VISTOS="$VISTOS$3 "
+        case "$1" in
+            fn) registra "FN visto: $3 (botao)" ;;
+            l3) registra "L3 visto: $3 (botao)" ;;
+            eixo) registra "D-pad visto: $3 (eixo)" ;;
+            *) registra "D-pad visto: $3 (botao)" ;;
+        esac
+    fi
+    case "$1" in
+        fn)
+            FN=$2
+            if [ "$2" = 1 ]; then
+                touch /run/r36-fn.ativo 2>/dev/null
+            else
+                rm -f /run/r36-fn.ativo 2>/dev/null
+                para
+                salva
+            fi
+            ;;
+        l3)
+            # só a borda de subida, com o FN já apertado: um reset por clique
+            if [ "$2" = 1 ] && [ "$FN" = 1 ]; then
+                para
+                "$APLICA" padrao
+                PENDENTE=1   # o salva ao soltar o FN só grava se o padrão não for o nível salvo
+            fi
+            ;;
+        cima|baixo) seta "$1" "$2" ;;
+        eixo)
+            case "$2" in
+                -1) seta baixo 0; seta cima 1 ;;
+                1) seta cima 0; seta baixo 1 ;;
+                0) seta cima 0; seta baixo 0 ;;
+            esac
+            ;;
+    esac
+}
+
+principal() {
+    local dev="" i=0
+    until dev=$(acha_dispositivo); do
+        if [ "$i" -ge "$ESPERA" ]; then
+            registra "sem $NOME_DISPOSITIVO em $DEVICES depois de $ESPERA s: atalho de brilho desligado"
+            return 0
+        fi
+        sleep 1
+        i=$((i + 1))
+    done
+    registra "dispositivo $NOME_DISPOSITIVO em $dev"
+    evtest "$dev" 2>/dev/null | {
+        while IFS= read -r linha; do
+            interpreta "$linha" && trata "$EV_NOME" "$EV_VALOR" "$EV_CODE"
+        done
+        # o evtest acabou (dispositivo sumiu): para a repetição sem perder o nível
+        para
+        salva
+    }
+    return 0
+}
+
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    principal
+    exit 0
+fi

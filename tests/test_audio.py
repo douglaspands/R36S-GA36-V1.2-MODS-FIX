@@ -478,6 +478,8 @@ class ScriptsDaBase(TempDirCase):
         self.assertEqual(
             acrescentadas,
             [
+                # feature 62-brilho-fn: o brilho salvo volta depois do restore do lcdbl pelo emuelec.conf
+                "[ -x /usr/lib/r36/brilho-aplica ] && /usr/lib/r36/brilho-aplica aplica  # R36: brilho salvo (feature 62)",
                 "# R36: reaplica o ganho de áudio depois da troca do Speaker Function",
                 "if [ -x /usr/lib/r36/audio-ganho ]; then /usr/lib/r36/audio-ganho aplica; fi",
             ],

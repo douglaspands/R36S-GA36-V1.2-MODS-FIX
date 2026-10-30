@@ -1,0 +1,20 @@
+<theme>
+  <formatVersion>4</formatVersion>
+  <include>./../theme.xml</include>
+  <view name="basic, detailed, video, grid">
+    <text name="nameLabel" extra="true">
+      <text>${auto-lastplayed.nameLabel}</text>
+    </text>
+  </view>
+  <view name="system">
+    <text name="sys_line2" extra="true">
+      <text>${auto-lastplayed.sys_line2}</text>
+    </text>
+    <text name="shortdescription" extra="true">
+      <text>${auto-lastplayed.shortdescription}</text>
+    </text>
+    <text name="longdescription" extra="true">
+      <text>${auto-lastplayed.longdescription}</text>
+    </text>
+  </view>
+</theme>

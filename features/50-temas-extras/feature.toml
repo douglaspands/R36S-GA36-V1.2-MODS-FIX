@@ -1,13 +1,13 @@
-# Temas extras do EmulationStation: Minimal, Graphite e Epic Cody ficam na partição p8
+# Temas extras do EmulationStation: Minimal, Graphite e Epic Cody ML ficam na partição p8
 # (/storage), enquanto Switch, Crystal e NES-BOX ficam na partição de ROMs
-# (p1, FAT32 em /storage/roms/themes/) ao lado dos jogos. O Epic Cody é o novo
+# (p1, FAT32 em /storage/roms/themes/) ao lado dos jogos. O Epic Cody ML é o novo
 # tema padrão configurado em es_settings.cfg. O build baixa cada tema externo de um commit
 # fixo, confere o sha256 e guarda em work/cache/external/. Os temas não entram no git.
 # Escolha no aparelho: Menu > Configurações da interface > Tema.
 
 schema = 1
 name = "Temas extras"
-description = "Temas Minimal, Graphite e Epic Cody no storage, Switch, Crystal e NES-BOX na partição de ROMs."
+description = "Temas Minimal, Graphite e Epic Cody ML no storage, Switch, Crystal e NES-BOX na partição de ROMs."
 order = 50
 enabled = true
 budget_mib = 700
@@ -34,11 +34,11 @@ exclude = [".git*", "*.md", "screenshots/*"]
 
 [[external]]
 layer = "storage"
-dest = ".config/emulationstation/themes/Epic Cody"
+dest = ".config/emulationstation/themes/Epic Cody ML"
 url = "https://codeload.github.com/CodyV59/es-theme-epic-cody-RG351V/tar.gz/b810e33851f2df0f86e9e2570cddab3a40961f8f"
 sha256 = "4a0d1e11850e0a1f0ae54ba3f4c067aefa44751e6fa7996a799493308dbe5d55"
 strip = 1
-exclude = [".git*", "*.md"]
+exclude = [".git*", "*.md", "theme.xml", "*/theme.xml"]
 
 [[external]]
 layer = "roms"

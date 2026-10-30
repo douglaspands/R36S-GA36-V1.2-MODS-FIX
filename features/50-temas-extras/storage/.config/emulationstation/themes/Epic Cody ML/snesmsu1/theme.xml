@@ -1,0 +1,23 @@
+<theme>
+  <formatVersion>7</formatVersion>
+  <include>./../theme.xml</include>
+  <view name="basic, detailed, video, grid">
+    <text name="nameLabel" extra="true">
+      <text>${snesmsu1.nameLabel}</text>
+    </text>
+  </view>
+  <view name="system">
+    <text name="sys_line1" extra="true">
+      <text>${snesmsu1.sys_line1}</text>
+    </text>
+    <text name="sys_line2" extra="true">
+      <text>${snesmsu1.sys_line2}</text>
+    </text>
+    <text name="shortdescription" extra="true">
+      <text>${snesmsu1.shortdescription}</text>
+    </text>
+    <text name="longdescription" extra="true">
+      <text>${snesmsu1.longdescription}</text>
+    </text>
+  </view>
+</theme>

@@ -1,0 +1,599 @@
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <action.longdescription>Jogos de ação focados em reflexos rápidos, coordenação motora e desafios em tempo real.</action.longdescription>
+    <action.nameLabel>Gênero Ação</action.nameLabel>
+    <action.shortdescription>Gênero de Jogo</action.shortdescription>
+    <action.sys_line2>Ação</action.sys_line2>
+    <adventure.longdescription>Jogos de aventura com histórias interativas focadas em exploração e resolução de enigmas.</adventure.longdescription>
+    <adventure.nameLabel>Gênero Aventura</adventure.nameLabel>
+    <adventure.shortdescription>Gênero de Jogo</adventure.shortdescription>
+    <adventure.sys_line2>Aventura</adventure.sys_line2>
+    <amiga.longdescription>Computador de 16/32-bit famoso por sua interface gráfica avançada, som estéreo e multitarefa.</amiga.longdescription>
+    <amiga.nameLabel>Amiga</amiga.nameLabel>
+    <amiga.shortdescription>1985  ·  Computador 16-bit</amiga.shortdescription>
+    <amiga.sys_line2>Amiga</amiga.sys_line2>
+    <amigacd32.longdescription>Primeiro console doméstico de 32-bit baseado em CD-ROM lançado no Ocidente pela Commodore.</amigacd32.longdescription>
+    <amigacd32.nameLabel>Amiga CD32</amigacd32.nameLabel>
+    <amigacd32.shortdescription>1993  ·  Console 32-bit</amigacd32.shortdescription>
+    <amigacd32.sys_line2>Amiga CD32</amigacd32.sys_line2>
+    <amstradcpc.longdescription>Série popular de computadores domésticos de 8-bit com grande acervo de jogos na Europa.</amstradcpc.longdescription>
+    <amstradcpc.nameLabel>Amstrad CPC</amstradcpc.nameLabel>
+    <amstradcpc.shortdescription>1984  ·  Computador 8-bit</amstradcpc.shortdescription>
+    <amstradcpc.sys_line2>Amstrad</amstradcpc.sys_line2>
+    <apple2.longdescription>Um dos primeiros microcomputadores de sucesso massivo, projetado por Steve Wozniak.</apple2.longdescription>
+    <apple2.nameLabel>Apple ][</apple2.nameLabel>
+    <apple2.shortdescription>1977  ·  Computador 8-bit</apple2.shortdescription>
+    <apple2.sys_line2>Apple ][</apple2.sys_line2>
+    <arcade.longdescription>Máquinas clássicas operadas por moedas da era de ouro do Arcade nos anos 70 e 80.</arcade.longdescription>
+    <arcade.nameLabel>Arcade</arcade.nameLabel>
+    <arcade.shortdescription>1970's  ·  Máquinas Arcade</arcade.shortdescription>
+    <arcade.sys_line1>Fliperama</arcade.sys_line1>
+    <arcade.sys_line2>Arcade</arcade.sys_line2>
+    <atari2600.longdescription>Console pioneiro que popularizou o uso de cartuchos com jogos e videogames domésticos.</atari2600.longdescription>
+    <atari2600.nameLabel>Atari 2600</atari2600.nameLabel>
+    <atari2600.shortdescription>1977  ·  Console 8-bit</atari2600.shortdescription>
+    <atari2600.sys_line1>Atari</atari2600.sys_line1>
+    <atari2600.sys_line2>2600</atari2600.sys_line2>
+    <atari5200.longdescription>Console doméstico avançado da Atari baseado na arquitetura de seus computadores 8-bit.</atari5200.longdescription>
+    <atari5200.nameLabel>Atari 5200</atari5200.nameLabel>
+    <atari5200.shortdescription>1982  ·  Console 8-bit</atari5200.shortdescription>
+    <atari5200.sys_line1>Atari</atari5200.sys_line1>
+    <atari5200.sys_line2>5200</atari5200.sys_line2>
+    <atari7800.longdescription>Console de 8-bit com gráficos aprimorados e compatibilidade total com o Atari 2600.</atari7800.longdescription>
+    <atari7800.nameLabel>Atari 7800</atari7800.nameLabel>
+    <atari7800.shortdescription>1986  ·  Console 8-bit</atari7800.shortdescription>
+    <atari7800.sys_line1>Atari</atari7800.sys_line1>
+    <atari7800.sys_line2>7800</atari7800.sys_line2>
+    <atari800.longdescription>Família de computadores domésticos da Atari com chips dedicados de som e vídeo.</atari800.longdescription>
+    <atari800.nameLabel>Atari 800</atari800.nameLabel>
+    <atari800.shortdescription>1979  ·  Computador 8-bit</atari800.shortdescription>
+    <atari800.sys_line2>Atari 800</atari800.sys_line2>
+    <atarijaguar.longdescription>Console comercializado como 64-bit com arquitetura multiprocessada da Atari.</atarijaguar.longdescription>
+    <atarijaguar.nameLabel>Atari Jaguar</atarijaguar.nameLabel>
+    <atarijaguar.shortdescription>1993  ·  Console 64-bit</atarijaguar.shortdescription>
+    <atarijaguar.sys_line1>Atari</atarijaguar.sys_line1>
+    <atarijaguar.sys_line2>Jaguar</atarijaguar.sys_line2>
+    <atarilynx.longdescription>Primeiro portátil com tela colorida retroiluminada e aceleração gráfica com zoom.</atarilynx.longdescription>
+    <atarilynx.nameLabel>Atari Lynx</atarilynx.nameLabel>
+    <atarilynx.shortdescription>1989  ·  Portátil 16-bit</atarilynx.shortdescription>
+    <atarilynx.sys_line1>Atari</atarilynx.sys_line1>
+    <atarilynx.sys_line2>Lynx</atarilynx.sys_line2>
+    <atarist.longdescription>Computador de 16-bit com portas MIDI nativas e grande biblioteca de jogos.</atarist.longdescription>
+    <atarist.nameLabel>Atari ST</atarist.nameLabel>
+    <atarist.shortdescription>1985  ·  Computador 16-bit</atarist.shortdescription>
+    <atarist.sys_line2>Atari ST</atarist.sys_line2>
+    <atomiswave.longdescription>Sistema arcade da Sammy baseado na tecnologia Dreamcast com cartuchos intercambiáveis.</atomiswave.longdescription>
+    <atomiswave.nameLabel>Atomiswave</atomiswave.nameLabel>
+    <atomiswave.shortdescription>2003  ·  Placa Arcade 32-bit</atomiswave.shortdescription>
+    <atomiswave.sys_line1>SEGA SAMMY</atomiswave.sys_line1>
+    <atomiswave.sys_line2>Atomiswave</atomiswave.sys_line2>
+    <auto-allgames.longdescription>Lista completa com todos os jogos disponíveis instalados no seu cartão de memória.</auto-allgames.longdescription>
+    <auto-allgames.nameLabel>Todos os Jogos</auto-allgames.nameLabel>
+    <auto-allgames.shortdescription>Todos os Sistemas</auto-allgames.shortdescription>
+    <auto-allgames.sys_line2>Todos os Jogos</auto-allgames.sys_line2>
+    <auto-favorites.longdescription>Acesso rápido a todos os títulos marcados como favoritos no sistema.</auto-favorites.longdescription>
+    <auto-favorites.nameLabel>Favoritos</auto-favorites.nameLabel>
+    <auto-favorites.shortdescription>Todos os Sistemas</auto-favorites.shortdescription>
+    <auto-favorites.sys_line2>Favoritos</auto-favorites.sys_line2>
+    <auto-lastplayed.longdescription>Histórico dos títulos jogados recentemente no aparelho organizados por data.</auto-lastplayed.longdescription>
+    <auto-lastplayed.nameLabel>Jogados Recentemente</auto-lastplayed.nameLabel>
+    <auto-lastplayed.shortdescription>Todos os Sistemas</auto-lastplayed.shortdescription>
+    <auto-lastplayed.sys_line2>Recentes</auto-lastplayed.sys_line2>
+    <btmups.longdescription>Jogos clássicos de combate corpo a corpo contra hordas de inimigos em rolagem lateral.</btmups.longdescription>
+    <btmups.nameLabel>Beat 'em Ups</btmups.nameLabel>
+    <btmups.shortdescription>Gênero de Jogo</btmups.shortdescription>
+    <btmups.sys_line2>Beat 'em Ups</btmups.sys_line2>
+    <c128.longdescription>Sucessor do Commodore 64 com modo de 80 colunas e compatibilidade com o C64.</c128.longdescription>
+    <c128.nameLabel>Commodore 128</c128.nameLabel>
+    <c128.shortdescription>1982  ·  Computador 8-bit</c128.shortdescription>
+    <c128.sys_line2>Commodore 128</c128.sys_line2>
+    <c16.longdescription>Computador doméstico de entrada da Commodore com rica paleta de 121 cores.</c16.longdescription>
+    <c16.nameLabel>COMMODORE 16</c16.nameLabel>
+    <c16.shortdescription>1984  ·  Computador 16-bit</c16.shortdescription>
+    <c16.sys_line2>C16</c16.sys_line2>
+    <c64.longdescription>O modelo de computador mais vendido da história com o lendário chip de som SID.</c64.longdescription>
+    <c64.nameLabel>Commodore 64</c64.nameLabel>
+    <c64.shortdescription>1982  ·  Computador 8-bit</c64.shortdescription>
+    <c64.sys_line2>Commodore</c64.sys_line2>
+    <coco.longdescription>Computador Color Computer da Tandy RadioShack baseado no processador Motorola 6809E.</coco.longdescription>
+    <coco.nameLabel>COCO TRS-80</coco.nameLabel>
+    <coco.shortdescription>1977  ·  Computador 8-bit</coco.shortdescription>
+    <coco.sys_line1>Color COMPUTER</coco.sys_line1>
+    <coco.sys_line2>COCO TRS-80</coco.sys_line2>
+    <coleco.longdescription>Console da Coleco conhecido por conversões caseiras fiéis de sucessos do Arcade.</coleco.longdescription>
+    <coleco.nameLabel>Coleco Vision</coleco.nameLabel>
+    <coleco.shortdescription>1982  ·  Console 8-bit</coleco.shortdescription>
+    <coleco.sys_line1>Coleco</coleco.sys_line1>
+    <coleco.sys_line2>Vision</coleco.sys_line2>
+    <colecovision.longdescription>Console doméstico famoso por conversões quase perfeitas de clássicos do Arcade.</colecovision.longdescription>
+    <colecovision.nameLabel>Coleco Vision</colecovision.nameLabel>
+    <colecovision.shortdescription>1982  ·  Console 8-bit</colecovision.shortdescription>
+    <colecovision.sys_line1>Coleco</colecovision.sys_line1>
+    <colecovision.sys_line2>Vision</colecovision.sys_line2>
+    <controllerSubsetName>Mostrar controles no sistema</controllerSubsetName>
+    <cps1.longdescription>Placa arcade lendária da Capcom berço de clássicos como Street Fighter II e Final Fight.</cps1.longdescription>
+    <cps1.nameLabel>CAPCOM SYSTEM I</cps1.nameLabel>
+    <cps1.shortdescription>1988  ·  Placa Arcade</cps1.shortdescription>
+    <cps1.sys_line1>CAPCOM PLAY</cps1.sys_line1>
+    <cps1.sys_line2>SYSTEM I</cps1.sys_line2>
+    <cps2.longdescription>Segunda geração da placa arcade da Capcom com som Q-Sound estéreo e clássicos de luta 2D.</cps2.longdescription>
+    <cps2.nameLabel>CAPCOM SYSTEM II</cps2.nameLabel>
+    <cps2.shortdescription>1993  ·  Placa Arcade</cps2.shortdescription>
+    <cps2.sys_line1>CAPCOM PLAY</cps2.sys_line1>
+    <cps2.sys_line2>SYSTEM II</cps2.sys_line2>
+    <cps3.longdescription>Placa arcade avançada da Capcom com animações 2D ultra detalhadas em Street Fighter III.</cps3.longdescription>
+    <cps3.nameLabel>CAPCOM SYSTEM III</cps3.nameLabel>
+    <cps3.shortdescription>1996  ·  Placa Arcade</cps3.shortdescription>
+    <cps3.sys_line1>CAPCOM PLAY</cps3.sys_line1>
+    <cps3.sys_line2>SYSTEM III</cps3.sys_line2>
+    <custom-collections.longdescription>Listas e coleções temáticas personalizadas criadas para organizar seus títulos.</custom-collections.longdescription>
+    <custom-collections.nameLabel>Coleções Personalizadas</custom-collections.nameLabel>
+    <custom-collections.shortdescription>Todos os Sistemas</custom-collections.shortdescription>
+    <custom-collections.sys_line2>Coleções</custom-collections.sys_line2>
+    <daphne.longdescription>Emulador de jogos clássicos de fliperama em Laserdisc como Dragon's Lair e Space Ace.</daphne.longdescription>
+    <daphne.nameLabel>Daphne</daphne.nameLabel>
+    <daphne.shortdescription>Jogos em Laserdisc</daphne.shortdescription>
+    <daphne.sys_line2>Daphne</daphne.sys_line2>
+    <doom.longdescription>Engine do clássico jogo de tiro em primeira pessoa da id Software que marcou época.</doom.longdescription>
+    <doom.nameLabel>Doom</doom.nameLabel>
+    <doom.shortdescription>Engine de Jogo Doom</doom.shortdescription>
+    <doom.sys_line2>Doom</doom.sys_line2>
+    <dos.longdescription>Sistema operacional em disco dominante em computadores compatíveis com IBM PC.</dos.longdescription>
+    <dos.nameLabel>Microsoft MS-DOS</dos.nameLabel>
+    <dos.shortdescription>1981  ·  Computador PC</dos.shortdescription>
+    <dos.sys_line1>Microsoft</dos.sys_line1>
+    <dos.sys_line2>MS-DOS</dos.sys_line2>
+    <dreamcast.longdescription>Último console da Sega com jogos arcade incríveis, gráficos 3D e modem integrado.</dreamcast.longdescription>
+    <dreamcast.nameLabel>Sega Dreamcast</dreamcast.nameLabel>
+    <dreamcast.shortdescription>1998  ·  Console 128-bit</dreamcast.shortdescription>
+    <dreamcast.sys_line1>Sega</dreamcast.sys_line1>
+    <dreamcast.sys_line2>Dreamcast</dreamcast.sys_line2>
+    <easyrpg.longdescription>Interpretador de código aberto para jogos criados com RPG Maker 2000 e 2003.</easyrpg.longdescription>
+    <easyrpg.nameLabel>Easy RPG</easyrpg.nameLabel>
+    <easyrpg.shortdescription>Engine de Jogos RPG</easyrpg.shortdescription>
+    <easyrpg.sys_line2>EASY-RPG</easyrpg.sys_line2>
+    <famicom.longdescription>Versão japonesa original do Family Computer que iniciou a era de ouro da Nintendo.</famicom.longdescription>
+    <famicom.nameLabel>Famicom Disk System</famicom.nameLabel>
+    <famicom.shortdescription>1986  ·  Console 8-bit</famicom.shortdescription>
+    <famicom.sys_line1>Famicom</famicom.sys_line1>
+    <famicom.sys_line2>Disk System</famicom.sys_line2>
+    <fba.longdescription>Emulador arcade multi-sistema versátil compatível com Neo-Geo, CPS e clássicos.</fba.longdescription>
+    <fba.nameLabel>Final Burn Alpha</fba.nameLabel>
+    <fba.shortdescription>Máquinas Arcade</fba.shortdescription>
+    <fba.sys_line1>Final Burn</fba.sys_line1>
+    <fba.sys_line2>Alpha</fba.sys_line2>
+    <fbn.longdescription>Emulador arcade moderno para placas clássicas, Neo-Geo, Capcom CPS e fliperamas.</fbn.longdescription>
+    <fbn.nameLabel>Final Burn Neo</fbn.nameLabel>
+    <fbn.shortdescription>Máquinas Arcade</fbn.shortdescription>
+    <fbn.sys_line1>Final</fbn.sys_line1>
+    <fbn.sys_line2>BURN NEO</fbn.sys_line2>
+    <fbneo.longdescription>Emulador arcade multi-sistema versátil compatível com Neo-Geo, CPS e clássicos.</fbneo.longdescription>
+    <fbneo.nameLabel>Final Burn Neo</fbneo.nameLabel>
+    <fbneo.shortdescription>1970's  ·  Máquinas Arcade</fbneo.shortdescription>
+    <fbneo.sys_line1>Final Burn</fbneo.sys_line1>
+    <fbneo.sys_line2>NEO</fbneo.sys_line2>
+    <fbneo_fbneo.longdescription>Emulador arcade multi-sistema versátil compatível com Neo-Geo, CPS e clássicos.</fbneo_fbneo.longdescription>
+    <fbneo_fbneo.nameLabel>Final Burn Neo</fbneo_fbneo.nameLabel>
+    <fbneo_fbneo.shortdescription>1970's  ·  Máquinas Arcade</fbneo_fbneo.shortdescription>
+    <fbneo_fbneo.sys_line1>Final Burn</fbneo_fbneo.sys_line1>
+    <fbneo_fbneo.sys_line2>NEO</fbneo_fbneo.sys_line2>
+    <fds.longdescription>Periférico de disquetes para Famicom que introduziu clássicos como Zelda e Metroid.</fds.longdescription>
+    <fds.nameLabel>Famicom Disk System</fds.nameLabel>
+    <fds.shortdescription>1986  ·  Console 8-bit</fds.shortdescription>
+    <fds.sys_line1>Famicom Disk</fds.sys_line1>
+    <fds.sys_line2>System</fds.sys_line2>
+    <fighting.longdescription>Jogos competitivos de combate mano a mano entre lutadores com golpes especiais.</fighting.longdescription>
+    <fighting.nameLabel>Gênero Luta</fighting.nameLabel>
+    <fighting.shortdescription>Gênero de Jogo</fighting.shortdescription>
+    <fighting.sys_line2>Luta</fighting.sys_line2>
+    <fixedscreen.longdescription>Clássicos do arcade onde toda a ação ocorre em uma única tela fixa sem rolagem.</fixedscreen.longdescription>
+    <fixedscreen.nameLabel>Gênero Tela Fixa</fixedscreen.nameLabel>
+    <fixedscreen.shortdescription>Gênero de Jogo</fixedscreen.shortdescription>
+    <fixedscreen.sys_line2>Tela Fixa</fixedscreen.sys_line2>
+    <gameandwatch.longdescription>Série pioneira de portáteis LCD criada por Gunpei Yokoi para a Nintendo em 1980.</gameandwatch.longdescription>
+    <gameandwatch.nameLabel>Game &amp; Watch</gameandwatch.nameLabel>
+    <gameandwatch.shortdescription>Jogos Eletrônicos Portáteis</gameandwatch.shortdescription>
+    <gameandwatch.sys_line1>LCD SCREEN</gameandwatch.sys_line1>
+    <gameandwatch.sys_line2>Game &amp; Watch</gameandwatch.sys_line2>
+    <gamegear.longdescription>Console portátil colorido da Sega com hardware poderoso baseado no Master System.</gamegear.longdescription>
+    <gamegear.nameLabel>Sega GameGear</gamegear.nameLabel>
+    <gamegear.shortdescription>1990  ·  Portátil 8-bit</gamegear.shortdescription>
+    <gamegear.sys_line1>Sega</gamegear.sys_line1>
+    <gamegear.sys_line2>GameGear</gamegear.sys_line2>
+    <gb.longdescription>O lendário portátil monocromático da Nintendo que marcou gerações com Tetris e Pokémon.</gb.longdescription>
+    <gb.nameLabel>Nintendo GameBoy</gb.nameLabel>
+    <gb.shortdescription>1989  ·  Portátil 8-bit</gb.shortdescription>
+    <gb.sys_line1>Nintendo</gb.sys_line1>
+    <gb.sys_line2>GameBoy</gb.sys_line2>
+    <gba.longdescription>Poderoso portátil de 32-bit da Nintendo com acervo excepcional de clássicos 2D e RPGs.</gba.longdescription>
+    <gba.nameLabel>GameBoy Advance</gba.nameLabel>
+    <gba.shortdescription>2001  ·  Portátil 32-bit</gba.shortdescription>
+    <gba.sys_line1>NINTENDO gameboy</gba.sys_line1>
+    <gba.sys_line2>Advance</gba.sys_line2>
+    <gbc.longdescription>Evolução do Game Boy com tela colorida reflexiva e processador com o dobro de velocidade.</gbc.longdescription>
+    <gbc.nameLabel>GameBoy Color</gbc.nameLabel>
+    <gbc.shortdescription>1998  ·  Portátil 8-bit</gbc.shortdescription>
+    <gbc.sys_line1>Nintendo</gbc.sys_line1>
+    <gbc.sys_line2>GameBoy Color</gbc.sys_line2>
+    <gc.longdescription>Console cúbico da Nintendo com discos ópticos compactos e gráficos 3D marcantes.</gc.longdescription>
+    <gc.nameLabel>Nintendo GameCube</gc.nameLabel>
+    <gc.shortdescription>2001  ·  Console 128-bit</gc.shortdescription>
+    <gc.sys_line1>Nintendo</gc.sys_line1>
+    <gc.sys_line2>GameCube</gc.sys_line2>
+    <genesis.longdescription>O clássico console de 16-bit da Sega com jogabilidade veloz e biblioteca marcante.</genesis.longdescription>
+    <genesis.nameLabel>Sega Genesis</genesis.nameLabel>
+    <genesis.shortdescription>1989  ·  Console 16-bit</genesis.shortdescription>
+    <genesis.sys_line1>Sega</genesis.sys_line1>
+    <genesis.sys_line2>Genesis</genesis.sys_line2>
+    <imageviewer.longdescription>Galeria multimídia para visualizar todas as capturas de tela e fotos salvas durante suas partidas.</imageviewer.longdescription>
+    <imageviewer.nameLabel>Visualizador de Imagens</imageviewer.nameLabel>
+    <imageviewer.shortdescription>Visualizador de capturas de tela</imageviewer.shortdescription>
+    <imageviewer.sys_line1>GALERIA</imageviewer.sys_line1>
+    <imageviewer.sys_line2>IMAGENS</imageviewer.sys_line2>
+    <intellivision.longdescription>Console pioneiro da Mattel com processador de 16-bit e controle numérico inovador.</intellivision.longdescription>
+    <intellivision.nameLabel>Intellivision</intellivision.nameLabel>
+    <intellivision.shortdescription>1980  ·  Console 8-bit</intellivision.shortdescription>
+    <intellivision.sys_line2>Intellivision</intellivision.sys_line2>
+    <kids.longdescription>Jogos com temática acessível e divertida para todas as idades e crianças.</kids.longdescription>
+    <kids.nameLabel>Gênero Infantil</kids.nameLabel>
+    <kids.shortdescription>Gênero de Jogo</kids.shortdescription>
+    <kids.sys_line2>Infantil</kids.sys_line2>
+    <kodi.longdescription>Central de entretenimento e mídia para reprodução de vídeos, músicas e fotos.</kodi.longdescription>
+    <kodi.nameLabel>Kodi</kodi.nameLabel>
+    <kodi.shortdescription>Central de Mídia</kodi.shortdescription>
+    <kodi.sys_line2>Kodi</kodi.sys_line2>
+    <languageSubsetName>Idioma do Tema</languageSubsetName>
+    <mame.longdescription>Emulador dedicado à preservação histórica do hardware de fliperamas e jogos arcade.</mame.longdescription>
+    <mame.nameLabel>M.A.M.E.</mame.nameLabel>
+    <mame.shortdescription>Máquinas Arcade</mame.shortdescription>
+    <mame.sys_line1>Multiple Arcade Machine Emulator</mame.sys_line1>
+    <mame.sys_line2>M.A.M.E.</mame.sys_line2>
+    <mame2003.longdescription>Versão clássica do emulador MAME otimizada para placas arcade das eras de ouro.</mame2003.longdescription>
+    <mame2003.nameLabel>M.A.M.E. 2003</mame2003.nameLabel>
+    <mame2003.shortdescription>Máquinas Arcade</mame2003.shortdescription>
+    <mame2003.sys_line1>Multiple Arcade Machine Emulator</mame2003.sys_line1>
+    <mame2003.sys_line2>MAME 2003</mame2003.sys_line2>
+    <mame2010.longdescription>Versão atualizada do MAME com compatibilidade expandida para jogos arcade.</mame2010.longdescription>
+    <mame2010.nameLabel>M.A.M.E. 2010</mame2010.nameLabel>
+    <mame2010.shortdescription>Máquinas Arcade</mame2010.shortdescription>
+    <mame2010.sys_line1>Multiple Arcade Machine Emulator</mame2010.sys_line1>
+    <mame2010.sys_line2>M.A.M.E. 2010</mame2010.sys_line2>
+    <mastersystem.longdescription>Console de 8-bit da Sega com gráficos vibrantes e enorme sucesso histórico no Brasil.</mastersystem.longdescription>
+    <mastersystem.nameLabel>Sega Master System</mastersystem.nameLabel>
+    <mastersystem.shortdescription>1985  ·  Console 8-bit</mastersystem.shortdescription>
+    <mastersystem.sys_line1>Sega Master</mastersystem.sys_line1>
+    <mastersystem.sys_line2>System</mastersystem.sys_line2>
+    <mega32x.longdescription>Acessório de 32-bit da Sega para Mega Drive com dois processadores RISC SH-2.</mega32x.longdescription>
+    <mega32x.nameLabel>Sega Mega 32x</mega32x.nameLabel>
+    <mega32x.shortdescription>1994  ·  Console 32-bit</mega32x.shortdescription>
+    <mega32x.sys_line1>Sega</mega32x.sys_line1>
+    <mega32x.sys_line2>Mega 32x</mega32x.sys_line2>
+    <megacd.longdescription>Expansão de CD-ROM para Mega Drive com áudio estéreo de alta qualidade e vídeos FMV.</megacd.longdescription>
+    <megacd.nameLabel>Sega MegaCD</megacd.nameLabel>
+    <megacd.shortdescription>1991  ·  Console 16-bit</megacd.shortdescription>
+    <megacd.sys_line1>Sega</megacd.sys_line1>
+    <megacd.sys_line2>MegaCD</megacd.sys_line2>
+    <megadrive.longdescription>O clássico console de 16-bit da Sega com jogabilidade veloz, Sonic e som marcante.</megadrive.longdescription>
+    <megadrive.nameLabel>Sega Megadrive</megadrive.nameLabel>
+    <megadrive.shortdescription>1988  ·  Console 16-bit</megadrive.shortdescription>
+    <megadrive.sys_line1>Sega</megadrive.sys_line1>
+    <megadrive.sys_line2>Megadrive</megadrive.sys_line2>
+    <msx.longdescription>Padrão de microcomputador liderado por Microsoft e ASCII com grandes jogos da Konami.</msx.longdescription>
+    <msx.nameLabel>MSX</msx.nameLabel>
+    <msx.shortdescription>1983  ·  Computador 8-bit</msx.shortdescription>
+    <msx.sys_line2>MSX</msx.sys_line2>
+    <msx2.longdescription>Segunda geração do MSX com paleta de 256 cores e clássicos inesquecíveis como Metal Gear.</msx2.longdescription>
+    <msx2.nameLabel>MSX 2</msx2.nameLabel>
+    <msx2.shortdescription>1984  ·  Computador 16-bit</msx2.shortdescription>
+    <msx2.sys_line2>MSX 2</msx2.sys_line2>
+    <n64.longdescription>Console pioneiro em mundos 3D autênticos com alavanca analógica e jogos marcantes.</n64.longdescription>
+    <n64.nameLabel>Nintendo 64</n64.nameLabel>
+    <n64.shortdescription>1996  ·  Console 64-bit</n64.shortdescription>
+    <n64.sys_line2>Nintendo 64</n64.sys_line2>
+    <n64dd.longdescription>Unidade de disco magnético reescrevível de 64MB lançada no Japão para o Nintendo 64.</n64dd.longdescription>
+    <n64dd.nameLabel>Nintendo 64DD</n64dd.nameLabel>
+    <n64dd.shortdescription>1996  ·  Console 64-bit</n64dd.shortdescription>
+    <n64dd.sys_line2>Nintendo 64DD</n64dd.sys_line2>
+    <naomi.longdescription>Poderosa placa arcade da Sega sucessora da Model 3 com tecnologia similar ao Dreamcast.</naomi.longdescription>
+    <naomi.nameLabel>Sega Naomi</naomi.nameLabel>
+    <naomi.shortdescription>1998  ·  Placa Arcade</naomi.shortdescription>
+    <naomi.sys_line1>Sega</naomi.sys_line1>
+    <naomi.sys_line2>Naomi</naomi.sys_line2>
+    <nds.longdescription>Portátil inovador da Nintendo com duas telas, entrada tátil e microfone integrado.</nds.longdescription>
+    <nds.nameLabel>Nintendo DS</nds.nameLabel>
+    <nds.shortdescription>2004  ·  Portátil 32-bit</nds.shortdescription>
+    <nds.sys_line2>Nintendo DS</nds.sys_line2>
+    <neogeo.longdescription>O lendário sistema da SNK que levou a experiência autêntica do Arcade para casa.</neogeo.longdescription>
+    <neogeo.nameLabel>Neo Geo</neogeo.nameLabel>
+    <neogeo.shortdescription>1990  ·  Console 24-bit</neogeo.shortdescription>
+    <neogeo.sys_line1>SNK</neogeo.sys_line1>
+    <neogeo.sys_line2>Neo Geo</neogeo.sys_line2>
+    <neogeocd.longdescription>Versão em CD do Neo Geo com trilhas sonoras orquestradas em alta fidelidade.</neogeocd.longdescription>
+    <neogeocd.nameLabel>Neo Geo CD</neogeocd.nameLabel>
+    <neogeocd.shortdescription>1994  ·  Console 24-bit</neogeocd.shortdescription>
+    <neogeocd.sys_line1>SNK</neogeocd.sys_line1>
+    <neogeocd.sys_line2>Neo Geo CD</neogeocd.sys_line2>
+    <nes.longdescription>O Nintendo Entertainment System que revitalizou a indústria mundial de videogames.</nes.longdescription>
+    <nes.nameLabel>Nintendo Entertainment System</nes.nameLabel>
+    <nes.shortdescription>1983  ·  Console 8-bit</nes.shortdescription>
+    <nes.sys_line1>Nintendo Entertainment</nes.sys_line1>
+    <nes.sys_line2>System</nes.sys_line2>
+    <ngp.longdescription>Portátil monocromático da SNK com controle em microswitch de alta precisão.</ngp.longdescription>
+    <ngp.nameLabel>Neo Geo Pocket</ngp.nameLabel>
+    <ngp.shortdescription>1998  ·  Portátil 16-bit</ngp.shortdescription>
+    <ngp.sys_line1>Neo Geo</ngp.sys_line1>
+    <ngp.sys_line2>Pocket</ngp.sys_line2>
+    <ngpc.longdescription>Portátil colorido de 16-bit da SNK aclamado pelo excelente controle e jogos de luta.</ngpc.longdescription>
+    <ngpc.nameLabel>Neo Geo Pocket Color</ngpc.nameLabel>
+    <ngpc.shortdescription>1999  ·  Portátil 16-bit</ngpc.shortdescription>
+    <ngpc.sys_line1>Neo Geo</ngpc.sys_line1>
+    <ngpc.sys_line2>Pocket Color</ngpc.sys_line2>
+    <odyssey2.longdescription>Console pioneiro da Magnavox com teclado alfanumérico de membrana integrado.</odyssey2.longdescription>
+    <odyssey2.nameLabel>Odyssey 2</odyssey2.nameLabel>
+    <odyssey2.shortdescription>1978  ·  Console 8-bit</odyssey2.shortdescription>
+    <odyssey2.sys_line1>magnavox</odyssey2.sys_line1>
+    <odyssey2.sys_line2>odyssey 2</odyssey2.sys_line2>
+    <off>Desligado</off>
+    <on>Ligado</on>
+    <openbor.longdescription>Engine de código aberto para criação de jogos estilo Beat 'em Up em rolagem lateral.</openbor.longdescription>
+    <openbor.nameLabel>Openbor</openbor.nameLabel>
+    <openbor.shortdescription>2003  ·  Console 24-bit</openbor.shortdescription>
+    <openbor.sys_line1>Senile Team</openbor.sys_line1>
+    <openbor.sys_line2>OpenBor</openbor.sys_line2>
+    <pc.longdescription>Plataforma de computadores pessoais com vasta biblioteca histórica de clássicos.</pc.longdescription>
+    <pc.nameLabel>Microsoft MS-DOS</pc.nameLabel>
+    <pc.shortdescription>1981  ·  Computador PC</pc.shortdescription>
+    <pc.sys_line1>Microsoft</pc.sys_line1>
+    <pc.sys_line2>MS-DOS</pc.sys_line2>
+    <pc98.longdescription>Computador da NEC que dominou o mercado de jogos japonês nos anos 80 e 90.</pc98.longdescription>
+    <pc98.nameLabel>NEC PC-98</pc98.nameLabel>
+    <pc98.shortdescription>1982  ·  Computador 32-bit</pc98.shortdescription>
+    <pc98.sys_line2>NEC PC98</pc98.sys_line2>
+    <pce-cd.longdescription>Expansão de CD-ROM pioneira para o PC Engine com trilha sonora de qualidade CD.</pce-cd.longdescription>
+    <pce-cd.nameLabel>PC-Engine CD</pce-cd.nameLabel>
+    <pce-cd.shortdescription>1988  ·  Console 16-bit</pce-cd.shortdescription>
+    <pce-cd.sys_line2>PC Engine CD</pce-cd.sys_line2>
+    <pcengine.longdescription>Console compacto de 16-bit da NEC e Hudson Soft com excelentes conversões arcade.</pcengine.longdescription>
+    <pcengine.nameLabel>PC-Engine</pcengine.nameLabel>
+    <pcengine.shortdescription>1987  ·  Console 16-bit</pcengine.shortdescription>
+    <pcengine.sys_line1>NEC</pcengine.sys_line1>
+    <pcengine.sys_line2>PC-Engine</pcengine.sys_line2>
+    <pcenginecd.longdescription>Primeiro console de videogame doméstico a utilizar CD-ROM com áudio de alta fidelidade.</pcenginecd.longdescription>
+    <pcenginecd.nameLabel>PC-Engine CD</pcenginecd.nameLabel>
+    <pcenginecd.shortdescription>1988  ·  Console 16-bit</pcenginecd.shortdescription>
+    <pcenginecd.sys_line2>PC Engine CD</pcenginecd.sys_line2>
+    <pcfx.longdescription>Console de 32-bit da NEC sucessor do PC Engine com foco em animações e vídeos FMV.</pcfx.longdescription>
+    <pcfx.nameLabel>PC-FX</pcfx.nameLabel>
+    <pcfx.shortdescription>1987  ·  Console 32-bit</pcfx.shortdescription>
+    <pcfx.sys_line1>NEC</pcfx.sys_line1>
+    <pcfx.sys_line2>PC-FX</pcfx.sys_line2>
+    <pico-8.longdescription>Console virtual com limitações retrô deliberadas para desenvolvimento e jogos criativos.</pico-8.longdescription>
+    <pico-8.nameLabel>PICO 8</pico-8.nameLabel>
+    <pico-8.shortdescription>Console Virtual Fantasia</pico-8.shortdescription>
+    <pico-8.sys_line1>Pixel Games</pico-8.sys_line1>
+    <pico-8.sys_line2>ENGINE PICO-8</pico-8.sys_line2>
+    <platformers.longdescription>Jogos clássicos focados em pulos, precisão de navegação e superação de obstáculos.</platformers.longdescription>
+    <platformers.nameLabel>Gênero Plataforma</platformers.nameLabel>
+    <platformers.shortdescription>Gênero de Jogo</platformers.shortdescription>
+    <platformers.sys_line2>Plataforma</platformers.sys_line2>
+    <ports.longdescription>Adaptações nativas de jogos clássicos de PC e engines portadas para o aparelho.</ports.longdescription>
+    <ports.nameLabel>Ports</ports.nameLabel>
+    <ports.shortdescription>Ports de Jogos</ports.shortdescription>
+    <ports.sys_line1>Game</ports.sys_line1>
+    <ports.sys_line2>Ports</ports.sys_line2>
+    <power.longdescription>Opções de gerenciamento de energia para reiniciar ou desligar o aparelho com segurança.</power.longdescription>
+    <power.nameLabel>Energia</power.nameLabel>
+    <power.shortdescription>Menu de Energia</power.shortdescription>
+    <power.sys_line2>Energia</power.sys_line2>
+    <power.systemInfo>Configuration</power.systemInfo>
+    <ps2.longdescription>O console doméstico mais vendido da história com Emotion Engine e leitor de DVD.</ps2.longdescription>
+    <ps2.nameLabel>Sony Playstation 2</ps2.nameLabel>
+    <ps2.shortdescription>2000  ·  Console 128-bit</ps2.shortdescription>
+    <ps2.sys_line1>Sony</ps2.sys_line1>
+    <ps2.sys_line2>Playstation 2</ps2.sys_line2>
+    <psp.longdescription>Primeiro portátil da Sony com tela widescreen de alta resolução e gráficos de console.</psp.longdescription>
+    <psp.nameLabel>Playstation Portable</psp.nameLabel>
+    <psp.shortdescription>2004  ·  Portátil 32-bit</psp.shortdescription>
+    <psp.sys_line2>SONY PSP</psp.sys_line2>
+    <pspminis.longdescription>Linha de jogos compactos e criativos lançados digitalmente para PSP e PS3.</pspminis.longdescription>
+    <pspminis.nameLabel>Playstation Portable</pspminis.nameLabel>
+    <pspminis.shortdescription>2004  ·  Portátil 32-bit</pspminis.shortdescription>
+    <pspminis.sys_line2>PSP Minis</pspminis.sys_line2>
+    <psx.longdescription>Console de 32-bit da Sony que revolucionou a indústria com CDs e gráficos 3D marcantes.</psx.longdescription>
+    <psx.nameLabel>Sony Playstation</psx.nameLabel>
+    <psx.shortdescription>1994  ·  Console 32-bit</psx.shortdescription>
+    <psx.sys_line1>Sony</psx.sys_line1>
+    <psx.sys_line2>Playstation</psx.sys_line2>
+    <puzzle.longdescription>Jogos de raciocínio, lógica, quebra-cabeças e encaixe estratégico de peças.</puzzle.longdescription>
+    <puzzle.nameLabel>Puzzle</puzzle.nameLabel>
+    <puzzle.shortdescription>Gênero de Jogo</puzzle.shortdescription>
+    <puzzle.sys_line2>Puzzle</puzzle.sys_line2>
+    <racing.longdescription>Competições em alta velocidade sobre pistas com veículos e desafios contra o relógio.</racing.longdescription>
+    <racing.nameLabel>Gênero Corrida</racing.nameLabel>
+    <racing.shortdescription>Gênero de Jogo</racing.shortdescription>
+    <racing.sys_line2>Corrida</racing.sys_line2>
+    <residualvm.longdescription>Interpretador 3D de código aberto para clássicos como Grim Fandango e Myst III.</residualvm.longdescription>
+    <residualvm.nameLabel>Residual VM</residualvm.nameLabel>
+    <residualvm.shortdescription>Engine de Jogos de PC</residualvm.shortdescription>
+    <residualvm.sys_line2>Residual VM</residualvm.sys_line2>
+    <retroarch.longdescription>Frontend modular para emuladores com suporte a shaders, conquistas e filtros.</retroarch.longdescription>
+    <retroarch.nameLabel>Options</retroarch.nameLabel>
+    <retroarch.shortdescription>Interface de Emulação</retroarch.shortdescription>
+    <retroarch.sys_line2>Retroarch</retroarch.sys_line2>
+    <retropie.longdescription>Painel de ajustes do sistema, temas visuais, conexões e configurações de hardware.</retropie.longdescription>
+    <retropie.nameLabel>Opções</retropie.nameLabel>
+    <retropie.shortdescription>Configuração do Sistema</retropie.shortdescription>
+    <retropie.sys_line2>Opções</retropie.sys_line2>
+    <rpgs.longdescription>Role-playing games com histórias profundas, exploração e evolução de personagens.</rpgs.longdescription>
+    <rpgs.nameLabel>RPGs</rpgs.nameLabel>
+    <rpgs.shortdescription>Gênero de Jogo</rpgs.shortdescription>
+    <rpgs.sys_line2>RPGs</rpgs.sys_line2>
+    <satellaview.longdescription>Periférico por satélite para Super Famicom com transmissões e jogos exclusivos.</satellaview.longdescription>
+    <satellaview.nameLabel>Satellaview Super Nintendo</satellaview.nameLabel>
+    <satellaview.shortdescription>1995  ·  Módem Satelital 16-bit</satellaview.shortdescription>
+    <satellaview.sys_line1>Super nintendo</satellaview.sys_line1>
+    <satellaview.sys_line2>satellaview</satellaview.sys_line2>
+    <saturn.longdescription>Console de 32-bit da Sega com dois processadores, líder em jogos de luta 2D e arcades.</saturn.longdescription>
+    <saturn.nameLabel>Sega Saturn</saturn.nameLabel>
+    <saturn.shortdescription>1994  ·  Console 32-bit</saturn.shortdescription>
+    <saturn.sys_line1>Sega</saturn.sys_line1>
+    <saturn.sys_line2>Saturn</saturn.sys_line2>
+    <scummvm.longdescription>Interpretador de clássicos de aventura gráfica da LucasArts, Sierra e outras.</scummvm.longdescription>
+    <scummvm.nameLabel>Scumm VM</scummvm.nameLabel>
+    <scummvm.shortdescription>Engine de Jogos de PC</scummvm.shortdescription>
+    <scummvm.sys_line2>Scumm VM</scummvm.sys_line2>
+    <sega32x.longdescription>Expansão de 32-bit para o Mega Drive equipada com dois processadores RISC SH-2.</sega32x.longdescription>
+    <sega32x.nameLabel>Sega Genesis 32x</sega32x.nameLabel>
+    <sega32x.shortdescription>1994  ·  Console 32-bit</sega32x.shortdescription>
+    <sega32x.sys_line1>Sega</sega32x.sys_line1>
+    <sega32x.sys_line2>Genesis 32x</sega32x.sys_line2>
+    <segacd.longdescription>Expansão de CD-ROM para Mega Drive com áudio de CD e sequências de vídeo animadas.</segacd.longdescription>
+    <segacd.nameLabel>Sega Genesis CD</segacd.nameLabel>
+    <segacd.shortdescription>1991  ·  Console 16-bit</segacd.shortdescription>
+    <segacd.sys_line2>SEGA CD</segacd.sys_line2>
+    <sfc.longdescription>Versão japonesa original do Super Famicom de 16-bit com gráficos e som lendários.</sfc.longdescription>
+    <sfc.nameLabel>Super Famicom</sfc.nameLabel>
+    <sfc.shortdescription>1990  ·  Console 16-bit</sfc.shortdescription>
+    <sfc.sys_line2>Super Famicom</sfc.sys_line2>
+    <sg-1000.longdescription>Primeiro console doméstico da Sega lançado no Japão no mesmo dia do Famicom em 1983.</sg-1000.longdescription>
+    <sg-1000.nameLabel>Sega SG-1000</sg-1000.nameLabel>
+    <sg-1000.shortdescription>1983  ·  Console 8-bit</sg-1000.shortdescription>
+    <sg-1000.sys_line1>Sega</sg-1000.sys_line1>
+    <sg-1000.sys_line2>SG-1000</sg-1000.sys_line2>
+    <sgb.longdescription>Adaptador de Super Nintendo que permitia jogar cartuchos de Game Boy na TV a cores.</sgb.longdescription>
+    <sgb.nameLabel>Nintendo Super-GameBoy</sgb.nameLabel>
+    <sgb.shortdescription>1989  ·  Portátil 8-bit</sgb.shortdescription>
+    <sgb.sys_line1>Nintendo</sgb.sys_line1>
+    <sgb.sys_line2>Super-GameBoy</sgb.sys_line2>
+    <shmups.longdescription>Jogos clássicos de tiro espacial em rolagem vertical ou horizontal intensa.</shmups.longdescription>
+    <shmups.nameLabel>Shmups</shmups.nameLabel>
+    <shmups.shortdescription>Gênero de Jogo</shmups.shortdescription>
+    <shmups.sys_line1>Shoot 'em up</shmups.sys_line1>
+    <shmups.sys_line2>Shmups</shmups.sys_line2>
+    <snes-hacks.longdescription>Modificações e melhorias criadas pela comunidade para clássicos do Super Nintendo.</snes-hacks.longdescription>
+    <snes-hacks.nameLabel>Super Nintendo</snes-hacks.nameLabel>
+    <snes-hacks.shortdescription>1990  ·  Console 16-bit</snes-hacks.shortdescription>
+    <snes-hacks.sys_line1>Super nintendo</snes-hacks.sys_line1>
+    <snes-hacks.sys_line2>hacks roms</snes-hacks.sys_line2>
+    <snes.longdescription>O lendário console de 16-bit da Nintendo com chip de som SPC700 e acervo inesquecível.</snes.longdescription>
+    <snes.nameLabel>Super Nintendo</snes.nameLabel>
+    <snes.shortdescription>1990  ·  Console 16-bit</snes.shortdescription>
+    <snes.sys_line1>Super</snes.sys_line1>
+    <snes.sys_line2>Nintendo</snes.sys_line2>
+    <snesmsu1.longdescription>Jogos aprimorados de Super Nintendo com áudio com qualidade de CD via chip MSU-1.</snesmsu1.longdescription>
+    <snesmsu1.nameLabel>Super Nintendo CD-ROM</snesmsu1.nameLabel>
+    <snesmsu1.shortdescription>1990  ·  Console 16-bit</snesmsu1.shortdescription>
+    <snesmsu1.sys_line1>Super</snesmsu1.sys_line1>
+    <snesmsu1.sys_line2>Nintendo CD</snesmsu1.sys_line2>
+    <solarus.longdescription>Engine de código aberto para execução e criação de RPGs de ação no estilo 16-bit.</solarus.longdescription>
+    <solarus.nameLabel>Solarus</solarus.nameLabel>
+    <solarus.shortdescription>2006  ·  Engine de RPG 2D</solarus.shortdescription>
+    <solarus.sys_line2>Solarus</solarus.sys_line2>
+    <sports.longdescription>Simulações esportivas incluindo futebol, basquete, beisebol, tênis e automobilismo.</sports.longdescription>
+    <sports.nameLabel>Gênero Esportes</sports.nameLabel>
+    <sports.shortdescription>Gênero de Jogo</sports.shortdescription>
+    <sports.sys_line2>Esportes</sports.sys_line2>
+    <steam.longdescription>Plataforma de distribuição digital de jogos para computador da Valve Corporation.</steam.longdescription>
+    <steam.nameLabel>Valve Steam</steam.nameLabel>
+    <steam.shortdescription>Plataforma Digital</steam.shortdescription>
+    <steam.sys_line1>Valve</steam.sys_line1>
+    <steam.sys_line2>Steam</steam.sys_line2>
+    <strategy.longdescription>Jogos de planejamento estratégico e tático disputados em turnos ou em tempo real.</strategy.longdescription>
+    <strategy.nameLabel>Gênero Estratégia</strategy.nameLabel>
+    <strategy.shortdescription>Gênero de Jogo</strategy.shortdescription>
+    <strategy.sys_line2>Estratégia</strategy.sys_line2>
+    <sufami.longdescription>Adaptador da Bandai para Super Famicom com minicartuchos de séries e animes.</sufami.longdescription>
+    <sufami.nameLabel>sufami turbo</sufami.nameLabel>
+    <sufami.shortdescription>1996  ·  Adaptador 16-bit</sufami.shortdescription>
+    <sufami.sys_line1>bandai</sufami.sys_line1>
+    <sufami.sys_line2>sufami turbo</sufami.sys_line2>
+    <supergrafx.longdescription>Evolução do PC Engine com dois processadores de vídeo e quatro vezes mais memória RAM.</supergrafx.longdescription>
+    <supergrafx.nameLabel>SuperGrafx</supergrafx.nameLabel>
+    <supergrafx.shortdescription>1989  ·  Console 16-bit</supergrafx.shortdescription>
+    <supergrafx.sys_line2>SuperGrafx</supergrafx.sys_line2>
+    <sys_3do.longdescription>Plataforma multimídia de 32-bit da The 3DO Company com jogos em formato CD-ROM.</sys_3do.longdescription>
+    <sys_3do.nameLabel>3DO</sys_3do.nameLabel>
+    <sys_3do.shortdescription>1993  ·  Console 32-bit</sys_3do.shortdescription>
+    <sys_3do.sys_line2>3DO</sys_3do.sys_line2>
+    <tg-cd.longdescription>Versão norte-americana do CD-ROM do TurboGrafx-16 com áudio estéreo em CD.</tg-cd.longdescription>
+    <tg-cd.nameLabel>TurboGrafx CD</tg-cd.nameLabel>
+    <tg-cd.shortdescription>1990  ·  Console 16-bit</tg-cd.shortdescription>
+    <tg-cd.sys_line2>TurboGrafx CD</tg-cd.sys_line2>
+    <tg16.longdescription>Versão norte-americana do PC Engine de 16-bit lançada pela NEC na América do Norte.</tg16.longdescription>
+    <tg16.nameLabel>TurboGrafx-16</tg16.nameLabel>
+    <tg16.shortdescription>1987  ·  Console 16-bit</tg16.shortdescription>
+    <tg16.sys_line2>TurboGrafx-16</tg16.sys_line2>
+    <ti99.longdescription>Computador doméstico pioneiro da Texas Instruments com processador de 16-bit.</ti99.longdescription>
+    <ti99.nameLabel>TI-99</ti99.nameLabel>
+    <ti99.shortdescription>1981  ·  Computador 16-bit</ti99.shortdescription>
+    <ti99.sys_line1>Texas Instrument</ti99.sys_line1>
+    <ti99.sys_line2>TI-99</ti99.sys_line2>
+    <tic80.longdescription>Computador virtual de fantasia para criação e execução de pequenos jogos retrô.</tic80.longdescription>
+    <tic80.nameLabel>TIC-80</tic80.nameLabel>
+    <tic80.shortdescription>2017  ·  Computador Fantasia</tic80.shortdescription>
+    <tic80.sys_line2>TIC-80</tic80.sys_line2>
+    <turbografxcd.longdescription>Expansão de CD-ROM para TurboGrafx-16 com trilhas sonoras orquestradas em CD.</turbografxcd.longdescription>
+    <turbografxcd.nameLabel>TurboGrafx CD</turbografxcd.nameLabel>
+    <turbografxcd.shortdescription>1990  ·  Console 16-bit</turbografxcd.shortdescription>
+    <turbografxcd.sys_line2>TurboGrafx CD</turbografxcd.sys_line2>
+    <turbographx.longdescription>Versão ocidental do PC Engine com cartuchos finos HuCard e grandes jogos de ação.</turbographx.longdescription>
+    <turbographx.nameLabel>TurboGrafx-16</turbographx.nameLabel>
+    <turbographx.shortdescription>1987  ·  Console 16-bit</turbographx.shortdescription>
+    <turbographx.sys_line2>TurboGrafx-16</turbographx.sys_line2>
+    <uzebox.longdescription>Console retrô minimalista de código aberto baseado no microcontrolador AVR.</uzebox.longdescription>
+    <uzebox.nameLabel>UZEBOX</uzebox.nameLabel>
+    <uzebox.shortdescription>2007  ·  Console 8-bit</uzebox.shortdescription>
+    <uzebox.sys_line1>open source</uzebox.sys_line1>
+    <uzebox.sys_line2>UZEBOX</uzebox.sys_line2>
+    <vectrex.longdescription>Console único com monitor vetorial monocromático embutido e lâminas coloridas.</vectrex.longdescription>
+    <vectrex.nameLabel>Vectrex</vectrex.nameLabel>
+    <vectrex.shortdescription>1982  ·  Console 8-bit</vectrex.shortdescription>
+    <vectrex.sys_line2>Vectrex</vectrex.sys_line2>
+    <vic20.longdescription>Primeiro computador a vender mais de um milhão de unidades, fabricado pela Commodore.</vic20.longdescription>
+    <vic20.nameLabel>COMMODORE VIC-20</vic20.nameLabel>
+    <vic20.shortdescription>1980  ·  Computador 8-bit</vic20.shortdescription>
+    <vic20.sys_line2>VIC-20</vic20.sys_line2>
+    <virtualboy.longdescription>Console estereoscópico de mesa da Nintendo com gráficos em 3D em tons de vermelho.</virtualboy.longdescription>
+    <virtualboy.nameLabel>Nintendo VirtualBoy</virtualboy.nameLabel>
+    <virtualboy.shortdescription>1995  ·  Console 32-bit 3D</virtualboy.shortdescription>
+    <virtualboy.sys_line2>VirtualBoy</virtualboy.sys_line2>
+    <vmu.longdescription>Cartão de memória inteligente do Dreamcast com tela LCD, controles e minijogos.</vmu.longdescription>
+    <vmu.nameLabel>Visual Memory Unit</vmu.nameLabel>
+    <vmu.shortdescription>1998  ·  Cartão Memória LCD</vmu.shortdescription>
+    <vmu.sys_line1>Dreamcast Visual Memory Unit</vmu.sys_line1>
+    <vmu.sys_line2>SEGA VMU</vmu.sys_line2>
+    <wii.longdescription>Console revolucionário da Nintendo com controles sensíveis a movimento Wii Remote.</wii.longdescription>
+    <wii.nameLabel>Nintendo Wii</wii.nameLabel>
+    <wii.shortdescription>2006  ·  Console 32-bit</wii.shortdescription>
+    <wii.sys_line1>Nintendo</wii.sys_line1>
+    <wii.sys_line2>Wii</wii.sys_line2>
+    <wiiu.longdescription>Primeiro console em alta definição da Nintendo com controle GamePad de tela tátil.</wiiu.longdescription>
+    <wiiu.nameLabel>Nintendo WiiU</wiiu.nameLabel>
+    <wiiu.shortdescription>2012  ·  Console Portátil</wiiu.shortdescription>
+    <wiiu.sys_line1>Nintendo</wiiu.sys_line1>
+    <wiiu.sys_line2>WiiU</wiiu.sys_line2>
+    <wonderswan.longdescription>Portátil de 16-bit da Bandai projetado por Gunpei Yokoi jogável na vertical e horizontal.</wonderswan.longdescription>
+    <wonderswan.nameLabel>Wonderswan</wonderswan.nameLabel>
+    <wonderswan.shortdescription>1999  ·  Portátil 16-bit</wonderswan.shortdescription>
+    <wonderswan.sys_line2>Wonderswan</wonderswan.sys_line2>
+    <wonderswancolor.longdescription>Versão com tela colorida do portátil WonderSwan da Bandai com ótimos RPGs.</wonderswancolor.longdescription>
+    <wonderswancolor.nameLabel>Wonderswan Color</wonderswancolor.nameLabel>
+    <wonderswancolor.shortdescription>1999  ·  Portátil 16-bit</wonderswancolor.shortdescription>
+    <wonderswancolor.sys_line1>Wonderswan</wonderswancolor.sys_line1>
+    <wonderswancolor.sys_line2>Color</wonderswancolor.sys_line2>
+    <x68000.longdescription>Potente computador de 16/32-bit da Sharp com conversões fiéis de sucessos do Arcade.</x68000.longdescription>
+    <x68000.nameLabel>X68000</x68000.nameLabel>
+    <x68000.shortdescription>1987  ·  Computador 24-bit</x68000.shortdescription>
+    <x68000.sys_line2>X68000</x68000.sys_line2>
+    <zx81.longdescription>Computador britânico pioneiro da Sinclair de baixo custo com 1KB de memória RAM.</zx81.longdescription>
+    <zx81.nameLabel>SINCLAIR ZX-81</zx81.nameLabel>
+    <zx81.shortdescription>1980  ·  Computador 8-bit</zx81.shortdescription>
+    <zx81.sys_line2>ZX-81</zx81.sys_line2>
+    <zxspectrum.longdescription>Lendário microcomputador da Sinclair que marcou a indústria de jogos britânica.</zxspectrum.longdescription>
+    <zxspectrum.nameLabel>Sinclair ZX Spectrum</zxspectrum.nameLabel>
+    <zxspectrum.shortdescription>1982  ·  Computador 8-bit</zxspectrum.shortdescription>
+    <zxspectrum.sys_line1>Sinclair</zxspectrum.sys_line1>
+    <zxspectrum.sys_line2>ZX Spectrum</zxspectrum.sys_line2>
+  </variables>
+</theme>

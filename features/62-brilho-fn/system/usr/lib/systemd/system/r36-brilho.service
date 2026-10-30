@@ -1,0 +1,16 @@
+[Unit]
+Description=Aplica o brilho salvo da tela do R36S (e a chave r36-brilho-original)
+# Sem After=emuelec-autostart.service: o autostart so termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o mount_romfs.sh montar /storage/roms (ate 20 s); o autostart grava o
+# brilho de fabrica no lcdbl antes de chamar o mount_romfs.sh, entao o nivel salvo entra
+# por cima dele.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/brilho-aplica boot
+RemainAfterExit=yes
+TimeoutStartSec=60
+
+[Install]
+WantedBy=emuelec.target

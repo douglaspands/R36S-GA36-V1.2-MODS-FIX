@@ -6,14 +6,19 @@ do aparelho que não se deduzem do código.
 
 ## Regras de trabalho
 
-- **Shell:** comandos com caminhos relativos à raiz do projeto, um por chamada,
-  sem `cd` e sem encadear com `&&` ou `;`. Lógica longa vai num script temporário
-  rodado numa chamada só.
+- **Shell e modo auto:** comandos com caminhos relativos à raiz do projeto, um por
+  chamada, sem `cd`, sem encadear com `&&` ou `;` e sem pipes complexos. O harness
+  deve usar comandos prefix-matchable permitidos pelo modo auto: proibido usar laços
+  (`for`, `while`), substituições (`$(...)`, backticks) ou variáveis (`$VAR`).
+  Para ler ou alterar arquivos, use ferramentas nativas do harness (`read_file`,
+  `edit_file`, `write_file`). Lógica longa ou iterações vão num script Python executado
+  em chamada única.
 - **Sem sudo**, em nenhuma forma, nem indireta (`./flash.sh --device` chama
   `sudo dd`). Para validar uma gravação, use `./flash.sh --target-file`. O que
   precisar de root ou do cartão real vira instrução para o usuário rodar.
 - **Python via uv:** `uv run`, `uv add`, `uv sync`. Nada de `pip`, venv manual ou
-  `python3` direto. Testes: `uv run python -I -m unittest discover -s tests`.
+  `python3` direto (se `uv` não estiver acessível na sandbox, fallback para `python3 -I`).
+  Testes: `uv run python -I -m unittest discover -s tests`.
 - **Uma branch por change:** cada change OpenSpec ganha uma branch própria criada
   a partir da `main` no início do `/opsx:apply`, com o nome da change. Merge e
   push só a pedido.
@@ -82,21 +87,94 @@ do aparelho que não se deduzem do código.
   e em `video_shader_dir/presets` (`/storage/shaders/presets/`). Os scripts estão
   no SYSTEM; leia-os com `mcopy` e `unsquashfs -cat` na imagem do build, sem
   montar. Veja a Decisão 11 na `design.md` da change `shader-gba-vivo-r36s`.
+- **Idioma do RetroArch:** o `/usr/lib/r36/idioma-aplica` (feature
+  `56-retroarch-ajustes`), chamado pelo `emuelecRunEmu.sh` ao lado do
+  `shaderset-aplica`, lê `system.language` do `emuelec.conf` e `Language` do
+  `es_settings.cfg` e grava `user_language` no `retroarch.cfg`
+  (`pt_BR`=7, `pt_PT`=8, `en_US`/`en_GB`=0, `es_ES`=3, `fr_FR`=2, `de_DE`=4,
+  `it_IT`=5; números da enumeração `RETRO_LANGUAGE_*`, conferidos no `retroarch`
+  1.17.0 do SYSTEM). **Só ajusta quando o idioma do EmuELEC muda** desde o último
+  jogo: o valor de **cada fonte** fica em duas linhas de
+  `/storage/.config/retroarch/r36-idioma` (p8), cada fonte é comparada com o próprio
+  valor, a que mudou vale e o `emuelec.conf` vence se as duas mudaram (gravar o par
+  atual evita oscilar entre fontes divergentes). Uma escolha feita no menu do
+  RetroArch vale até a próxima troca no EmuELEC. No caminho comum só lê três arquivos,
+  sem processo novo nem escrita no SD. Idioma fora da tabela não mexe no
+  `retroarch.cfg`. Onde o ES grava a troca de idioma pelo menu (`emuelec.conf` ou só
+  `es_settings.cfg`) ainda não foi visto no aparelho (task 1.1 da change
+  `retroarch-idioma-do-emuelec`).
+- **Idioma do build:** `./build.sh --idioma <código>` (padrão **`en_US`**; um
+  `./build.sh` sem argumento sai em inglês, e português pede `--idioma pt_BR`) troca
+  `system.language`, `Language` e `user_language` nas cópias em `work/`; os arquivos da
+  feature 10 no repositório ficam em `pt_BR`. O idioma entra no nome da imagem
+  (`<prefixo>_<idioma>_build_<timestamp>[-test].img.xz`, `en-us`/`pt-br`), no manifest
+  (`"language"`) e no `R36-BUILD.txt` (`idioma:`); o diretório de saída continua
+  `<timestamp>[-test]`. Só sai sem idioma se `--features` não traz os arquivos de idioma
+  e `--idioma` não foi passado (ou com `--no-features`). Os builds para o aparelho do
+  usuário (criança que lê português) são `./build.sh --idioma pt_BR`.
+- **Localização da interface (ES):** a feature `10-ptbr-sao-paulo` fornece os
+  catálogos completos `pt_BR` e `es_MX` (`.po` e `.mo` compilados) em
+  `/usr/config/emuelec/configs/locale/` (SYSTEM), traduzindo 100% das mensagens do
+  EmulationStation sem fallback órfão em inglês. Preserva termos técnicos gamer em
+  inglês (*Save State*, *Core*, *Shader*, *Bezel*, *BIOS*, *ROMs*, *RetroAchievements*,
+  *Scraper*, *Hotkey*, *Netplay*, *Rewind*) e formata menus de ordenação e diálogos
+  concisamente para caber na resolução de 640x480 (3.5").
+- **Tema Epic Cody ML:** o tema padrão do sistema é o `Epic Cody ML` (feature
+  `50-temas-extras`), instalado sob `.config/emulationstation/themes/Epic Cody ML`
+  (p8), substituindo o `Epic Cody` upstream para poupar ~180 MiB. Desacopla os textos de
+  todos os consoles em variáveis `${sistema.*}` lidas de `_languages/` (`pt-br.xml`,
+  `es-latam.xml` e `en.xml`). O seletor `<subset name="language">` traz `pt-br` como
+  primeira opção, ativando português nativamente no primeiro boot sem exigir ajuste
+  manual.
 - **Ordem dos presets automáticos:** em cada pasta de busca o RetroArch tenta
   jogo, pasta do conteúdo (`<core>/gba.glslp`, para ROMs em `roms/gba`) e só
   depois core (`<core>/<core>.glslp`). Um preset por pasta salvo pelo menu passa
   na frente do que o `r36-shader-gba-prepara` cria. A linha `Specific shader
   preset found at` do `emuelec.log` (p8, `.config/emuelec/logs/`, legível sem
   root) diz qual valeu; o log é sobrescrito a cada jogo.
+- **Shaders do GB e do GBC:** a feature `55-shaders-gb-gbc` liga o `gb-modern-dmg` e o
+  `gbc-modern-remaster` por padrão com o `r36-shader-gb-gbc-prepara.service`
+  (`After=r36-shader-gba-prepara.service`: os dois escrevem no `emuelec.conf` e montam
+  `/tmp/shaders`, então rodam em série). Como `gb` e `gbc` dividem os cores (e `mGBA`,
+  `VBA-M` e `VBA Next` também servem o `gba`), os presets são **por pasta de conteúdo**
+  (`<Core>/gb.glslp`, `<Core>/gbc.glslp`), nunca `<Core>/<Core>.glslp`, que valeria
+  também para o GBA. Chaves na p1: `r36-gb-sem-shader` e `r36-gbc-sem-shader`. As opções
+  de cor do Gambatte vão em `config/Gambatte/gb.opt` (`gambatte_gb_colorization =
+  "disabled"`) e `gbc.opt` (`gambatte_gbc_color_correction = "disabled"`), só se a chave
+  não existe; um `.opt` por pasta substitui o `Gambatte.opt` global naquela pasta, então
+  um `.opt` novo herda o `Gambatte.opt` (sem a chave de cor). Não
+  confirmado no aparelho: se o RetroArch 1.17 acha o preset por pasta com ROM em `.zip`
+  (os `es_systems.cfg` de gb e gbc listam `.zip` e `.7z`; não se sabe se o core abre o
+  arquivo direto ou se o RetroArch o extrai para outra pasta); o `--set-shader`
+  do `shaderset-aplica` cobre o caso. Confira pelo `Specific shader preset found at` do
+  `emuelec.log`.
 - **Vídeo e som no RetroArch:** contexto `fbdev_mali` (o vsync depende só do
   driver da Mali) e áudio `sdl2` síncrono (`audio_sync` e `audio_rate_control`
   ligados na base; a feature `46-audio` sobe `audio_latency` de 64 para 96 e baixa
   `audio_resampler_quality` de 2 para 1 contra os pipocos). `video_threaded`
   tem de ficar `true`: trocar pelo menu trava o aparelho, o RetroArch grava o
   `retroarch.cfg` na hora, e sem a thread o som fica ruim.
+- **Save states e miniaturas:** o ES lê `<rom>.state<N>` e `<rom>.state<N>.png` em
+  `/storage/roms/savestates/<sistema>/` (sem `es_savestates.cfg`; o binário cria a
+  pasta com `mkdir` sem `-p`). Com `sort_savestates_enable = "true"` (fábrica) o
+  RetroArch grava numa subpasta com o nome do core e o ES não vê; a feature 10 e o
+  `retroarch-prepara` põem `"false"`. O ES passa o save state depois do
+  `--controllers`, na ordem ` -autosave <0|1> -state_slot <X> -state_file "<caminho>"`
+  ou só ` -autosave 1` (slot Auto); a cópia do `emuelecRunEmu.sh` corta isso do
+  `CONTROLLERCONFIG` e põe o slot em `SNAPSHOT` (`"0"` no slot Auto, porque o
+  `setsettings.sh` desliga `savestate_auto_load` quando `SNAPSHOT` é vazio). Se um
+  slot escolhido carrega mesmo o arquivo `.state<N>` (e não o `.state.auto`) só se
+  confirma no aparelho.
+- **Serviços fora do boot:** a `41-servicos-enxutos` tira os links de
+  `systemd-timesyncd`, `systemd-timesyncd-setup` e `pulseaudio` (além de IR e cron);
+  as units ficam. O bloco de netplay do `emuelecRunEmu.sh` só roda com
+  `--host`/`--connect`/`--netplaymode`. As chaves de rede, Bluetooth, atualização e
+  rewind do `emuelec.conf` (feature 10) só valem numa p8 nova (`--wipe-storage`).
 - **Logs de diagnóstico sob chave:** os logs de áudio (`r36-audio.log`,
-  `r36-audio-dac.log`), de bateria (`r36-bateria.log`) e de shader
-  (`r36-shader-gba.log`, também a linha por jogo do `shaderset-aplica`), do
+  `r36-audio-dac.log`), de bateria (`r36-bateria.log`), de brilho (`r36-brilho.log`) e
+  de shader (`r36-shader-gba.log`, também a linha por jogo do `shaderset-aplica`), dos
+  shaders do GB/GBC (`r36-shader-gb-gbc.log`), de idioma (`r36-idioma.log`, uma linha
+  por jogo do `idioma-aplica`), do
   `r36-retroarch.log` (correção do `retroarch.cfg`) só são gravados na p1 com o arquivo vazio `r36-diagnostico`
   na raiz dela (o registro térmico fica fora). Ao pedir um desses logs ao usuário,
   lembre-o de criar a chave e religar antes de reproduzir o problema. Logs antigos
@@ -125,9 +203,35 @@ do aparelho que não se deduzem do código.
   `udt_joystick` carregar, bem depois do início do serviço: o `fn-remapeia` espera por
   ele até 60 s (`TimeoutStartSec=120`) e, se não vier, sai com 0 e grava
   `modo=sem-fn_key`. No
-  EmulationStation o FN fica sem função, **reservado** para funções futuras (brilho):
-  nenhuma feature traz `es_input.cfg` com a entrada `id="10"` do `micro_gamepad`
-  (`tests/test_fn.py` garante).
+  EmulationStation o FN sozinho fica sem função: nenhuma feature traz `es_input.cfg`
+  com a entrada `id="10"` do `micro_gamepad` (`tests/test_fn.py` garante). O FN + D-pad
+  é lido por fora do ES, pelo `brilho-leitor` (feature `62-brilho-fn`).
+- **Brilho da tela:** o backlight é o `/sys/devices/virtual/disp/disp/attr/lcdbl`
+  (0 a 255; escala da base `(nível*255+50)/100`). No boot ele é gravado duas vezes pela
+  base, as duas antes de a p1 montar: o `lsb_release` (o `show-version.service`, no
+  `basic.target`) grava 204, e o `emuelec_autostart.sh` (l.54-56) grava o
+  `brightness.level` do `emuelec.conf` antes de chamar o `mount_romfs.sh`. O
+  `udt_pwr_events.sh` zera o `lcdbl` ao suspender e o restaura do `emuelec.conf` ao
+  acordar; o `emuelecRunEmu.sh` só copia o `brightness.level` para o `screen_brightness`
+  do `retroarch.cfg`. A feature `62-brilho-fn` guarda o nível em
+  `r36-brilho.level` (p8, ao lado do `emuelec.conf`; o `emuelec.conf` não serve, o ES o
+  regrava), com piso 10, passo 5, teto 100 e padrão 80, e o `/usr/lib/r36/brilho-aplica`
+  é o único que lê e grava esse nível (`aplica`, `ajusta +|-`, `salva`, `padrao`,
+  `boot`); script novo que mexa no `lcdbl` deve chamá-lo. O `r36-brilho.service` espera
+  a p1 montar (ordem certa sem `After=`) e aplica o nível; o arquivo
+  `r36-brilho-original` na raiz da p1 apaga o nível salvo a cada boot (volta a 80). O
+  `udt_pwr_events.sh` (feature 46) chama `brilho-aplica aplica` logo depois de restaurar
+  o `lcdbl` no ramo de acordar.
+- **D-pad e FN no `evtest`:** o `udt_joystick` cria o dispositivo de entrada
+  `micro_gamepad` (e um `udt_keyboard`) só no `insmod` da l.210 do
+  `emuelec_autostart.sh`; o número do `eventN` se acha pelo nome em
+  `/proc/bus/input/devices`. O FN remapeado chega como `code 316 (BTN_MODE)`. O
+  `brilho-leitor` aceita o D-pad como `BTN_DPAD_UP/DOWN`, `KEY_UP/DOWN` ou `ABS_HAT0Y`
+  (-1 cima, 1 baixo, 0 solta); a forma real ainda não foi vista no aparelho (o
+  `r36-brilho.log`, com `r36-diagnostico`, a registra). Pela numeração do
+  `micro_gamepad.cfg` (FN = botão 10, D-pad = 13 a 16) a hipótese é `BTN_DPAD_*`. O
+  reset do brilho é FN + clique do L3: pela numeração (L3 = botão 11) a hipótese é
+  `BTN_THUMBL` (317), aceito também pelo código; o log registra o que o aparelho emite.
 - **Cadeia de ganho do som:** o codec é o `sunxi-pcm-codec` (A33). O ganho de
   saída é um só, analógico: o `speaker volume control` (0 a 63, sem dB) e o
   `Headphone_Volume_Control` do codec andam juntos. O FEX traz
@@ -162,7 +266,11 @@ do aparelho que não se deduzem do código.
   uma réplica numérica em `openspec/changes/shader-gba-vivo-r36s/verificacao/`
   (`uv run --with pillow --with numpy python -I replica.py ...`). Tempo de quadro
   e precisão `mediump` do Mali-400 só se medem no aparelho. Exemplos para o
-  usuário olhar vão em `var/` (no `.gitignore`).
+  usuário olhar vão em `var/` (no `.gitignore`). As capturas de GB/GBC saem do
+  `~/AppImages/retroarch.appimage` com config própria (`--config`) e
+  `video_gpu_screenshot = "false"` (quadro do core em 160x144); o PC não tem o Gambatte,
+  então elas usam o mGBA com modelo fixo, paleta `Grayscale` e sem correção de cor (veja
+  `openspec/changes/shaders-gb-gbc-r36s/verificacao/`).
 - **Imagem base:** `base/R36S GA36-MB V1.2-20260416 - Emuelec - No ROMS.img`
   (sha256 em `config/base.toml`), do post
   <https://www.reddit.com/r/R36S/comments/1w2i8em/r36s_ga36mb_v1220260416_emuelec_no_roms/>.

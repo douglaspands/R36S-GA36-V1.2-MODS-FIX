@@ -1,0 +1,182 @@
+#!/bin/sh
+# Prepara os shaders gb-modern-dmg (Game Boy) e gbc-modern-remaster (Game Boy Color) como
+# padrão dos jogos de GB e GBC, no mesmo molde do shader-gba-prepara (feature 54):
+#  1. Atualiza, no mesmo arquivo, a cópia de cada shader na p8 que difere da do SYSTEM (o
+#     rsync --ignore-existing do emuelec_autostart.sh nunca a atualiza). Se /tmp/shaders não
+#     estiver montado (o kernel não tem overlayfs), monta /storage/shaders ali por bind.
+#  2. Liga cada shader como o EmulationStation liga: gb.shaderset e gbc.shaderset no
+#     emuelec.conf, se a chave não existir (uma escolha do usuário, inclusive none, vale).
+#  3. Cria, se faltar, o preset automático do RetroArch por pasta de conteúdo,
+#     <Core>/gb.glslp e <Core>/gbc.glslp, em config/ e na pasta do retroarch.cfg, para os
+#     cores que o es_systems.cfg lista para gb e gbc. Por pasta, e não por core
+#     (<Core>/<Core>.glslp), porque os mesmos cores servem GB e GBC, e mGBA, VBA-M e VBA Next
+#     também o GBA. O RetroArch tenta jogo, pasta do conteúdo e só depois core, então
+#     roms/gb e roms/gbc pegam o preset deles e roms/gba continua no da feature 54. Um preset
+#     que já existe, inclusive um que o usuário salvou, nunca é sobrescrito.
+#  4. Opções de cor do Gambatte por pasta de conteúdo: config/Gambatte/gb.opt com
+#     gambatte_gb_colorization = "disabled" (os 4 cinzas puros, que o shader leva aos 4 tons)
+#     e config/Gambatte/gbc.opt com gambatte_gbc_color_correction = "disabled" (RGB555 cru,
+#     sem a correção que lava as cores), só se a chave não estiver no arquivo. Um .opt que
+#     falta nasce como cópia do Gambatte.opt global (sem a chave), porque o .opt da pasta
+#     substitui o global; um .opt que já existe nunca é reescrito além de acrescentar a chave.
+#  5. Chaves para desligar: um arquivo vazio r36-gb-sem-shader ou r36-gbc-sem-shader na raiz
+#     da p1 (R36-ROMS, pelo PC) desfaz os passos 2 e 3 do sistema (só o que este script
+#     criou). As opções do passo 4 ficam: a cor crua não depende do shader.
+# Com o arquivo vazio r36-diagnostico na raiz da p1, deixa o resultado em
+# r36-shader-gb-gbc.log na raiz da p1, legível pelo PC. Sem a chave não grava log.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+SHARE="$ROOT/usr/share/common-shaders"
+P8="$ROOT/storage/shaders"
+RADIR="$ROOT/storage/.config/retroarch"
+CONFIG="$RADIR/config"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+ROMS="$ROOT/storage/roms"
+LOG="$ROMS/r36-shader-gb-gbc.log"
+DIAG="$ROMS/r36-diagnostico"
+# Sistema e shader, um par por linha
+SHADERS="gb gb-modern-dmg
+gbc gbc-modern-remaster"
+# Cores de gb e gbc no es_systems.cfg, com o nome de pasta que o RetroArch grava em config/
+CORES="Gambatte
+Gearboy
+SameBoy
+TGB Dual
+mGBA
+VBA-M
+VBA Next"
+
+[ -f "$SHARE/gb/gb-modern-dmg.glsl" ] || [ -f "$SHARE/gbc/gbc-modern-remaster.glsl" ] || exit 0
+
+linhas() { grep -v '^[[:space:]]*$' "$1" | sort -u; }
+registro() { [ -n "$LOGA" ] && printf '%s\n' "$1" >> "$LOG"; }
+
+# 1. Cópia velha na p8, regravada no mesmo arquivo (apagar com o overlay montado deixaria a
+# pasta invisível em /tmp/shaders até o próximo boot). Não cria cópia que não existe.
+VELHAS=
+for par in gb/gb-modern-dmg gbc/gbc-modern-remaster; do
+    for ext in glsl glslp; do
+        if [ -f "$SHARE/$par.$ext" ] && [ -f "$P8/$par.$ext" ] && ! cmp -s "$SHARE/$par.$ext" "$P8/$par.$ext"; then
+            cat "$SHARE/$par.$ext" > "$P8/$par.$ext" && VELHAS="$VELHAS $par.$ext"
+        fi
+    done
+done
+# 1b. /tmp/shaders sem overlay: o bind da p8 faz o papel do overlay (lista do "SHADER SET" do
+# ES e caminho do --set-shader). O serviço roda depois do do GBA, que já costuma ter montado.
+if [ -z "$ROOT" ] && ! grep -q ' /tmp/shaders ' /proc/mounts; then
+    mkdir -p /tmp/shaders && mount -o bind /storage/shaders /tmp/shaders && BIND=sim
+fi
+
+# As chaves ficam na p1, que o mount_romfs.sh monta dentro do emuelec-autostart: espera a
+# montagem (até 20 s) em vez de ordenar o serviço depois dele, o que trava o boot. Sem p1
+# depois disso, segue sem chave: o padrão é shader ligado.
+MONTADA=
+if [ -z "$ROOT" ]; then
+    i=0
+    until mountpoint -q /storage/roms 2>/dev/null; do
+        [ "$i" -ge 20 ] && break
+        sleep 1
+        i=$((i + 1))
+    done
+    mountpoint -q /storage/roms 2>/dev/null && MONTADA=sim
+elif [ -d "$ROMS" ]; then
+    MONTADA=sim
+fi
+# O log só existe com a chave r36-diagnostico na p1 (o log antigo fica como está sem ela)
+LOGA=
+[ -n "$MONTADA" ] && [ -e "$DIAG" ] && LOGA=sim
+[ -n "$LOGA" ] && : > "$LOG"
+registro "r36-shader-gb-gbc-prepara $(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"
+[ -n "$VELHAS" ] && registro "copia velha na p8 atualizada com a do SYSTEM:$VELHAS"
+[ -n "$BIND" ] && registro "/tmp/shaders sem overlay: /storage/shaders montado ali por bind"
+if [ -n "$LOGA" ] && [ -z "$ROOT" ]; then
+    for arq in gb/gb-modern-dmg.glslp gbc/gbc-modern-remaster.glslp; do
+        if [ -f "/tmp/shaders/$arq" ]; then
+            registro "/tmp/shaders/$arq visivel (lista do ES)"
+        else
+            registro "AVISO: /tmp/shaders/$arq nao visivel"
+        fi
+    done
+fi
+
+# 2 e 3 (ou o desfazer, com a chave) para um sistema
+prepara() {
+    sis=$1
+    nome=$2
+    [ -f "$SHARE/$sis/$nome.glsl" ] || return 0
+    ref="#reference \"/usr/share/common-shaders/$sis/$nome.glslp\""
+    setline="$sis.shaderset=$sis/$nome.glslp"
+    desligado=
+    if [ -e "$ROMS/r36-$sis-sem-shader" ]; then
+        desligado=sim
+        registro "chave r36-$sis-sem-shader encontrada: shader do $sis desligado"
+    fi
+
+    # 2. <sistema>.shaderset no emuelec.conf
+    if [ -f "$EMUCONF" ]; then
+        if [ -n "$desligado" ]; then
+            if grep -qxF "$setline" "$EMUCONF"; then
+                grep -vxF "$setline" "$EMUCONF" > "$EMUCONF.r36tmp" && cat "$EMUCONF.r36tmp" > "$EMUCONF"
+                rm -f "$EMUCONF.r36tmp"
+                registro "emuelec.conf: $setline removida"
+            fi
+        elif grep -q "^$sis\.shaderset=" "$EMUCONF"; then
+            registro "emuelec.conf: $sis.shaderset ja existe ($(grep "^$sis\.shaderset=" "$EMUCONF" | head -1)), mantida"
+        else
+            # garante quebra de linha no fim antes de acrescentar
+            [ -n "$(tail -c1 "$EMUCONF")" ] && printf '\n' >> "$EMUCONF"
+            printf '%s\n' "$setline" >> "$EMUCONF" && registro "emuelec.conf: $setline criada"
+        fi
+    else
+        registro "emuelec.conf ausente: so os presets do $sis"
+    fi
+
+    # 3. Presets automáticos por pasta de conteúdo
+    printf '%s\n' "$CORES" | while IFS= read -r core; do
+        for base in "$CONFIG" "$RADIR"; do
+            preset="$base/$core/$sis.glslp"
+            if [ -n "$desligado" ]; then
+                if [ -f "$preset" ] && [ "$(linhas "$preset")" = "$ref" ]; then
+                    rm -f "$preset" && registro "preset $core/$sis.glslp removido de ${preset#"$ROOT"}"
+                fi
+            elif [ ! -e "$preset" ]; then
+                mkdir -p "$base/$core" && printf '%s\n' "$ref" > "$preset" &&
+                    registro "preset $core/$sis.glslp criado em ${preset#"$ROOT"}"
+            fi
+        done
+    done
+}
+
+printf '%s\n' "$SHADERS" | while read -r sis nome; do
+    prepara "$sis" "$nome"
+done
+
+# 4. Opções de cor do Gambatte por pasta de conteúdo, sem mexer numa chave que já existe
+garante_opcao() {
+    arq=$1
+    chave=$2
+    valor=$3
+    if [ -f "$arq" ] && grep -q "^[[:space:]]*$chave[[:space:]]*=" "$arq"; then
+        registro "${arq#"$ROOT"}: $chave ja existe ($(grep "^[[:space:]]*$chave[[:space:]]*=" "$arq" | head -1)), mantida"
+        return 0
+    fi
+    mkdir -p "${arq%/*}" || return 0
+    # .opt novo: com global_core_options = "false" e game_specific_options = "true", o RetroArch
+    # lê só o .opt da pasta de conteúdo, e não o Gambatte.opt global. Parte de uma cópia do global
+    # (sem a chave, que o passo abaixo grava), para as escolhas do usuário valerem em roms/gb e gbc.
+    global_opt="$CONFIG/Gambatte/Gambatte.opt"
+    if [ ! -e "$arq" ] && [ "$arq" != "$global_opt" ] && [ -s "$global_opt" ]; then
+        if grep -v "^[[:space:]]*$chave[[:space:]]*=" "$global_opt" > "$arq.r36tmp"; then
+            cat "$arq.r36tmp" > "$arq" && registro "${arq#"$ROOT"}: criado a partir do Gambatte.opt global"
+        fi
+        rm -f "$arq.r36tmp"
+    fi
+    [ -s "$arq" ] && [ -n "$(tail -c1 "$arq")" ] && printf '\n' >> "$arq"
+    printf '%s = "%s"\n' "$chave" "$valor" >> "$arq" && registro "${arq#"$ROOT"}: $chave = \"$valor\" criada"
+}
+garante_opcao "$CONFIG/Gambatte/gb.opt" gambatte_gb_colorization disabled
+garante_opcao "$CONFIG/Gambatte/gb.opt" gambatte_mix_frames mix
+garante_opcao "$CONFIG/Gambatte/gbc.opt" gambatte_gbc_color_correction disabled
+garante_opcao "$CONFIG/Gambatte/gbc.opt" gambatte_mix_frames mix
+exit 0

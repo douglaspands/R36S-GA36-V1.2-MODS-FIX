@@ -422,17 +422,29 @@ case ${PLATFORM} in
 		;;
 esac
 
-if [[ "${arguments}" == *"-state_slot"* ]] && [[ "${arguments}" == *"-autosave"* ]]; then
-    CONTROLLERCONFIG="${CONTROLLERCONFIG%% -state_slot*}"  # until -state is found
-    SNAPSHOT="${arguments#*-state_slot *}" # -state_slot x -autosave 1
-    SNAPSHOT="${SNAPSHOT%% -*}"  # we don't need -autosave 1 we asume its always 1 if a state is loaded
-else
-    CONTROLLERCONFIG="${CONTROLLERCONFIG%% --*}"  # until a -- is found
-    SNAPSHOT=""
+# R36: o ES manda o save state depois do --controllers, na ordem -autosave <0|1>
+# -state_slot <X> -state_file "<caminho>", ou só -autosave 1 (slot Auto); o parser da base
+# esperava -state_slot antes e deixava o -autosave dentro do CONTROLLERCONFIG
+CONTROLLERCONFIG="${CONTROLLERCONFIG%% -autosave *}"
+CONTROLLERCONFIG="${CONTROLLERCONFIG%% -state_slot *}"
+CONTROLLERCONFIG="${CONTROLLERCONFIG%% -state_file *}"
+CONTROLLERCONFIG="${CONTROLLERCONFIG%% --*}"  # until a -- is found
+SNAPSHOT=""
+if [[ "${arguments}" == *" -state_slot "* ]]; then
+    SNAPSHOT="${arguments##* -state_slot }"
+    SNAPSHOT="${SNAPSHOT%% *}"
+elif [[ "${arguments}" == *" -autosave 1"* ]]; then
+    # R36: com SNAPSHOT vazio o setsettings.sh desliga o savestate_auto_load; "0" o mantém
+    SNAPSHOT="0"
 fi
+# R36: o ES cria a pasta do sistema sem -p, o que falha sem /storage/roms/savestates
+mkdir -p "/storage/roms/savestates/${PLATFORM}"
 
 CORE=${EMU%%_*}
 
+# R36: sem rede no R36S; o bloco (e as 3 escritas sed -i no emuelec.conf) só roda com
+# argumento de netplay
+if [[ "${arguments}" == *"--host"* ]] || [[ "${arguments}" == *"--connect"* ]] || [[ "${arguments}" == *"--netplaymode"* ]]; then
 # Netplay
 # make sure the ip and port are blank
 set_ee_setting "netplay.server.ip" "disable"
@@ -475,6 +487,7 @@ if [[ ${NETPLAY} != "No" ]]; then
     fi
 fi
 # End netplay
+fi
 
 SHADERSET=$(setsettings.sh "${PLATFORM}" "${ROMNAME_SHADER}" "${CORE}" --controllers="${CONTROLLERCONFIG}" --snapshot="${SNAPSHOT}")
 #echo "${SHADERSET}" # Only needed for debug
@@ -483,6 +496,10 @@ if [ -x /usr/lib/r36/shaderset-aplica ]; then
     R36_SHADER=$(/usr/lib/r36/shaderset-aplica "${PLATFORM}" "${ROMNAME_SHADER}")
     # R36: o RetroArch 1.17 ignora o video_shader do cfg; o preset entra por --set-shader
     [ -n "${R36_SHADER}" ] && SHADERSET="${R36_SHADER}"
+fi
+# R36: o menu do RetroArch segue o idioma do EmuELEC (só quando ele muda desde o último jogo)
+if [ -x /usr/lib/r36/idioma-aplica ]; then
+    /usr/lib/r36/idioma-aplica
 fi
 
 if [[ ${SHADERSET} != 0 ]]; then

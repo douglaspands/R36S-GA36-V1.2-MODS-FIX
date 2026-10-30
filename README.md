@@ -8,10 +8,12 @@ gera uma imagem nova, identificada pelo horário em que foi gerada.
 
 O aparelho é feito para **crianças de 7 anos brincarem** (o filho de quem mantém
 este repositório). Isso orienta as escolhas das features: tudo na tela no idioma
-dele (português do Brasil no sistema, no EmulationStation e no menu do RetroArch),
-porque ler na própria língua facilita muito a leitura de quem está aprendendo;
+dele (português do Brasil no sistema, no EmulationStation e no menu do RetroArch,
+com `./build.sh --idioma pt_BR`), porque ler na própria língua facilita muito a
+leitura de quem está aprendendo;
 menos avisos e animações no caminho entre ligar e jogar; imagem e som agradáveis
-(shader do GBA, sem o ghosting do LCD, áudio sem chiado); e menu simples. Ao
+(shaders do GBA, do Game Boy e do Game Boy Color, sem o ghosting do LCD, áudio sem
+chiado); e menu simples. Ao
 propor uma mudança, pergunte se ela ajuda uma criança dessa idade a achar e abrir
 um jogo sozinha.
 
@@ -67,8 +69,14 @@ A pasta `base/` e todas as imagens ficam fora do git.
 
 ## Gerar uma imagem
 
+**Idioma: o padrão é inglês.** Um `./build.sh` sem argumento gera a imagem em
+inglês (`en_US`) no EmuELEC, no EmulationStation e no menu do RetroArch. Para
+português do Brasil, passe `--idioma pt_BR`. Assim a imagem já sai no idioma de
+quem vai usar o aparelho, sem editar arquivos.
+
 ```bash
-./build.sh                    # cartão de 16 GB (15000 MiB), features habilitadas
+./build.sh                    # cartão de 16 GB (15000 MiB), features habilitadas, em inglês
+./build.sh --idioma pt_BR     # o mesmo, em português do Brasil
 ./build.sh --no-features      # imagem equivalente à de fábrica (teste de referência)
 ./build.sh --offline          # usa só o cache de downloads das features (sem rede)
 ./build.sh --test             # marca o build como imagem de teste (sufixo -test)
@@ -78,19 +86,49 @@ A pasta `base/` e todas as imagens ficam fora do git.
 O build roda como usuário comum, sem sudo, e leva cerca de 2 minutos. A saída
 fica em `out/<AAAAMMDD-HHMMSS>/`:
 
-- `r36s_ga36-mb_v1.2-20260416_build_<timestamp>.img.xz`: a imagem completa,
-  para gravar com Etcher ou `xz -dc ... | sudo dd`;
+- `r36s_ga36-mb_v1.2-20260416_<idioma>_build_<timestamp>.img.xz`: a imagem
+  completa, para gravar com Etcher ou `xz -dc ... | sudo dd`. O `<idioma>` é o
+  código em minúsculas com hífen: `en-us` no padrão, `pt-br` com `--idioma pt_BR`.
+  Um build sem idioma (`--no-features`) tem o nome
+  `r36s_ga36-mb_v1.2-20260416_build_<timestamp>.img.xz`;
 - `parts/*.img`: uma imagem por região, usadas pelo `./flash.sh`;
-- `manifest.json`: timestamp, tamanho do cartão, offsets, sha256 e features;
+- `manifest.json`: timestamp, idioma (`"language"`), tamanho do cartão, offsets,
+  sha256 e features;
 - `changes.txt`: o que cada feature adicionou, substituiu ou removeu.
 
 Com `--test`, o build é marcado como imagem de teste (intermediária, para
 experimentar uma ideia): a pasta vira `out/<timestamp>-test/` e a imagem
-`..._build_<timestamp>-test.img.xz`. O conteúdo da imagem não muda. O
+`..._<idioma>_build_<timestamp>-test.img.xz`. O conteúdo da imagem não muda. O
 `manifest.json` ganha `"test": true` e o `R36-BUILD.txt` ganha a linha
 `teste: sim`. O `./flash.sh` trata o build de teste como qualquer outro: ele
 aparece no menu e no `--list-builds` com o marcador `test`, e se indica com
 `--build <timestamp>-test`.
+
+### Idioma
+
+`--idioma <código>` escolhe o idioma de fábrica da imagem. Aceitos: `pt_BR`,
+`pt_PT`, `en_US` (padrão), `en_GB`, `es_ES`, `fr_FR`, `de_DE` e `it_IT`. O build
+troca três chaves nas cópias que monta em `work/`: `system.language` no
+`emuelec.conf`, `Language` no `es_settings.cfg` e `user_language` no
+`retroarch.cfg` (`en_US`/`en_GB` = `0`, `fr_FR` = `2`, `es_ES` = `3`, `de_DE` = `4`,
+`it_IT` = `5`, `pt_BR` = `7`, `pt_PT` = `8`). Os arquivos da feature
+`10-ptbr-sao-paulo` no repositório continuam em `pt_BR` e não são alterados.
+
+- Código fora da lista: o build para antes de gerar qualquer arquivo e mostra a
+  lista.
+- `--no-features --idioma ...`: erro (os arquivos vêm das features).
+- `--features` sem a `10-ptbr-sao-paulo` (por exemplo, para testar só a sua
+  feature): sem `--idioma`, o build sai sem idioma (nome sem idioma); com
+  `--idioma`, erro dizendo qual arquivo de configuração falta.
+- O idioma vale para uma p8 nova (`--wipe-storage`). Com `--keep-storage`, o
+  EmuELEC e o ES ficam no idioma que o cartão já tem, e o RetroArch o acompanha no
+  primeiro jogo (veja `idioma-aplica` na feature `56-retroarch-ajustes`).
+
+| Quero                     | Comando                       | Nome da imagem          |
+|---------------------------|-------------------------------|-------------------------|
+| inglês (padrão)           | `./build.sh`                  | `..._en-us_build_...`   |
+| português do Brasil       | `./build.sh --idioma pt_BR`   | `..._pt-br_build_...`   |
+| espanhol                  | `./build.sh --idioma es_ES`   | `..._es-es_build_...`   |
 
 ### Tamanho do cartão
 
@@ -160,8 +198,10 @@ então leva bem menos que gravar 15 GB).
 - Se o cartão já tinha a antiga moldura do Game Boy (feature removida) e foi
   gravado com `--keep-storage`, apague pelo PC na `R36-STORAGE`:
   `.config/retroarch/config/Gambatte/gb.cfg`, `gb.opt`, `gbc.cfg`, `gbc.opt` e
-  `shaders/presets/Gambatte/gb.glslp`, `gbc.glslp`. Com `--wipe-storage` não há
-  nada a fazer.
+  `shaders/presets/Gambatte/gb.glslp`, `gbc.glslp`. O `gb.opt` e o `gbc.opt` antigos
+  podem trazer a paleta verde e a correção de cor que a feature `55-shaders-gb-gbc`
+  desliga, e ela nunca muda uma opção que já está no arquivo; sem eles, o serviço
+  recria os dois no boot seguinte. Com `--wipe-storage` não há nada a fazer.
 
 ### Gravação parcial
 
@@ -201,12 +241,17 @@ que em muitos sistemas é um tmpfs pequeno.
 
 ## Features habilitadas
 
-- **`10-ptbr-sao-paulo`**: idioma `pt_BR` no sistema e no EmulationStation, fuso
-  `America/Sao_Paulo` e menu RGUI no RetroArch, que também fica em português do
-  Brasil (`user_language = "7"`, para a criança ler os menus na própria língua).
-  Numa p8 mantida com `--keep-storage` o idioma que ela já tem continua; para
-  trocar, Configurações > Interface do usuário > Idioma (Settings > User
-  Interface > Language). Também troca
+- **`10-ptbr-sao-paulo`**: idioma de fábrica no sistema, no EmulationStation e no
+  menu RGUI do RetroArch, fuso `America/Sao_Paulo`. Fornece catálogos completos de
+  tradução do EmulationStation para `pt_BR` e `es_MX` (`.po` e `.mo`), sem textos órfãos
+  em inglês, preservando termos técnicos gamer (*Save State*, *Core*, *Shader*, *Bezel*,
+  *BIOS*, *ROMs*, *RetroAchievements*) e ajustando textos para a tela de 3.5" (640x480).
+  Os arquivos da feature estão em `pt_BR` (`user_language = "7"`, para a criança ler os
+  menus na própria língua), mas o idioma da imagem é o de `./build.sh --idioma` (padrão
+  `en_US`; veja "Idioma" em "Gerar uma imagem"). Numa p8 mantida com `--keep-storage` o
+  idioma do EmuELEC que ela já tem continua, e o do RetroArch passa a segui-lo (feature
+  `56-retroarch-ajustes`); para trocar, Configurações > Interface do usuário >
+  Idioma (Settings > User Interface > Language). Também troca
   vários padrões de fábrica (cada um dá para voltar pelos menus):
   - proporção de tela "Core provided" (`global.ratio=core`) em vez de 4/3; para
     outra, use o menu do EmulationStation (Configurações de jogos > Proporção);
@@ -249,6 +294,26 @@ que em muitos sistemas é um tmpfs pequeno.
     recebe esse padrão; num cartão já gravado, desligue a opção no menu. Ao
     trocar a imagem base, reconfira a cópia: `tests/test_ptbr_controle.py` compara
     o script com o da base e só aceita essas diferenças.
+  - sem rede, Bluetooth, atualização e rewind no `emuelec.conf`
+    (`ee_ssh.enabled=0`, `controllers.bluetooth.enabled=0`, `updates.enabled=0`,
+    `global.netplay=0`, `global.rewind=0`). Fica no `/storage`, então só chega com
+    imagem nova ou `--wipe-storage`.
+  - save states com miniatura no EmulationStation: o `retroarch.cfg` traz
+    `sort_savestates_enable = "false"` (com `savestate_thumbnail_enable = "true"`),
+    então o RetroArch grava `<rom>.state` e `<rom>.state.png` direto em
+    `savestates/<sistema>/` da `R36-ROMS`, onde o ES procura. A cópia do
+    `emuelecRunEmu.sh` cria essa pasta antes de cada jogo Libretro, lê
+    `-autosave`/`-state_slot`/`-state_file` na ordem em que o ES os manda (a base
+    esperava a ordem inversa e deixava o `-autosave` grudado na configuração dos
+    controles) e só regrava as chaves `netplay.*` do `emuelec.conf` quando o jogo
+    abre com `--host`, `--connect` ou `--netplaymode` (antes eram 3 escritas no
+    cartão por partida).
+  - drivers de hardware que o R36S não tem em `"null"` no `retroarch.cfg`
+    (`wifi_driver`, `bluetooth_driver`, `microphone_driver`, `midi_driver`, com
+    `wifi_enabled = "false"`) e menus de rede, conquistas, IA, gravação, streaming,
+    rewind, atualizador e download de miniaturas ocultos. Num cartão com
+    `--keep-storage`, o `r36-retroarch-prepara` (feature `56-retroarch-ajustes`)
+    faz a mesma troca no boot.
 - **`20-controle-posicional`**: no RetroArch, os botões de face seguem a posição
   física (baixo = B, direita = A, cima = X, esquerda = Y) e o hotkey é o FN (o Select
   vale como hotkey só quando o FN não está remapeado).
@@ -275,8 +340,8 @@ gravado com `--wipe-storage` (com `--keep-storage` nada muda).
     Se o `fn_key` não aparecer, ou o driver recusar a escrita do código, o hotkey volta a ser o
     Select (`"8"`), e o menu nunca depende do FN. Para devolver o FN de fábrica e o
     hotkey ao Select, crie o arquivo vazio `r36-fn-original` na raiz da `R36-ROMS` e
-    religue. No EmulationStation o FN fica sem função, reservado para funções futuras
-    (como o brilho): nenhuma feature o mapeia no `es_input.cfg`.
+    religue. No EmulationStation o FN sozinho fica sem função (nenhuma feature o mapeia
+    no `es_input.cfg`); com o D-pad cima/baixo ele muda o brilho (`62-brilho-fn`).
     Teste no aparelho: abra um jogo e aperte FN + X (menu), FN + R (salvar estado) e
     Select + X (não abre o menu). O `fn_key` só aparece quando o driver do gamepad carrega,
     uns segundos depois do início do serviço, que espera até 60 s por ele; se ele não
@@ -307,8 +372,11 @@ As três seguintes são otimizações do sistema, cada uma desligável sozinha:
   swapfile de 300 MB sai da p8 e o `/storage/.config/swap.conf` desliga a
   recriação dele.
 - **`41-servicos-enxutos`**: deixam de subir no boot o controle remoto IR
-  (`lircd.socket`, `lircd`, `lircd-uinput`, `eventlircd`) e o `cron`. Só os links
-  de ativação saem; as units continuam no SYSTEM.
+  (`lircd.socket`, `lircd`, `lircd-uinput`, `eventlircd`), o `cron`, o relógio por
+  rede (`systemd-timesyncd` e `systemd-timesyncd-setup`, sem rede não há com quem
+  falar) e o `pulseaudio` (o som é ALSA; o `emustation-config` o parava segundos
+  depois do boot). Só os links de ativação saem; as units continuam no SYSTEM, e o
+  `rr_audio.sh` ainda religa o `pulseaudio` se alguém escolher esse backend.
 - **`42-roms-noatime`**: depois do autostart, `/storage/roms` (FAT32 da p1) é
   remontada com `noatime`, para ler ROMs sem escrever a data de acesso no cartão.
   Se `/storage/roms` não for ponto de montagem, nada acontece.
@@ -520,14 +588,14 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   fábrica (que continua sendo o padrão imutável). Para não sobrecarregar a partição
   `storage` (p8, ext4 com tamanho fixo), os temas são divididos entre o sistema e o
   cartão:
-  - **Na partição do sistema (`storage`, p8 ext4):** temas leves, ocupando cerca de 37 MiB:
+  - **Na partição do sistema (`storage`, p8 ext4):**
     - **Minimal EmuELEC** (em `.config/emulationstation/themes/Minimal EmuELEC`)
     - **Graphite OGA** (em `.config/emulationstation/themes/Graphite OGA`)
+    - **Epic Cody ML** (em `.config/emulationstation/themes/Epic Cody ML`, o tema padrão do sistema, versão 4:3 640x480 com catálogos multi-idioma em `_languages/` para Português do Brasil, Espanhol Latino e Inglês selecionáveis no menu de opções do tema, substituindo o tema original para poupar ~180 MiB na partição storage)
   - **Na partição de ROMs (`roms`, p1 FAT32):** temas mais ricos em mídia e espaço,
     instalados em `themes/` na raiz FAT32 (visíveis no aparelho em `/storage/roms/themes/`):
     - **Switch** (em `themes/Switch`)
     - **Crystal** (em `themes/Crystal`)
-    - **Epic Cody** (em `themes/Epic Cody`, tema 4:3 640x480 do CodyV59 adaptado para o RG351V)
   - Somam cerca de 553 MiB descompactados (limite de 700 MiB no `budget_mib`,
     conferido pelo build). Não entram no git: o build baixa cada um de um commit
     fixo, confere o sha256 e guarda em `work/cache/external/`. A primeira vez
@@ -626,6 +694,59 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     outros presets e outros shaders seus ficam. Consequência: edições suas no
     `gba-modern-remaster.glsl` dentro da p8 não sobrevivem ao boot.
 
+- **`55-shaders-gb-gbc`**: dois shaders de uma passada, leves para a Mali-400, para o
+  Game Boy e o Game Boy Color, com o mesmo filtro sharp-bilinear do GBA (nítido em
+  533x480, a área do GB na tela, sem cintilar).
+  - **`gb-modern-dmg` (Game Boy):** leva os 4 tons do Game Boy a uma paleta verde-oliva
+    de DMG-01 com os tons bem separados (o cinza claro não some mais no fundo, como na
+    paleta verde clássica) e desenha uma grade de matriz de pontos em que o vão entre
+    os pixels mostra o fundo verde-oliva, sem riscar o fundo de preto. Parâmetros no
+    menu do RetroArch (Shaders, Shader Parameters), com o padrão: `TONE SEPARATION`
+    0,50 (puxa cada tom para o seu nível); `S-CURVE Contrast` 0,20; `OLIVE WARMTH` 0,50
+    (mais quente ou mais frio, sem perder o verde); `PIXEL SOFTNESS` 0,05;
+    `DOT MATRIX GRID (0=Off)` 0,22; `BRIGHTNESS` 0.
+  - **`gbc-modern-remaster` (Game Boy Color):** o mesmo processamento de cor do
+    `gba-modern-remaster` (cor viva estilo SNES sem desbotar amarelo e pele e sem
+    estourar os claros), medido no GBC. Mesmos parâmetros e padrões do GBA, exceto
+    `PIXEL SOFTNESS` 0,05 (o pontilhado de 1 pixel dos jogos de GBC fica nítido).
+  - **Vêm ligados nos jogos de GB e GBC**, sem escolher nada no ES. O
+    `r36-shader-gb-gbc-prepara.service` roda no boot, antes do ES (e depois do serviço
+    do GBA), e acrescenta `gb.shaderset=gb/gb-modern-dmg.glslp` e
+    `gbc.shaderset=gbc/gbc-modern-remaster.glslp` ao `emuelec.conf` quando essas
+    chaves não existem. Também cria os presets automáticos do RetroArch **por pasta de
+    conteúdo**, `<Core>/gb.glslp` e `<Core>/gbc.glslp`, em `config/` e na pasta do
+    `retroarch.cfg`, para os cores de GB e GBC (`Gambatte`, `Gearboy`, `SameBoy`,
+    `TGB Dual`, `mGBA`, `VBA-M` e `VBA Next`): os mesmos cores servem os dois sistemas
+    (e três deles o GBA), e o RetroArch procura o preset do jogo, depois o da pasta
+    (`roms/gb`, `roms/gbc`) e só depois o do core, então cada sistema pega o seu e o
+    GBA continua com o `<Core>/<Core>.glslp` da `54-shaders-gba`. Uma escolha sua em
+    `gb.shaderset`/`gbc.shaderset` (inclusive `none`) e um preset que já existe nunca
+    são sobrescritos. Funciona com `--keep-storage`, porque nasce no boot.
+  - **Cor crua do Gambatte:** o serviço cria `config/Gambatte/gb.opt` com
+    `gambatte_gb_colorization = "disabled"` (os 4 cinzas, que o shader leva ao verde) e
+    `config/Gambatte/gbc.opt` com `gambatte_gbc_color_correction = "disabled"` (sem a
+    correção que lava e amarronza as cores), só quando a opção não está no arquivo. Uma
+    opção que você escolher pelo menu do core fica. Esses `.opt` por pasta valem no
+    lugar do `Gambatte.opt` global nos jogos de `roms/gb` e `roms/gbc`; por isso, um
+    `.opt` que falta nasce como cópia do `Gambatte.opt` da p8 (se existir), sem a chave
+    de cor, e depois recebe a chave. Um `gb.opt`/`gbc.opt` antigo da feature `51` (com
+    `gambatte_gb_colorization = "auto"` ou `gambatte_gbc_color_correction = "GBC only"`)
+    nunca é mudado: apague-o pelo PC para o serviço recriar.
+  - **Desligar:** crie um arquivo vazio `r36-gb-sem-shader` (Game Boy) ou
+    `r36-gbc-sem-shader` (Game Boy Color) na raiz da `R36-ROMS` (pelo PC). No boot
+    seguinte o serviço apaga só o que ele criou para aquele sistema (a linha
+    `<sistema>.shaderset` exata e os presets de uma linha) e não os recria; o outro
+    sistema continua ligado, e as opções do Gambatte ficam. Apagar o arquivo religa.
+  - **Diagnóstico:** com a chave `r36-diagnostico` na p1 (veja "Diagnóstico"), o
+    serviço deixa o que fez em `R36-ROMS/r36-shader-gb-gbc.log`.
+  - Os arquivos ficam em `/usr/share/common-shaders/gb/` e `/usr/share/common-shaders/gbc/`
+    (SYSTEM); uma cópia velha na p8 (`/storage/shaders/gb/`, `gbc/`) é regravada com a do
+    SYSTEM a cada boot, como no GBA.
+  - Medidas (réplica numérica sobre capturas de *Super Mario Land 2*, *Link's Awakening*,
+    *Pokémon Red*, *Super Mario Bros. Deluxe*, *Link's Awakening DX* e *Donkey Kong
+    Country*) em `openspec/changes/shaders-gb-gbc-r36s/verificacao/`; o tempo de quadro
+    na Mali-400 só se confere no aparelho.
+
 - **`56-retroarch-ajustes`**: ajustes do RetroArch, pensados para a criança jogar sem
   tropeçar em menus e avisos.
   - **Shader do ES:** o shader escolhido em "SHADER SET" (por jogo, sistema ou
@@ -634,6 +755,17 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     `retroarch.cfg` e passa o preset ao RetroArch por `--set-shader` (o RetroArch
     1.17 ignora o `video_shader` do cfg quando o jogo não tem preset automático,
     como no SNES). `none` abre sem shader. Vale também para o padrão do GBA.
+  - **Idioma do RetroArch segue o do EmuELEC:** antes de cada jogo, o
+    `idioma-aplica`, chamado pelo `emuelecRunEmu.sh`, lê o idioma do EmuELEC
+    (`system.language` do `emuelec.conf` e `Language` do `es_settings.cfg`) e grava o
+    `user_language` correspondente no `retroarch.cfg`. Só muda quando o idioma do
+    EmuELEC mudou desde o último jogo: o valor de cada fonte no último ajuste fica em
+    duas linhas de `/storage/.config/retroarch/r36-idioma`, e cada fonte é comparada
+    com o próprio valor (vale a que mudou; se as duas mudaram, o `emuelec.conf`). Uma
+    escolha feita direto no menu do RetroArch vale até a próxima troca no EmuELEC.
+    Idiomas que o RetroArch não traduz (basco, turco, chinês...) deixam o RetroArch
+    como está. Vale também num cartão gravado com `--keep-storage`: o primeiro jogo
+    acerta o idioma.
   - **Salvar pelo menu:** o `retroarch.cfg` de fábrica apontava
     `rgui_config_directory`, `savefile_directory`, `log_dir` e
     `osk_overlay_directory` para pastas que não existem (`/config`, `/saves`,
@@ -653,9 +785,18 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     controle (`notification_show_autoconfig = "false"`). Só chegam com uma p8 nova
     (`--wipe-storage`); com `--keep-storage` o valor que o cartão já tem continua, e
     tudo se muda pelo menu.
-  - Com `r36-diagnostico` na p1, o `r36-retroarch.log` mostra o que o serviço fez e
-    o `r36-shader-gba.log` ganha uma linha por jogo. O `gpSP.opt` chega ao cartão
-    com `--part system` ou `--keep-storage`.
+  - **Save states, drivers e menus num cartão já gravado:** no boot, o
+    `r36-retroarch-prepara` também troca, só se ainda forem os de fábrica,
+    `sort_savestates_enable` para `"false"`, os drivers de Wi-Fi, Bluetooth,
+    microfone e MIDI para `"null"` (`wifi_enabled` para `"false"`) e os oito itens
+    de menu de rede, gravação, streaming e rewind para `"false"`. Com a
+    `R36-ROMS` montada, cria `savestates/` e move os `*.state*` (estado e
+    miniatura) de `savestates/<sistema>/<core>/` para `savestates/<sistema>/`,
+    sem sobrescrever um arquivo de mesmo nome que já esteja lá (esse fica na
+    subpasta, e o `r36-retroarch.log` diz qual); a subpasta sai quando fica vazia.
+  - Com `r36-diagnostico` na p1, o `r36-retroarch.log` mostra o que o serviço fez, e
+    o `r36-shader-gba.log` e o `r36-idioma.log` ganham uma linha por jogo. O
+    `gpSP.opt` chega ao cartão com `--part system` ou `--keep-storage`.
 
 - **`58-ports-exec`**: copiar um port pelo PC e jogar. A p1 (FAT32) não guarda
   permissão de execução e pode estar montada com `noexec`, então o
@@ -745,12 +886,35 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   - Apagar o `ClassiCube.sh` do cartão não remove o jogo, porque o boot o
     recria. Para tirá-lo, desligue a feature e grave o `system` de novo.
 
+- **`62-brilho-fn`**: brilho da tela pelo FN. Com o FN apertado, D-pad cima sobe e
+  D-pad baixo desce o brilho, em passos de 5 (de 10 a 100; o piso de 10 impede a tela
+  de apagar). Segurando a seta o brilho continua andando, um passo a cada 0,2 s. Vale
+  no EmulationStation e em jogo. Sem o FN o D-pad funciona como sempre.
+  - **Nível salvo:** o nível escolhido fica em
+    `/storage/.config/emuelec/configs/r36-brilho.level` (p8), gravado uma vez ao soltar
+    a seta, e é aplicado no boot. O `brightness.level` do `emuelec.conf` só vale
+    enquanto esse arquivo não existe (o ES regrava o `emuelec.conf`). Um valor ruim no
+    arquivo (texto, fora de 10 a 100) volta ao padrão, 80.
+  - **Voltar ao padrão (80):** FN + clique do analógico esquerdo (L3), na hora (uma vez
+    por clique); ou o arquivo vazio `r36-brilho-original` na raiz da `R36-ROMS`, que
+    apaga o nível salvo a cada boot (apague-o para o ajuste voltar a ser lembrado).
+    Que o L3 chega como `BTN_THUMBL` (317) é hipótese pela numeração do
+    `micro_gamepad.cfg`, a confirmar no aparelho pelo `r36-brilho.log`.
+  - Depende do FN como `BTN_MODE` (feature `20-controle-posicional`): com
+    `r36-fn-original` na p1 o atalho não age, mas o nível salvo ainda vale no boot.
+  - Com `r36-diagnostico` na p1, o `r36-brilho.log` registra o dispositivo, a forma
+    em que o D-pad chegou (botão ou eixo) e os níveis aplicados e salvos.
+  - Os scripts e serviços ficam no SYSTEM: chegam ao cartão com `--part system`, e o
+    nível salvo na p8 sobrevive a `--keep-storage`.
+  - Teste no aparelho: no ES, FN + cima e FN + baixo mudam o brilho na hora; religue e
+    confira que o nível ficou; FN + clique do L3 volta a 80.
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 
 ### Diagnóstico
 
-Os logs de investigação de áudio, bateria e shader ficam desligados por padrão, para o
+Os logs de investigação de áudio, bateria, shader, idioma e brilho ficam desligados por padrão, para o
 aparelho não escrever na p1 a cada boot. Para ligá-los, crie um arquivo vazio
 `r36-diagnostico` na raiz da `R36-ROMS` (pelo PC, sem root) e ligue o aparelho:
 
@@ -759,10 +923,12 @@ touch /run/media/douglas/R36-ROMS/r36-diagnostico
 ```
 
 Com a chave, o aparelho grava na raiz da p1 `r36-audio.log` e `r36-audio-dac.log`
-(feature `46-audio`), `r36-bateria.log` (`48-bateria-percentual`) e
-`r36-shader-gba.log` (`54-shaders-gba`), com o mesmo conteúdo de sempre. Sem a chave,
-nenhum deles é criado nem alterado, e o som, o percentual da bateria e o shader
-funcionam do mesmo jeito. Os logs que já estão no cartão não são apagados pelo
+(feature `46-audio`), `r36-bateria.log` (`48-bateria-percentual`),
+`r36-shader-gba.log` (`54-shaders-gba`), `r36-shader-gb-gbc.log` (`55-shaders-gb-gbc`),
+`r36-idioma.log` (`56-retroarch-ajustes`, uma linha por jogo com o idioma lido, o
+guardado e o resultado) e `r36-brilho.log` (`62-brilho-fn`), com o mesmo conteúdo de
+sempre. Sem a chave, nenhum deles é criado nem alterado, e o som, o percentual da
+bateria, os shaders, o idioma e o brilho funcionam do mesmo jeito. Os logs que já estão no cartão não são apagados pelo
 aparelho: apague-os pelo PC.
 O registro térmico (`r36-thermal.csv`, `r36-sysinfo.txt`)
 não depende da chave.
@@ -834,9 +1000,9 @@ Regras importantes:
 
 ## Onde ver qual build está no cartão
 
-O arquivo `R36-BUILD.txt` traz o nome da imagem, o tamanho do cartão e as
-features. A versão é o timestamp no fim do nome da imagem, registrado na linha
-`imagem:` (`..._build_<timestamp>.img.xz`):
+O arquivo `R36-BUILD.txt` traz o nome da imagem, o tamanho do cartão, o idioma
+(`idioma: en_US`) e as features. A versão é o timestamp no fim do nome da imagem,
+registrado na linha `imagem:` (`..._<idioma>_build_<timestamp>.img.xz`):
 
 - no PC: na partição **R36-SYSTEM**;
 - no aparelho: `/flash/R36-BUILD.txt`.

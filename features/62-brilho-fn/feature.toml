@@ -1,0 +1,14 @@
+# Brilho da tela do R36S por FN + D-pad. A base só lê o brightness.level do emuelec.conf
+# (no boot e ao acordar) e nenhum botão o muda. Com o FN valendo como BTN_MODE (316,
+# feature 20), um leitor de eventos (evtest) sobe o brilho no D-pad cima e desce no
+# D-pad baixo enquanto o FN está apertado, em passos de 5, com piso de 10 e teto de 100,
+# repetindo enquanto a seta fica apertada. O nível fica em r36-brilho.level na p8 (o ES
+# regrava o emuelec.conf) e é aplicado no boot e ao acordar (udt_pwr_events.sh, feature
+# 46). FN + L3 (clique do analógico esquerdo), ou o arquivo vazio r36-brilho-original na raiz da p1, voltam ao
+# padrão (80). O r36-brilho.log na p1 só existe com a chave r36-diagnostico.
+
+schema = 1
+name = "Brilho por FN + D-pad"
+description = "Ajuste do brilho da tela por FN + D-pad cima/baixo (passo 5, piso 10, teto 100), com nível salvo em r36-brilho.level na p8 e aplicado no boot e ao acordar, volta ao padrão (80) por FN + L3 ou pela chave r36-brilho-original na p1, e r36-brilho.log na p1 só com a chave r36-diagnostico."
+order = 62
+enabled = true

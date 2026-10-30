@@ -35,6 +35,7 @@ while true; do
 			brightness=$(get_ee_setting brightness.level)
 			scaled_value=$(( (brightness * 255 + 50) / 100 ))
 			echo $scaled_value  > /sys/devices/virtual/disp/disp/attr/lcdbl
+			[ -x /usr/lib/r36/brilho-aplica ] && /usr/lib/r36/brilho-aplica aplica  # R36: brilho salvo (feature 62)
 			amixer cset name='Audio speaker out' 1
 			amixer cset name='Audio headphone out' 1
 

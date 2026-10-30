@@ -1,0 +1,134 @@
+#!/bin/sh
+# O menu do RetroArch segue o idioma escolhido no EmuELEC.
+# Uso: idioma-aplica   (chamado pelo emuelecRunEmu.sh antes de cada jogo, ao lado do
+# shaderset-aplica)
+# Lê system.language do emuelec.conf e Language do es_settings.cfg, traduz pela tabela
+# abaixo para o número do RetroArch e grava user_language no retroarch.cfg, mas só
+# quando o idioma do EmuELEC mudou desde o último jogo.
+# Cada fonte é comparada com o próprio valor guardado em
+# /storage/.config/retroarch/r36-idioma (duas linhas: emuelec.conf e es_settings.cfg);
+# a que mudou vale, e se as duas mudaram vale o emuelec.conf. Ao aplicar, grava o par
+# atual, então fontes que divergem não fazem o idioma oscilar a cada jogo. Assim uma escolha feita no menu do RetroArch vale
+# até a próxima troca no EmuELEC, e um cartão gravado com --keep-storage é acertado no
+# primeiro jogo (o arquivo ainda não existe).
+# No caminho comum (idioma igual ao guardado) só lê três arquivos, com o read do shell, e
+# não escreve nada no SD. Idioma fora da tabela não mexe no retroarch.cfg; idioma ilegível
+# ou retroarch.cfg ausente não mexem em nada. Sai com 0 em qualquer caso.
+# Com o arquivo vazio r36-diagnostico na raiz da p1, acrescenta uma linha por jogo a
+# r36-idioma.log. R36_ROOT fica vazio no aparelho; os testes apontam para um diretório
+# temporário.
+
+ROOT="${R36_ROOT:-}"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+ESCFG="$ROOT/storage/.config/emulationstation/es_settings.cfg"
+RACFG="$ROOT/storage/.config/retroarch/retroarch.cfg"
+ESTADO="$ROOT/storage/.config/retroarch/r36-idioma"
+LOG="$ROOT/storage/roms/r36-idioma.log"
+DIAG="$ROOT/storage/roms/r36-diagnostico"
+
+# tira espaços do começo e corta no primeiro caractere que não é letra nem _ (CR, espaço);
+# o read, o case e as expansões são do shell: nenhum processo novo no caminho comum
+limpa() {
+    v=$1
+    while :; do
+        case "$v" in
+            [[:space:]]*) v=${v#?} ;;
+            *) break ;;
+        esac
+    done
+    LIMPO=${v%%[!A-Za-z_]*}
+}
+
+DOCONF=
+DOES=
+if [ -f "$EMUCONF" ]; then
+    while IFS= read -r linha || [ -n "$linha" ]; do
+        case "$linha" in
+            system.language=*) DOCONF=${linha#system.language=}; break ;;
+        esac
+    done < "$EMUCONF"
+fi
+if [ -f "$ESCFG" ]; then
+    while IFS= read -r linha || [ -n "$linha" ]; do
+        case "$linha" in
+            *'name="Language" value="'*)
+                DOES=${linha#*name=\"Language\" value=\"}
+                DOES=${DOES%%\"*}
+                break ;;
+        esac
+    done < "$ESCFG"
+fi
+limpa "$DOCONF"; DOCONF=$LIMPO
+limpa "$DOES"; DOES=$LIMPO
+
+# estado: duas linhas, o idioma que cada fonte tinha no último ajuste (emuelec.conf, depois
+# es_settings.cfg); um estado antigo de uma linha vale para as duas fontes
+GCONF=
+GES=
+if [ -f "$ESTADO" ]; then
+    {
+        IFS= read -r GCONF
+        IFS= read -r GES
+        [ -n "$GES" ] || GES=$GCONF
+    } < "$ESTADO"
+fi
+
+# cada fonte é comparada com o PRÓPRIO valor guardado; a que mudou é a que o ES acabou de
+# gravar. Se as duas mudaram, o emuelec.conf vence. Quando algo mudou, o par atual é gravado
+# de uma vez, para a outra fonte não parecer "mudada" no jogo seguinte (sem oscilar).
+MUDOU=1
+if [ -n "$DOCONF" ] && [ "$DOCONF" != "$GCONF" ]; then
+    IDIOMA=$DOCONF
+elif [ -n "$DOES" ] && [ "$DOES" != "$GES" ]; then
+    IDIOMA=$DOES
+else
+    IDIOMA=${DOCONF:-$DOES}
+    MUDOU=0
+fi
+GUARDADO=$GCONF
+
+# código do EmuELEC -> user_language do RetroArch 1.17 (enumeração RETRO_LANGUAGE_*)
+case "$IDIOMA" in
+    pt_BR) NUMERO=7 ;;
+    pt_PT) NUMERO=8 ;;
+    en_US|en_GB) NUMERO=0 ;;
+    es_ES) NUMERO=3 ;;
+    fr_FR) NUMERO=2 ;;
+    de_DE) NUMERO=4 ;;
+    it_IT) NUMERO=5 ;;
+    *) NUMERO= ;;
+esac
+
+if [ -z "$IDIOMA" ]; then
+    RESULTADO="idioma ilegível"
+elif [ "$MUDOU" = 0 ]; then
+    RESULTADO="mantido"
+elif [ -z "$NUMERO" ]; then
+    RESULTADO="sem tradução"
+    2>/dev/null > "$ESTADO" printf '%s\n%s\n' "$DOCONF" "$DOES"
+elif [ ! -f "$RACFG" ]; then
+    RESULTADO="retroarch.cfg ausente"
+else
+    if grep -q '^user_language[[:space:]]*=' "$RACFG"; then
+        sed "s/^user_language[[:space:]]*=.*/user_language = \"$NUMERO\"/" "$RACFG" > "$RACFG.r36tmp"
+    else
+        {
+            cat "$RACFG"
+            # arquivo sem fim de linha na última linha
+            [ -n "$(tail -c 1 "$RACFG")" ] && echo
+            printf 'user_language = "%s"\n' "$NUMERO"
+        } > "$RACFG.r36tmp"
+    fi
+    if [ -s "$RACFG.r36tmp" ]; then
+        cat "$RACFG.r36tmp" > "$RACFG"
+        2>/dev/null > "$ESTADO" printf '%s\n%s\n' "$DOCONF" "$DOES"
+        RESULTADO="user_language=$NUMERO"
+    else
+        RESULTADO="falha ao gravar o retroarch.cfg"
+    fi
+    rm -f "$RACFG.r36tmp"
+fi
+
+[ -e "$DIAG" ] && printf '%s idioma-aplica idioma=%s guardado=%s -> %s\n' \
+    "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" "${IDIOMA:-(nenhum)}" "${GUARDADO:-(nenhum)}" "$RESULTADO" >> "$LOG"
+exit 0

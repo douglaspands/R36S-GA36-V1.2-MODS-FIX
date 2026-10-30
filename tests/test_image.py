@@ -9,7 +9,8 @@ from context import CFG, TempDirCase, needs_base, slow
 from r36img import build, image, mtools
 from r36img.errors import R36Error
 
-NAME_RE = re.compile(r"^r36s_ga36-mb_v1\.2-20260416_build_\d{8}-\d{6}(-test)?\.img\.xz$")
+# <prefixo>[_<idioma>]_build_<timestamp>[-test].img.xz; o idioma só falta no build sem idioma
+NAME_RE = re.compile(r"^r36s_ga36-mb_v1\.2-20260416(_[a-z]{2}-[a-z]{2})?_build_\d{8}-\d{6}(-test)?\.img\.xz$")
 
 
 def skeleton_image(tmp, card_sectors):
@@ -107,6 +108,34 @@ class BuildInfoTextTest(unittest.TestCase):
         self.assertTrue(build.parse_args(["--test"]).test)
         self.assertFalse(build.parse_args([]).test)
 
+    def test_idioma_line(self):
+        name = "x_en-us_build_20261013-153045.img.xz"
+        txt = build.build_info_text("20261013-153045", name, 7000, [], idioma="en_US")
+        self.assertIn("idioma: en_US\n", txt)
+        self.assertIn("idioma: pt_BR\n", build.build_info_text("20261013-153045", name, 7000, [], idioma="pt_BR"))
+        self.assertNotIn("idioma:", build.build_info_text("20261013-153045", name, 7000, []))
+
+
+class ImageNameTest(unittest.TestCase):
+    P = "r36s_ga36-mb_v1.2-20260416"
+
+    def test_padrao_en_us(self):
+        idioma = build.parse_args([]).idioma
+        name = build.image_name(self.P, "20261013-153045", idioma)
+        self.assertEqual(name, f"{self.P}_en-us_build_20261013-153045.img.xz")
+        self.assertRegex(name, NAME_RE)
+
+    def test_pt_br_e_teste(self):
+        idioma = build.parse_args(["--idioma", "pt_BR"]).idioma
+        name = build.image_name(self.P, "20261013-153045-test", idioma)
+        self.assertEqual(name, f"{self.P}_pt-br_build_20261013-153045-test.img.xz")
+        self.assertRegex(name, NAME_RE)
+
+    def test_sem_features_sem_idioma(self):
+        idioma = build.parse_args(["--no-features"]).idioma
+        self.assertEqual(build.image_name(self.P, "20261013-153045", idioma),
+                         f"{self.P}_build_20261013-153045.img.xz")
+
 
 @needs_base
 @slow
@@ -115,7 +144,10 @@ class FullBuildTest(TempDirCase):
 
     def test_outputs(self):
         ts = "20261013-153045"
+        # o padrão do ./build.sh (en_US, opcional): a 00-exemplo não traz os arquivos de idioma,
+        # então o build sai sem idioma no nome
         out_dir = build.build(CFG, size_mib=7000, names=["00-exemplo"], timestamp=ts,
+                              idioma="en_US", idioma_opcional=True,
                               out_root=self.tmp / "out", work_root=self.tmp / "work")
         self.assertEqual(out_dir.name, ts)
         manifest = json.loads((out_dir / "manifest.json").read_text())
@@ -123,6 +155,7 @@ class FullBuildTest(TempDirCase):
         self.assertRegex(name, NAME_RE)
         self.assertEqual(name, f"r36s_ga36-mb_v1.2-20260416_build_{ts}.img.xz")
         self.assertEqual(manifest["timestamp"], ts)
+        self.assertNotIn("language", manifest)
         self.assertTrue((out_dir / name).is_file())
         for part in ("bootarea", "boot", "env", "kernel", "system", "storage", "roms"):
             self.assertTrue((out_dir / "parts" / f"{part}.img").is_file(), part)
@@ -160,6 +193,9 @@ class FullBuildTest(TempDirCase):
         self.assertEqual(manifest["timestamp"], ts)
         self.assertIs(manifest["test"], True)
         self.assertIn("teste: sim\n", manifest["build_info"]["text"])
+        # build sem features: sem idioma no nome, no manifest e no R36-BUILD.txt
+        self.assertNotIn("language", manifest)
+        self.assertNotIn("idioma:", manifest["build_info"]["text"])
         self.assertFalse((self.tmp / "work" / f"{ts}-test").exists())
 
     def test_normal_build_has_no_test_marker(self):

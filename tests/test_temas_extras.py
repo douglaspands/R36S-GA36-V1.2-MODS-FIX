@@ -39,7 +39,7 @@ class TemasExtrasTest(unittest.TestCase):
             else:
                 self.fail(f"Camada inesperada para tema: {ext.layer}")
 
-        self.assertEqual(set(storage_themes.keys()), {"Minimal EmuELEC", "Graphite OGA", "Epic Cody"})
+        self.assertEqual(set(storage_themes.keys()), {"Minimal EmuELEC", "Graphite OGA", "Epic Cody ML"})
         self.assertEqual(set(roms_themes.keys()), {"Switch", "Crystal"})
         self.assertIn(("storage", ".config/emulationstation/themes/NES-BOX"), self.feat.removes)
 

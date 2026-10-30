@@ -1,8 +1,11 @@
 import difflib
 import os
 import re
+import shutil
 import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 from context import CFG, ROOT, TempDirCase, needs_base
 from r36img import mtools
@@ -49,7 +52,9 @@ class PtBrSaoPaulo(unittest.TestCase):
         self.assertIn('<string name="Language" value="pt_BR" />', txt)
         self.assertIn('<string name="FolderViewMode" value="never" />', txt)
         self.assertIn('<bool name="FavoritesFirst" value="true" />', txt)
-        self.assertIn('<string name="ThemeSet" value="Epic Cody" />', txt)
+        self.assertIn('<string name="ThemeSet" value="Epic Cody ML" />', txt)
+        self.assertIn('<string name="ShowBattery" value="text" />', txt)
+
 
     def test_retroarch_cfg(self):
         c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
@@ -226,11 +231,218 @@ class RunEmuMaxperf(TempDirCase):
             [
                 "-maxperf",
                 "-mpv /storage/.config/splash/loading-game.png &",
+                # parser de save state da base (esperava -state_slot antes de -autosave)
+                '-if [[ "${arguments}" == *"-state_slot"* ]] && [[ "${arguments}" == *"-autosave"* ]]; then',
+                '-    CONTROLLERCONFIG="${CONTROLLERCONFIG%% -state_slot*}"  # until -state is found',
+                '-    SNAPSHOT="${arguments#*-state_slot *}" # -state_slot x -autosave 1',
+                "-    SNAPSHOT=\"${SNAPSHOT%% -*}\"  # we don't need -autosave 1 we asume its always 1 if a state is loaded",
+                "-else",
+                '-    CONTROLLERCONFIG="${CONTROLLERCONFIG%% --*}"  # until a -- is found',
+                '-    SNAPSHOT=""',
+                "-fi",
                 "-mpv /storage/.config/splash/loading-game.png",
             ],
         )
-        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 27)  # 17 + 2 linhas do audio-ganho por Speaker Function + 6 do shaderset-aplica
+        # 17 + 2 linhas do audio-ganho por Speaker Function + 6 do shaderset-aplica
+        # + 21 da limita-consumo-e-miniaturas-savestate (parser de save state, mkdir, guarda do netplay)
+        # + 4 do idioma-aplica
+        self.assertEqual(sum(1 for l in mudou if l.startswith("+")), 52)
         self.assertEqual(bloco_maxperf("\n".join(nova)).count("get_ee_setting maxperf"), 1)
+
+
+# --- limita-consumo-e-miniaturas-savestate ---
+
+def bloco_savestate(txt):
+    """Do comentário do parser de save state até o mkdir da pasta do sistema."""
+    i = txt.index("# R36: o ES manda o save state")
+    fim = txt.index('mkdir -p "/storage/roms/savestates/${PLATFORM}"', i)
+    return txt[i:txt.index("\n", fim) + 1]
+
+
+def bloco_netplay(txt):
+    i = txt.index("# R36: sem rede no R36S")
+    return txt[i:txt.index("# End netplay\nfi\n", i) + len("# End netplay\nfi\n")]
+
+
+CONTROLES = '-p1index 0 -p1guid 03000000 -p1name "micro_gamepad" -p1nbbuttons 17'
+STATE_FILE = "/storage/roms/savestates/gba/Jogo Ação (BR).state2"
+
+
+class EmuelecConfEnxuto(unittest.TestCase):
+    def test_rede_atualizacao_e_rewind_desligados(self):
+        c = parse_cfg(F10 / "emuelec" / "configs" / "emuelec.conf")
+        for k in ("ee_ssh.enabled", "controllers.bluetooth.enabled", "updates.enabled",
+                  "global.netplay", "global.rewind"):
+            self.assertEqual(c[k], "0", k)
+
+
+class RunEmuSaveState(unittest.TestCase):
+    def roda(self, *extra, controles=CONTROLES):
+        """Executa o parser como o RunEmu, com os argumentos separados como o ES os passa."""
+        prog = (
+            'mkdir() { echo "mkdir $*" >&2; }\n'
+            'arguments="$@"\nPLATFORM="${arguments##*-P}"\nPLATFORM="${PLATFORM%% *}"\n'
+            'CONTROLLERCONFIG="${arguments#*--controllers=*}"\n'
+            + bloco_savestate(RUNEMU.read_text())
+            + 'printf "%s\\n%s\\n" "${CONTROLLERCONFIG}" "${SNAPSHOT}"\n'
+        )
+        args = ["/storage/roms/gba/Jogo - Ação (BR).gba", "-Pgba", "--core=gpsp",
+                "--emulator=libretro", f"--controllers={controles}", *extra]
+        proc = subprocess.run(["bash", "-c", prog, "bash", *args],
+                              check=True, capture_output=True, text=True)
+        cc, snap = proc.stdout.split("\n")[:2]
+        return cc, snap, proc.stderr
+
+    def test_autosave_antes_do_state_slot(self):
+        for auto in ("0", "1"):
+            cc, snap, _ = self.roda("-autosave", auto, "-state_slot", "2", "-state_file", STATE_FILE)
+            self.assertEqual(cc, CONTROLES, auto)
+            self.assertEqual(snap, "2", auto)
+
+    def test_slot_auto_so_com_autosave_1(self):
+        # SNAPSHOT vazio faz o setsettings.sh desligar o savestate_auto_load; "0" o mantém
+        cc, snap, _ = self.roda("-autosave", "1")
+        self.assertEqual(cc, CONTROLES)
+        self.assertEqual(snap, "0")
+
+    def test_sem_save_state(self):
+        cc, snap, _ = self.roda()
+        self.assertEqual(cc, CONTROLES)
+        self.assertEqual(snap, "")
+
+    def test_ordem_antiga_continua_valendo(self):
+        cc, snap, _ = self.roda("-state_slot", "5", "-autosave", "1")
+        self.assertEqual((cc, snap), (CONTROLES, "5"))
+
+    def test_corta_no_duplo_traco_do_netplay(self):
+        cc, snap, _ = self.roda("--connect", "10.0.0.2", "--port", "55435", "--nick")
+        self.assertEqual((cc, snap), (CONTROLES, ""))
+        cc, snap, _ = self.roda("-autosave", "1", "-state_slot", "1", "--host", "--nick")
+        self.assertEqual((cc, snap), (CONTROLES, "1"))
+
+    def test_sem_controles(self):
+        cc, snap, _ = self.roda("-autosave", "1", "-state_slot", "3", "-state_file", STATE_FILE, controles="")
+        self.assertEqual((cc, snap), ("", "3"))
+
+    def test_cria_a_pasta_do_sistema(self):
+        _, _, err = self.roda()
+        self.assertEqual(err, "mkdir -p /storage/roms/savestates/gba\n")
+
+    def test_parser_no_ramo_libretro_antes_do_setsettings(self):
+        txt = RUNEMU.read_text()
+        i = txt.index("# R36: o ES manda o save state")
+        self.assertLess(txt.index('elif [ ${LIBRETRO} == "yes" ]; then'), i)
+        self.assertLess(i, txt.index("SHADERSET=$(setsettings.sh"))
+        self.assertIn('--snapshot="${SNAPSHOT}"', txt)
+
+
+class RunEmuNetplay(TempDirCase):
+    def roda(self, *extra):
+        """Executa o bloco de netplay com set_ee_setting falso; devolve as chamadas."""
+        chamadas = self.tmp / "chamadas"
+        prog = (
+            f'set_ee_setting() {{ echo "$1=$2" >> "{chamadas}"; }}\n'
+            'get_ee_setting() { echo; }\n'
+            'arguments="$@"\nNETPLAY="No"\n'
+            "RUNTHIS='${RABIN} ${VERBOSE} -L /storage/cores/${EMU}.so --config ${RACONF} \"${ROMNAME}\"'\n"
+            + bloco_netplay(RUNEMU.read_text())
+            + 'printf "%s\\n" "${NETPLAY}"\n'
+        )
+        args = ["/storage/roms/gba/Jogo.gba", "-Pgba", "--core=gpsp", "--emulator=libretro",
+                f"--controllers={CONTROLES}", *extra]
+        out = subprocess.run(["bash", "-c", prog, "bash", *args],
+                             check=True, capture_output=True, text=True).stdout
+        feitas = chamadas.read_text().splitlines() if chamadas.exists() else []
+        chamadas.unlink(missing_ok=True)
+        return feitas, out.strip()
+
+    def test_jogo_local_nao_grava_no_emuelec_conf(self):
+        for extra in ((), ("-autosave", "1"), ("-autosave", "1", "-state_slot", "2", "-state_file", STATE_FILE)):
+            feitas, netplay = self.roda(*extra)
+            self.assertEqual(feitas, [], extra)
+            self.assertEqual(netplay, "No", extra)
+
+    def test_netplay_continua_funcionando(self):
+        feitas, netplay = self.roda("--connect", "10.0.0.2", "--port", "55435", "--nick")
+        self.assertEqual(feitas[:3], ["netplay.server.ip=disable", "netplay.server.port=disable",
+                                      "netplay.mode=disable"])
+        self.assertIn("netplay.mode=client", feitas)
+        self.assertIn("netplay.server.ip=10.0.0.2", feitas)
+        self.assertIn("--connect", netplay)
+        feitas, _ = self.roda("--host", "--nick")
+        self.assertEqual(len(feitas), 3)
+        feitas, _ = self.roda("--netplaymode", "spectator")
+        self.assertIn("netplay.mode=spectator", feitas)
+
+    def test_um_so_bloco_de_netplay(self):
+        txt = RUNEMU.read_text()
+        self.assertEqual(txt.count("# Netplay\n"), 1)
+        self.assertEqual(txt.count('set_ee_setting "netplay.'), 7)
+        bloco = bloco_netplay(txt)
+        self.assertEqual(bloco.count('set_ee_setting "netplay.'), 7)
+
+
+class RetroarchCfgEnxuto(unittest.TestCase):
+    def setUp(self):
+        self.c = parse_cfg(F10 / "retroarch" / "retroarch.cfg")
+
+    def test_savestate_na_pasta_do_sistema_com_miniatura(self):
+        self.assertEqual(self.c["sort_savestates_enable"], "false")
+        self.assertEqual(self.c["savestate_thumbnail_enable"], "true")
+        self.assertEqual(self.c["video_gpu_screenshot"], "false")  # glReadPixels trava quadros na Mali-400
+
+    def test_sem_drivers_de_hardware_que_nao_existe(self):
+        self.assertEqual(self.c["wifi_enabled"], "false")
+        for k in ("wifi_driver", "bluetooth_driver", "microphone_driver", "midi_driver"):
+            self.assertEqual(self.c[k], "null", k)
+
+    def test_menus_de_rede_gravacao_e_rewind_ocultos(self):
+        for k in ("menu_show_rewind", "menu_show_online_updater", "quick_menu_show_download_thumbnails",
+                  "quick_menu_show_start_recording", "quick_menu_show_start_streaming",
+                  "settings_show_network", "settings_show_achievements", "settings_show_ai_service"):
+            self.assertEqual(self.c[k], "false", k)
+
+
+class SnapshotZeroNoSetsettings(TempDirCase):
+    """O ramo `snapshot` do setsettings.sh da base com SNAPSHOT="0" (o que o parser do RunEmu
+    entrega para `-autosave 1` sem slot) tem de ligar o autosave e o autoload, como o SNAPSHOT
+    vazio nunca faz. O script inteiro precisa de /etc/profile e de funções do sistema, então
+    roda-se só o corpo do `case`."""
+
+    @needs_base
+    def setUp(self):
+        super().setUp()
+        sq = self.tmp / "SYSTEM"
+        subprocess.run(
+            ["mcopy", "-n", "-i", mtools.spec(CFG.base_path, CFG.part("system").offset), "::/SYSTEM", str(sq)],
+            check=True, env=mtools.ENV, capture_output=True)
+        self.sq = sq
+
+    def ramo(self, snapshot):
+        linhas = subprocess.run(
+            ["unsquashfs", "-cat", str(self.sq), "usr/bin/setsettings.sh"], check=True, capture_output=True, text=True
+        ).stdout.splitlines()
+        ini = next(i for i, l in enumerate(linhas) if l.strip() == '"snapshot")')
+        fim = next(i for i in range(ini, len(linhas)) if linhas[i].strip() == '"integerscale")')
+        # o script usa ${RACONF} sem aspas: o caminho não pode ter espaço (o tmp do projeto tem)
+        sem_espaco = Path(tempfile.mkdtemp(prefix="r36snap"))
+        self.addCleanup(shutil.rmtree, sem_espaco, ignore_errors=True)
+        cfg = sem_espaco / "retroarch.cfg"
+        cfg.write_text('savestate_auto_save = "false"\nsavestate_auto_load = "false"\nstate_slot = "9"\nvideo_smooth = "true"\n')
+        prog = f'RACONF="{cfg}"\nSNAPSHOT="{snapshot}"\nAUTOLOAD="false"\n' + "\n".join(linhas[ini + 1:fim - 1])
+        subprocess.run(["bash", "-c", prog], check=True, capture_output=True, text=True)
+        return parse_cfg(cfg)
+
+    @needs_base
+    def test_snapshot_0_liga_autosave_e_autoload_no_slot_0(self):
+        c = self.ramo("0")
+        self.assertEqual((c["savestate_auto_save"], c["savestate_auto_load"], c["state_slot"]), ("true", "true", "0"))
+        self.assertEqual(c["video_smooth"], "true")
+
+    @needs_base
+    def test_snapshot_vazio_desliga_os_dois(self):
+        c = self.ramo("")
+        self.assertEqual((c["savestate_auto_save"], c["savestate_auto_load"], c["state_slot"]), ("false", "false", "0"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,599 @@
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <action.longdescription>An action game emphasizes physical challenges, including hand–eye coordination and reaction-time</action.longdescription>
+    <action.nameLabel>Action Genre</action.nameLabel>
+    <action.shortdescription>Game Genre</action.shortdescription>
+    <action.sys_line2>Action</action.sys_line2>
+    <adventure.longdescription>In an adventure game the player follows an interactive story, driven by exploration and puzzle-solving</adventure.longdescription>
+    <adventure.nameLabel>Adventure Genre</adventure.nameLabel>
+    <adventure.shortdescription>Game Genre</adventure.shortdescription>
+    <adventure.sys_line2>Adventure</adventure.sys_line2>
+    <amiga.longdescription>The original model was part of a wave of 16 and 32 bit computers that featured 256KB or more of RAM, mouse-based GUIs, and improved graphics &amp; audio</amiga.longdescription>
+    <amiga.nameLabel>Amiga</amiga.nameLabel>
+    <amiga.shortdescription>1985  ·  16-bit Computer</amiga.shortdescription>
+    <amiga.sys_line2>Amiga</amiga.sys_line2>
+    <amigacd32.longdescription>The CD32 is part of a family of Amiga computers and other hardware. It was first released September 16, 1993 and was discontinued only eight months after its debut.</amigacd32.longdescription>
+    <amigacd32.nameLabel>Amiga CD32</amigacd32.nameLabel>
+    <amigacd32.shortdescription>1993  ·  32-bit Console</amigacd32.shortdescription>
+    <amigacd32.sys_line2>Amiga CD32</amigacd32.sys_line2>
+    <amstradcpc.longdescription>The Amstrad CPC is a series of 8-bit home computers. The CPC series was pitched against other home computers and enjoyed a strong supply of game software</amstradcpc.longdescription>
+    <amstradcpc.nameLabel>Amstrad CPC</amstradcpc.nameLabel>
+    <amstradcpc.shortdescription>1984  ·  8-bit Computer</amstradcpc.shortdescription>
+    <amstradcpc.sys_line2>Amstrad</amstradcpc.sys_line2>
+    <apple2.longdescription>One of the first highly successful mass-produced microcomputer products, designed primarily by Steve Wozniak.</apple2.longdescription>
+    <apple2.nameLabel>Apple ][</apple2.nameLabel>
+    <apple2.shortdescription>1977  ·  8-bit Computer</apple2.shortdescription>
+    <apple2.sys_line2>Apple ][</apple2.sys_line2>
+    <arcade.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</arcade.longdescription>
+    <arcade.nameLabel>Arcade</arcade.nameLabel>
+    <arcade.shortdescription>1970's  ·  Arcade Machines</arcade.shortdescription>
+    <arcade.sys_line1>Arcade Classics</arcade.sys_line1>
+    <arcade.sys_line2>Arcade</arcade.sys_line2>
+    <atari2600.longdescription>The Atari 2600 is credited with popularizing the use of microprocessor-based hardware and ROM cartridges containing game code</atari2600.longdescription>
+    <atari2600.nameLabel>Atari 2600</atari2600.nameLabel>
+    <atari2600.shortdescription>1977  ·  8-bit Console</atari2600.shortdescription>
+    <atari2600.sys_line1>Atari</atari2600.sys_line1>
+    <atari2600.sys_line2>2600</atari2600.sys_line2>
+    <atari5200.longdescription>Home video game console that was introduced as a higher-end complementary console for the popular Atari 2600</atari5200.longdescription>
+    <atari5200.nameLabel>Atari 5200</atari5200.nameLabel>
+    <atari5200.shortdescription>1982  ·  8-bit Console</atari5200.shortdescription>
+    <atari5200.sys_line1>Atari</atari5200.sys_line1>
+    <atari5200.sys_line2>5200</atari5200.sys_line2>
+    <atari7800.longdescription>Almost fully backward-compatible with the Atari 2600, the 7800 was the first console to have backward compatibility without the use of additional modules</atari7800.longdescription>
+    <atari7800.nameLabel>Atari 7800</atari7800.nameLabel>
+    <atari7800.shortdescription>1986  ·  8-bit Console</atari7800.shortdescription>
+    <atari7800.sys_line1>Atari</atari7800.sys_line1>
+    <atari7800.sys_line2>7800</atari7800.sys_line2>
+    <atari800.longdescription>The Atari 8-bit family is a series of 8-bit home computers. All of the machines in the family are technically similar and differ primarily in packaging</atari800.longdescription>
+    <atari800.nameLabel>Atari 800</atari800.nameLabel>
+    <atari800.shortdescription>1979  ·  8-bit Computer</atari800.shortdescription>
+    <atari800.sys_line2>Atari 800</atari800.sys_line2>
+    <atarijaguar.longdescription>Sixth and last programmable console to be developed under the Atari brand, Atari marketed the Jaguar as being the first 64-bit video game console</atarijaguar.longdescription>
+    <atarijaguar.nameLabel>Atari Jaguar</atarijaguar.nameLabel>
+    <atarijaguar.shortdescription>1993  ·  64-bit Console</atarijaguar.shortdescription>
+    <atarijaguar.sys_line1>Atari</atarijaguar.sys_line1>
+    <atarijaguar.sys_line2>Jaguar</atarijaguar.sys_line2>
+    <atarilynx.longdescription>The Lynx was the world's first handheld electronic game with a color LCD and was also notable for its advanced graphics and ambidextrous layout</atarilynx.longdescription>
+    <atarilynx.nameLabel>Atari Lynx</atarilynx.nameLabel>
+    <atarilynx.shortdescription>1989  ·  16-bit Handheld Console</atarilynx.shortdescription>
+    <atarilynx.sys_line1>Atari</atarilynx.sys_line1>
+    <atarilynx.sys_line2>Lynx</atarilynx.sys_line2>
+    <atarist.longdescription>The Atari ST is a line of home computers from Atari Corporation and the successor to the Atari 8-bit family</atarist.longdescription>
+    <atarist.nameLabel>Atari ST</atarist.nameLabel>
+    <atarist.shortdescription>1985  ·  16-bit Computer</atarist.shortdescription>
+    <atarist.sys_line2>Atari ST</atarist.sys_line2>
+    <atomiswave.longdescription>Custom arcade system board and cabinet from Sammy Corporation. It is based on Sega's Dreamcast system board</atomiswave.longdescription>
+    <atomiswave.nameLabel>Atomiswave</atomiswave.nameLabel>
+    <atomiswave.shortdescription>2003  ·  32-bit Board</atomiswave.shortdescription>
+    <atomiswave.sys_line1>SEGA SAMMY</atomiswave.sys_line1>
+    <atomiswave.sys_line2>Atomiswave</atomiswave.sys_line2>
+    <auto-allgames.longdescription>Access and quickly play every single game across the entire library</auto-allgames.longdescription>
+    <auto-allgames.nameLabel>All Games</auto-allgames.nameLabel>
+    <auto-allgames.shortdescription>All Consoles / Handhelds</auto-allgames.shortdescription>
+    <auto-allgames.sys_line2>All Games</auto-allgames.sys_line2>
+    <auto-favorites.longdescription>Access and quickly play your favorite games across the entire library</auto-favorites.longdescription>
+    <auto-favorites.nameLabel>Favorites games</auto-favorites.nameLabel>
+    <auto-favorites.shortdescription>All Consoles / Handhelds</auto-favorites.shortdescription>
+    <auto-favorites.sys_line2>Favorites</auto-favorites.sys_line2>
+    <auto-lastplayed.longdescription>Access and quickly play recently played games across the entire library</auto-lastplayed.longdescription>
+    <auto-lastplayed.nameLabel>Last Played</auto-lastplayed.nameLabel>
+    <auto-lastplayed.shortdescription>All Consoles / Handhelds</auto-lastplayed.shortdescription>
+    <auto-lastplayed.sys_line2>Last Played</auto-lastplayed.sys_line2>
+    <btmups.longdescription>Beat 'em up (also known as brawler) feature hand-to-hand or weapon combat between the protagonist and an improbably large number of opponents</btmups.longdescription>
+    <btmups.nameLabel>Beat 'em Up Genre</btmups.nameLabel>
+    <btmups.shortdescription>Game Genre</btmups.shortdescription>
+    <btmups.sys_line2>Beat 'em Up</btmups.sys_line2>
+    <c128.longdescription>The C128 is the last 8-bit home computer that was commercially released by Commodore Business Machines .</c128.longdescription>
+    <c128.nameLabel>Commodore 128</c128.nameLabel>
+    <c128.shortdescription>1982  ·  8-bit Computer</c128.shortdescription>
+    <c128.sys_line2>Commodore 128</c128.sys_line2>
+    <c16.longdescription>home computer made by Commodore International,intended to be an entry-level computer to replace the VIC-20</c16.longdescription>
+    <c16.nameLabel>COMMODORE 16</c16.nameLabel>
+    <c16.shortdescription>1984  ·  16-bit Computer</c16.shortdescription>
+    <c16.sys_line2>C16</c16.sys_line2>
+    <c64.longdescription>The C64 is listed in the Guinness World Records as the highest-selling single computer model of all time.</c64.longdescription>
+    <c64.nameLabel>Commodore 64</c64.nameLabel>
+    <c64.shortdescription>1982  ·  8-bit Computer</c64.shortdescription>
+    <c64.sys_line2>Commodore</c64.sys_line2>
+    <coco.longdescription>Sold by Tandy through their RadioShack stores. It is one of the earliest mass-produced home computer.</coco.longdescription>
+    <coco.nameLabel>COCO TRS-80</coco.nameLabel>
+    <coco.shortdescription>1977  ·  8-bit Computer</coco.shortdescription>
+    <coco.sys_line1>Color COMPUTER</coco.sys_line1>
+    <coco.sys_line2>COCO TRS-80</coco.sys_line2>
+    <coleco.longdescription>The ColecoVision offered a closer experience to more powerful arcade game systems compared to competitors such as the Atari 2600</coleco.longdescription>
+    <coleco.nameLabel>Coleco Vision</coleco.nameLabel>
+    <coleco.shortdescription>1982  ·  8-bit Console</coleco.shortdescription>
+    <coleco.sys_line1>Coleco</coleco.sys_line1>
+    <coleco.sys_line2>Vision</coleco.sys_line2>
+    <colecovision.longdescription>The ColecoVision offered a closer experience to more powerful arcade game systems compared to competitors such as the Atari 2600</colecovision.longdescription>
+    <colecovision.nameLabel>Coleco Vision</colecovision.nameLabel>
+    <colecovision.shortdescription>1982  ·  8-bit Console</colecovision.shortdescription>
+    <colecovision.sys_line1>Coleco</colecovision.sys_line1>
+    <colecovision.sys_line2>Vision</colecovision.sys_line2>
+    <controllerSubsetName>Show controllers in system view</controllerSubsetName>
+    <cps1.longdescription>The CPS is an arcade system board developed by Capcom that ran game software stored on removable ROM cartridges.</cps1.longdescription>
+    <cps1.nameLabel>CAPCOM SYSTEM I</cps1.nameLabel>
+    <cps1.shortdescription>1988  ·  Arcade Board</cps1.shortdescription>
+    <cps1.sys_line1>CAPCOM PLAY</cps1.sys_line1>
+    <cps1.sys_line2>SYSTEM I</cps1.sys_line2>
+    <cps2.longdescription>Arcade board that Capcom first used for Super Street Fighter II. It was the successor to their previous CPS.</cps2.longdescription>
+    <cps2.nameLabel>CAPCOM SYSTEM II</cps2.nameLabel>
+    <cps2.shortdescription>1993  ·  Arcade Board</cps2.shortdescription>
+    <cps2.sys_line1>CAPCOM PLAY</cps2.sys_line1>
+    <cps2.sys_line2>SYSTEM II</cps2.sys_line2>
+    <cps3.longdescription>The last proprietary system board Capcom would produce before moving on to the Dreamcast-based Naomi platform.</cps3.longdescription>
+    <cps3.nameLabel>CAPCOM SYSTEM III</cps3.nameLabel>
+    <cps3.shortdescription>1996  ·  Arcade Board</cps3.shortdescription>
+    <cps3.sys_line1>CAPCOM PLAY</cps3.sys_line1>
+    <cps3.sys_line2>SYSTEM III</cps3.sys_line2>
+    <custom-collections.longdescription>Access and quickly play games you have added to your custom collections</custom-collections.longdescription>
+    <custom-collections.nameLabel>Custom Collection</custom-collections.nameLabel>
+    <custom-collections.shortdescription>All Consoles / Handhelds</custom-collections.shortdescription>
+    <custom-collections.sys_line2>Custom</custom-collections.sys_line2>
+    <daphne.longdescription>Converged device and home video game console capable of playing Laserdiscs, Compact Discs, console games, and LD-G karaoke discs</daphne.longdescription>
+    <daphne.nameLabel>Daphne</daphne.nameLabel>
+    <daphne.shortdescription>Laserdisc Console</daphne.shortdescription>
+    <daphne.sys_line2>Daphne</daphne.sys_line2>
+    <doom.longdescription>LZDoom is a classic style GZDoom fork with lower system requirements</doom.longdescription>
+    <doom.nameLabel>Doom</doom.nameLabel>
+    <doom.shortdescription>LZdoom · Doom Engine</doom.shortdescription>
+    <doom.sys_line2>Doom</doom.sys_line2>
+    <dos.longdescription>MS-DOS is an operating system for x86-based personal computers mostly developed by Microsoft</dos.longdescription>
+    <dos.nameLabel>Microsoft MS-DOS</dos.nameLabel>
+    <dos.shortdescription>1981  ·  Desktop Computers</dos.shortdescription>
+    <dos.sys_line1>Microsoft</dos.sys_line1>
+    <dos.sys_line2>MS-DOS</dos.sys_line2>
+    <dreamcast.longdescription>The Dreamcast was Sega's final home console, marking the end of the company's 18 years in the console market</dreamcast.longdescription>
+    <dreamcast.nameLabel>Sega Dreamcast</dreamcast.nameLabel>
+    <dreamcast.shortdescription>1998  ·  128-bit Console</dreamcast.shortdescription>
+    <dreamcast.sys_line1>Sega</dreamcast.sys_line1>
+    <dreamcast.sys_line2>Dreamcast</dreamcast.sys_line2>
+    <easyrpg.longdescription>Free and open source role playing game interpreter and editor compatible with RPG Maker 2000 and 2003.</easyrpg.longdescription>
+    <easyrpg.nameLabel>Easy RPG</easyrpg.nameLabel>
+    <easyrpg.shortdescription>2019  ·  CUSTOM RPG Engine</easyrpg.shortdescription>
+    <easyrpg.sys_line2>EASY-RPG</easyrpg.sys_line2>
+    <famicom.longdescription>The Family Computer (also known by the portmanteau abbreviation Famicom) was the Japanese version of the Nintendo Entertainment System</famicom.longdescription>
+    <famicom.nameLabel>Famicom Disk System</famicom.nameLabel>
+    <famicom.shortdescription>1986  ·  8-bit Console</famicom.shortdescription>
+    <famicom.sys_line1>Famicom</famicom.sys_line1>
+    <famicom.sys_line2>Disk System</famicom.sys_line2>
+    <fba.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</fba.longdescription>
+    <fba.nameLabel>Final Burn Alpha</fba.nameLabel>
+    <fba.shortdescription>Coin Operated Cabinet</fba.shortdescription>
+    <fba.sys_line1>Final Burn</fba.sys_line1>
+    <fba.sys_line2>Alpha</fba.sys_line2>
+    <fbn.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</fbn.longdescription>
+    <fbn.nameLabel>Final Burn Neo</fbn.nameLabel>
+    <fbn.shortdescription>Coin Operated Cabinet</fbn.shortdescription>
+    <fbn.sys_line1>Final</fbn.sys_line1>
+    <fbn.sys_line2>BURN NEO</fbn.sys_line2>
+    <fbneo.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</fbneo.longdescription>
+    <fbneo.nameLabel>Final Burn Neo</fbneo.nameLabel>
+    <fbneo.shortdescription>1970's  ·  Arcade Machines</fbneo.shortdescription>
+    <fbneo.sys_line1>Final Burn</fbneo.sys_line1>
+    <fbneo.sys_line2>NEO</fbneo.sys_line2>
+    <fbneo_fbneo.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</fbneo_fbneo.longdescription>
+    <fbneo_fbneo.nameLabel>Final Burn Neo</fbneo_fbneo.nameLabel>
+    <fbneo_fbneo.shortdescription>1970's  ·  Arcade Machines</fbneo_fbneo.shortdescription>
+    <fbneo_fbneo.sys_line1>Final Burn</fbneo_fbneo.sys_line1>
+    <fbneo_fbneo.sys_line2>NEO</fbneo_fbneo.sys_line2>
+    <fds.longdescription>The Family Computer is a peripheral for Nintendo's Family Computer home video game console, released only in Japan</fds.longdescription>
+    <fds.nameLabel>Famicom Disk System</fds.nameLabel>
+    <fds.shortdescription>1986  ·  8-bit Console</fds.shortdescription>
+    <fds.sys_line1>Famicom Disk</fds.sys_line1>
+    <fds.sys_line2>System</fds.sys_line2>
+    <fighting.longdescription>In a fighting game, the player engages in close combat with an AI or player-controlled opponent</fighting.longdescription>
+    <fighting.nameLabel>Fighting Genre</fighting.nameLabel>
+    <fighting.shortdescription>Game Genre</fighting.shortdescription>
+    <fighting.sys_line2>Fighting</fighting.sys_line2>
+    <fixedscreen.longdescription>A fixed or single screen perspective applies to all video games in which the entire playfield is shown on the screen</fixedscreen.longdescription>
+    <fixedscreen.nameLabel>Fixed Screen Genre</fixedscreen.nameLabel>
+    <fixedscreen.shortdescription>Game Genre</fixedscreen.shortdescription>
+    <fixedscreen.sys_line2>Fixed Screen</fixedscreen.sys_line2>
+    <gameandwatch.longdescription>Line of handheld electronic games produced by Nintendo from 1980 to 1991. Created by game designer Gunpei Yokoi</gameandwatch.longdescription>
+    <gameandwatch.nameLabel>Game &amp; Watch</gameandwatch.nameLabel>
+    <gameandwatch.shortdescription>Handheld Electronic Games</gameandwatch.shortdescription>
+    <gameandwatch.sys_line1>LCD SCREEN</gameandwatch.sys_line1>
+    <gameandwatch.sys_line2>Game &amp; Watch</gameandwatch.sys_line2>
+    <gamegear.longdescription>The Game Gear shares much of its hardware with the Master System and is able to play its own titles as well as those of the Master System</gamegear.longdescription>
+    <gamegear.nameLabel>Sega GameGear</gamegear.nameLabel>
+    <gamegear.shortdescription>1990  ·  8-bit Handheld Console</gamegear.shortdescription>
+    <gamegear.sys_line1>Sega</gamegear.sys_line1>
+    <gamegear.sys_line2>GameGear</gamegear.sys_line2>
+    <gb.longdescription>Nintendo's second handheld system following the Game &amp; Watch series. It mainly competed with Game Gear and Lynx</gb.longdescription>
+    <gb.nameLabel>Nintendo GameBoy</gb.nameLabel>
+    <gb.shortdescription>1989  ·  8-bit Handheld Console</gb.shortdescription>
+    <gb.sys_line1>Nintendo</gb.sys_line1>
+    <gb.sys_line2>GameBoy</gb.sys_line2>
+    <gba.longdescription>Successor to the Game Boy Color. Market competitors at the time were the Neo Geo Pocket Color, Wonder Swan, GP32 and the N-Gage</gba.longdescription>
+    <gba.nameLabel>GameBoy Advance</gba.nameLabel>
+    <gba.shortdescription>2001  ·  32-bit Handheld Console</gba.shortdescription>
+    <gba.sys_line1>NINTENDO gameboy</gba.sys_line1>
+    <gba.sys_line2>Advance</gba.sys_line2>
+    <gbc.longdescription>The Game Boy Color features a color screen. It is slightly thicker and taller and features a slightly smaller screen then the Game Boy Pocket</gbc.longdescription>
+    <gbc.nameLabel>GameBoy Color</gbc.nameLabel>
+    <gbc.shortdescription>1998  ·  8-bit Handheld Console</gbc.shortdescription>
+    <gbc.sys_line1>Nintendo</gbc.sys_line1>
+    <gbc.sys_line2>GameBoy Color</gbc.sys_line2>
+    <gc.longdescription>The Nintendo GameCube is the successor to the Nintendo 64 and is the first Nintendo console to use optical discs as its primary storage medium</gc.longdescription>
+    <gc.nameLabel>Nintendo GameCube</gc.nameLabel>
+    <gc.shortdescription>2001  ·  128-bit Console</gc.shortdescription>
+    <gc.sys_line1>Nintendo</gc.sys_line1>
+    <gc.sys_line2>GameCube</gc.sys_line2>
+    <genesis.longdescription>Sega's third console and the successor to the Master System. Released in North America as the Genesis</genesis.longdescription>
+    <genesis.nameLabel>Sega Genesis</genesis.nameLabel>
+    <genesis.shortdescription>1989  ·  16-bit Console</genesis.shortdescription>
+    <genesis.sys_line1>Sega</genesis.sys_line1>
+    <genesis.sys_line2>Genesis</genesis.sys_line2>
+    <imageviewer.longdescription>Media gallery to view all saved screenshots and photos captured during your gameplay sessions.</imageviewer.longdescription>
+    <imageviewer.nameLabel>Image Viewer</imageviewer.nameLabel>
+    <imageviewer.shortdescription>Screenshot and photo viewer</imageviewer.shortdescription>
+    <imageviewer.sys_line1>GALLERY</imageviewer.sys_line1>
+    <imageviewer.sys_line2>IMAGES</imageviewer.sys_line2>
+    <intellivision.longdescription>The Intellivision is a home video game console released by Mattel Electronics, and was in direct competition with the Atari 2600</intellivision.longdescription>
+    <intellivision.nameLabel>Intellivision</intellivision.nameLabel>
+    <intellivision.shortdescription>1980  ·  8-bit Console</intellivision.shortdescription>
+    <intellivision.sys_line2>Intellivision</intellivision.sys_line2>
+    <kids.longdescription>A kids-friendly game may include minimal cartoon or fantasy violence, and infrequent mild language</kids.longdescription>
+    <kids.nameLabel>Kids Genre</kids.nameLabel>
+    <kids.shortdescription>Game Genre</kids.shortdescription>
+    <kids.sys_line2>Kids</kids.sys_line2>
+    <kodi.longdescription>Kodi is an award-winning free and open source cross-platform software media player and entertainment hub for digital media for HTPCs</kodi.longdescription>
+    <kodi.nameLabel>Kodi</kodi.nameLabel>
+    <kodi.shortdescription>Streaming Video Service</kodi.shortdescription>
+    <kodi.sys_line2>Kodi</kodi.sys_line2>
+    <languageSubsetName>Theme Language</languageSubsetName>
+    <mame.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</mame.longdescription>
+    <mame.nameLabel>M.A.M.E.</mame.nameLabel>
+    <mame.shortdescription>Coin Operated Cabinet</mame.shortdescription>
+    <mame.sys_line1>Multiple Arcade Machine Emulator</mame.sys_line1>
+    <mame.sys_line2>M.A.M.E.</mame.sys_line2>
+    <mame2003.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</mame2003.longdescription>
+    <mame2003.nameLabel>M.A.M.E. 2003</mame2003.nameLabel>
+    <mame2003.shortdescription>Coin Operated Cabinet</mame2003.shortdescription>
+    <mame2003.sys_line1>Multiple Arcade Machine Emulator</mame2003.sys_line1>
+    <mame2003.sys_line2>MAME 2003</mame2003.sys_line2>
+    <mame2010.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</mame2010.longdescription>
+    <mame2010.nameLabel>M.A.M.E. 2010</mame2010.nameLabel>
+    <mame2010.shortdescription>Coin Operated Cabinet</mame2010.shortdescription>
+    <mame2010.sys_line1>Multiple Arcade Machine Emulator</mame2010.sys_line1>
+    <mame2010.sys_line2>M.A.M.E. 2010</mame2010.sys_line2>
+    <mastersystem.longdescription>Succeeding the SG-1000, the Master System was released as a direct competitor to the Nintendo Entertainment System (NES)</mastersystem.longdescription>
+    <mastersystem.nameLabel>Sega Master System</mastersystem.nameLabel>
+    <mastersystem.shortdescription>1985  ·  8-bit Console</mastersystem.shortdescription>
+    <mastersystem.sys_line1>Sega Master</mastersystem.sys_line1>
+    <mastersystem.sys_line2>System</mastersystem.sys_line2>
+    <mega32x.longdescription>Designed to expand the power of the Megadrive and serve as a transitional console into the 32-bit era until the release of the Sega Saturn</mega32x.longdescription>
+    <mega32x.nameLabel>Sega Mega 32x</mega32x.nameLabel>
+    <mega32x.shortdescription>1994  ·  32-bit Console</mega32x.shortdescription>
+    <mega32x.sys_line1>Sega</mega32x.sys_line1>
+    <mega32x.sys_line2>Mega 32x</mega32x.sys_line2>
+    <megacd.longdescription>CD-ROM add-on to the Megadrive, it launched many FMV games, including the infamous Night Trap, which led to the creation of the ESRB</megacd.longdescription>
+    <megacd.nameLabel>Sega MegaCD</megacd.nameLabel>
+    <megacd.shortdescription>1991  ·  16-bit Console</megacd.shortdescription>
+    <megacd.sys_line1>Sega</megacd.sys_line1>
+    <megacd.sys_line2>MegaCD</megacd.sys_line2>
+    <megadrive.longdescription>Sega's third console and the successor to the Master System. First released as the Mega Drive in Japan</megadrive.longdescription>
+    <megadrive.nameLabel>Sega Megadrive</megadrive.nameLabel>
+    <megadrive.shortdescription>1988  ·  16-bit Console</megadrive.shortdescription>
+    <megadrive.sys_line1>Sega</megadrive.sys_line1>
+    <megadrive.sys_line2>Megadrive</megadrive.sys_line2>
+    <msx.longdescription>MSX is a standardized home computer architecture, conceived as an attempt to create unified standards among various hardware makers</msx.longdescription>
+    <msx.nameLabel>MSX</msx.nameLabel>
+    <msx.shortdescription>1983  ·  8-bit Computer</msx.shortdescription>
+    <msx.sys_line2>MSX</msx.sys_line2>
+    <msx2.longdescription>MSX2 is a standardized home computer architecture, conceived as an attempt to create unified standards among various hardware makers</msx2.longdescription>
+    <msx2.nameLabel>MSX 2</msx2.nameLabel>
+    <msx2.shortdescription>1984  ·  16-bit Computer</msx2.shortdescription>
+    <msx2.sys_line2>MSX 2</msx2.sys_line2>
+    <n64.longdescription>The N64 was the last major home console to use the cartridge as its primary storage format until Nintendo's seventh console, the Nintendo Switch</n64.longdescription>
+    <n64.nameLabel>Nintendo 64</n64.nameLabel>
+    <n64.shortdescription>1996  ·  64-bit Console</n64.shortdescription>
+    <n64.sys_line2>Nintendo 64</n64.sys_line2>
+    <n64dd.longdescription>The N64 was the last major home console to use the cartridge as its primary storage format until Nintendo's seventh console, the Nintendo Switch</n64dd.longdescription>
+    <n64dd.nameLabel>Nintendo 64DD</n64dd.nameLabel>
+    <n64dd.shortdescription>1996  ·  64-bit Console</n64dd.shortdescription>
+    <n64dd.sys_line2>Nintendo 64DD</n64dd.sys_line2>
+    <naomi.longdescription>A development of the Dreamcast home game console, the NAOMI and Dreamcast share the same hardware components.</naomi.longdescription>
+    <naomi.nameLabel>Sega Naomi</naomi.nameLabel>
+    <naomi.shortdescription>1998  ·  Arcade Board</naomi.shortdescription>
+    <naomi.sys_line1>Sega</naomi.sys_line1>
+    <naomi.sys_line2>Naomi</naomi.sys_line2>
+    <nds.longdescription>The Nintendo DS is a dual-screen handheld game console developed and released by Nintendo that featured two LCD screens working in tandem</nds.longdescription>
+    <nds.nameLabel>Nintendo DS</nds.nameLabel>
+    <nds.shortdescription>2004  ·  32-bit Handheld Console</nds.shortdescription>
+    <nds.sys_line2>Nintendo DS</nds.sys_line2>
+    <neogeo.longdescription>Originally launched as the MVS coin-operated arcade machine. It was ranked 19th out of 25 best video game consoles of all time</neogeo.longdescription>
+    <neogeo.nameLabel>Neo Geo</neogeo.nameLabel>
+    <neogeo.shortdescription>1990  ·  24-bit Console</neogeo.shortdescription>
+    <neogeo.sys_line1>SNK</neogeo.sys_line1>
+    <neogeo.sys_line2>Neo Geo</neogeo.sys_line2>
+    <neogeocd.longdescription>The Neo Geo CD is the second home video game console of SNK Corporation's Neo Geo family, released in September 9, 1994, four years after its cartridge-based equivalent.</neogeocd.longdescription>
+    <neogeocd.nameLabel>Neo Geo CD</neogeocd.nameLabel>
+    <neogeocd.shortdescription>1994  ·  24-bit Console</neogeocd.shortdescription>
+    <neogeocd.sys_line1>SNK</neogeocd.sys_line1>
+    <neogeocd.sys_line2>Neo Geo CD</neogeocd.sys_line2>
+    <nes.longdescription>The best selling gaming console of its time, the NES helped revitalize the US video game industry following the video game crash of 1983</nes.longdescription>
+    <nes.nameLabel>Nintendo Entertainment System</nes.nameLabel>
+    <nes.shortdescription>1983  ·  8-bit Console</nes.shortdescription>
+    <nes.sys_line1>Nintendo Entertainment</nes.sys_line1>
+    <nes.sys_line2>System</nes.sys_line2>
+    <ngp.longdescription>Monochrome handheld game console released by SNK. It was the company's first handheld system and is part of the Neo Geo family</ngp.longdescription>
+    <ngp.nameLabel>Neo Geo Pocket</ngp.nameLabel>
+    <ngp.shortdescription>1998  ·  16-bit Handheld Console</ngp.shortdescription>
+    <ngp.sys_line1>Neo Geo</ngp.sys_line1>
+    <ngp.sys_line2>Pocket</ngp.sys_line2>
+    <ngpc.longdescription>The Neo Geo Pocket Color is the successor to SNK's monochrome Neo Geo Pocket, with the Color being fully backward compatible</ngpc.longdescription>
+    <ngpc.nameLabel>Neo Geo Pocket Color</ngpc.nameLabel>
+    <ngpc.shortdescription>1999  ·  16-bit Handheld Console</ngpc.shortdescription>
+    <ngpc.sys_line1>Neo Geo</ngpc.sys_line1>
+    <ngpc.sys_line2>Pocket Color</ngpc.sys_line2>
+    <odyssey2.longdescription>the Magnvox Odyssey 2 is a second generation home video game console that was released in 1978</odyssey2.longdescription>
+    <odyssey2.nameLabel>Odyssey 2</odyssey2.nameLabel>
+    <odyssey2.shortdescription>1978  ·  8-bit Console</odyssey2.shortdescription>
+    <odyssey2.sys_line1>magnavox</odyssey2.sys_line1>
+    <odyssey2.sys_line2>odyssey 2</odyssey2.sys_line2>
+    <off>Off</off>
+    <on>On</on>
+    <openbor.longdescription>The Senile Team Engine to make FanMade Games.</openbor.longdescription>
+    <openbor.nameLabel>Openbor</openbor.nameLabel>
+    <openbor.shortdescription>2003  ·  24-bit Console</openbor.shortdescription>
+    <openbor.sys_line1>Senile Team</openbor.sys_line1>
+    <openbor.sys_line2>OpenBor</openbor.sys_line2>
+    <pc.longdescription>MS-DOS is an operating system for x86-based personal computers mostly developed by Microsoft</pc.longdescription>
+    <pc.nameLabel>Microsoft MS-DOS</pc.nameLabel>
+    <pc.shortdescription>1981  ·  Desktop Computers</pc.shortdescription>
+    <pc.sys_line1>Microsoft</pc.sys_line1>
+    <pc.sys_line2>MS-DOS</pc.sys_line2>
+    <pc98.longdescription>Lineup of Japanese 16-bit and 32-bit personal computers manufactured by NEC from 1982 to 2000</pc98.longdescription>
+    <pc98.nameLabel>NEC PC-98</pc98.nameLabel>
+    <pc98.shortdescription>1982  ·  32-bit Computer</pc98.shortdescription>
+    <pc98.sys_line2>NEC PC98</pc98.sys_line2>
+    <pce-cd.longdescription>Add-on attachment for the PC Engine. The add-on allows core versions of the console to play PC Engine games in CD-ROM format</pce-cd.longdescription>
+    <pce-cd.nameLabel>PC-Engine CD</pce-cd.nameLabel>
+    <pce-cd.shortdescription>1988  ·  16-bit Console</pce-cd.shortdescription>
+    <pce-cd.sys_line2>PC Engine CD</pce-cd.sys_line2>
+    <pcengine.longdescription>Originally intended to compete with the NES, it ended up competing with the Sega Genesis, and later on the Super Nintendo</pcengine.longdescription>
+    <pcengine.nameLabel>PC-Engine</pcengine.nameLabel>
+    <pcengine.shortdescription>1987  ·  16-bit Console</pcengine.shortdescription>
+    <pcengine.sys_line1>NEC</pcengine.sys_line1>
+    <pcengine.sys_line2>PC-Engine</pcengine.sys_line2>
+    <pcenginecd.longdescription>Add-on attachment for the PC Engine. The add-on allows core versions of the console to play PC Engine games in CD-ROM format</pcenginecd.longdescription>
+    <pcenginecd.nameLabel>PC-Engine CD</pcenginecd.nameLabel>
+    <pcenginecd.shortdescription>1988  ·  16-bit Console</pcenginecd.shortdescription>
+    <pcenginecd.sys_line2>PC Engine CD</pcenginecd.sys_line2>
+    <pcfx.longdescription>The PC-FX is a 32-bit home video game console developed by NEC and Konami. It was released in Japan in 1994</pcfx.longdescription>
+    <pcfx.nameLabel>PC-FX</pcfx.nameLabel>
+    <pcfx.shortdescription>1987  ·  32-bit Console</pcfx.shortdescription>
+    <pcfx.sys_line1>NEC</pcfx.sys_line1>
+    <pcfx.sys_line2>PC-FX</pcfx.sys_line2>
+    <pico-8.longdescription>Pixel Engine Games.</pico-8.longdescription>
+    <pico-8.nameLabel>PICO 8</pico-8.nameLabel>
+    <pico-8.shortdescription>2003  ·  Pixel Engine</pico-8.shortdescription>
+    <pico-8.sys_line1>Pixel Games</pico-8.sys_line1>
+    <pico-8.sys_line2>ENGINE PICO-8</pico-8.sys_line2>
+    <platformers.longdescription>In a platformer the player controls a character to jump between suspended platforms and avoid obstacles</platformers.longdescription>
+    <platformers.nameLabel>Platformers Genre</platformers.nameLabel>
+    <platformers.shortdescription>Game Genre</platformers.shortdescription>
+    <platformers.sys_line2>Platformers</platformers.sys_line2>
+    <ports.longdescription>Multi-platform ports of software and game engines from PC to DOS</ports.longdescription>
+    <ports.nameLabel>Ports</ports.nameLabel>
+    <ports.shortdescription>Software</ports.shortdescription>
+    <ports.sys_line1>Game</ports.sys_line1>
+    <ports.sys_line2>Ports</ports.sys_line2>
+    <power.longdescription>Safe option to Shut down or restart your System</power.longdescription>
+    <power.nameLabel>Power</power.nameLabel>
+    <power.shortdescription>Shut Down Menu</power.shortdescription>
+    <power.sys_line2>Power</power.sys_line2>
+    <power.systemInfo>Configuration</power.systemInfo>
+    <ps2.longdescription>The PlayStation 2 is the best-selling video game console of all time, selling over 155 million units.</ps2.longdescription>
+    <ps2.nameLabel>Sony Playstation 2</ps2.nameLabel>
+    <ps2.shortdescription>2000  ·  128-bit Console</ps2.shortdescription>
+    <ps2.sys_line1>Sony</ps2.sys_line1>
+    <ps2.sys_line2>Playstation 2</ps2.sys_line2>
+    <psp.longdescription>Sony's first handheld, it was also the first real competition to Nintendo handhelds since the Game Gear</psp.longdescription>
+    <psp.nameLabel>Playstation Portable</psp.nameLabel>
+    <psp.shortdescription>2004  ·  32-bit Handheld Console</psp.shortdescription>
+    <psp.sys_line2>SONY PSP</psp.sys_line2>
+    <pspminis.longdescription>Sony's first handheld, it was also the first real competition to Nintendo handhelds since the Game Gear</pspminis.longdescription>
+    <pspminis.nameLabel>Playstation Portable</pspminis.nameLabel>
+    <pspminis.shortdescription>2004  ·  32-bit Handheld Console</pspminis.shortdescription>
+    <pspminis.sys_line2>PSP Minis</pspminis.sys_line2>
+    <psx.longdescription>The Sony PlayStation primarily competed with the Nintendo 64 and the Sega Saturn as part of the fifth generation of video game consoles</psx.longdescription>
+    <psx.nameLabel>Sony Playstation</psx.nameLabel>
+    <psx.shortdescription>1994  ·  32-bit Console</psx.shortdescription>
+    <psx.sys_line1>Sony</psx.sys_line1>
+    <psx.sys_line2>Playstation</psx.sys_line2>
+    <puzzle.longdescription>Puzzle games can test many problem-solving skills including logic, pattern recognition, sequence solving, and word completion</puzzle.longdescription>
+    <puzzle.nameLabel>Puzzle Genre</puzzle.nameLabel>
+    <puzzle.shortdescription>Game Genre</puzzle.shortdescription>
+    <puzzle.sys_line2>Puzzle</puzzle.sys_line2>
+    <racing.longdescription>In racing games the player partakes in competitions with any type of land, water, air or space vehicles, either real or fictional</racing.longdescription>
+    <racing.nameLabel>Racing Genre</racing.nameLabel>
+    <racing.shortdescription>Game Genre</racing.shortdescription>
+    <racing.sys_line2>Racing</racing.sys_line2>
+    <residualvm.longdescription>Play the classic "Point and Click" graphic adventure games from different platforms and systems like MS-DOS, C64, Apple II or PC</residualvm.longdescription>
+    <residualvm.nameLabel>Residual VM</residualvm.nameLabel>
+    <residualvm.shortdescription>CROSS PLATFORM COMPUTER</residualvm.shortdescription>
+    <residualvm.sys_line2>Residual VM</residualvm.sys_line2>
+    <retroarch.longdescription>RetroArch is a frontend for emulators, game engines and media players</retroarch.longdescription>
+    <retroarch.nameLabel>Options</retroarch.nameLabel>
+    <retroarch.shortdescription>Front-End</retroarch.shortdescription>
+    <retroarch.sys_line2>Retroarch</retroarch.sys_line2>
+    <retropie.longdescription>Configure System hardware, Bluetooth &amp; Wi-Fi connections. Install updates, addons and visual themes</retropie.longdescription>
+    <retropie.nameLabel>Options</retropie.nameLabel>
+    <retropie.shortdescription>System Configuration</retropie.shortdescription>
+    <retropie.sys_line2>Options</retropie.sys_line2>
+    <rpgs.longdescription>In a role-playing game, the player controls the actions of one or several characters, immersed in an often fantastical world</rpgs.longdescription>
+    <rpgs.nameLabel>Role Playing Genre</rpgs.nameLabel>
+    <rpgs.shortdescription>Game Genre</rpgs.shortdescription>
+    <rpgs.sys_line2>Role Playing</rpgs.sys_line2>
+    <satellaview.longdescription>The Satellaview is a satellite modem peripheral produced by Nintendo for the Super Famicom in 1995.</satellaview.longdescription>
+    <satellaview.nameLabel>Satellaview Super Nintendo</satellaview.nameLabel>
+    <satellaview.shortdescription>1995  ·  16-bit Accessory</satellaview.shortdescription>
+    <satellaview.sys_line1>Super nintendo</satellaview.sys_line1>
+    <satellaview.sys_line2>satellaview</satellaview.sys_line2>
+    <saturn.longdescription>Fifth generation home video game console developed by Sega and successor to the successful Sega Genesis</saturn.longdescription>
+    <saturn.nameLabel>Sega Saturn</saturn.nameLabel>
+    <saturn.shortdescription>1994  ·  32-bit Console</saturn.shortdescription>
+    <saturn.sys_line1>Sega</saturn.sys_line1>
+    <saturn.sys_line2>Saturn</saturn.sys_line2>
+    <scummvm.longdescription>Play the classic "Point and Click" graphic adventure games from different platforms and systems like MS-DOS, C64, Apple II or PC</scummvm.longdescription>
+    <scummvm.nameLabel>Scumm VM</scummvm.nameLabel>
+    <scummvm.shortdescription>Cross Platform Computer</scummvm.shortdescription>
+    <scummvm.sys_line2>Scumm VM</scummvm.sys_line2>
+    <sega32x.longdescription>Designed to expand the power of the Genesis and serve as a transitional console into the 32-bit era until the release of the Sega Saturn</sega32x.longdescription>
+    <sega32x.nameLabel>Sega Genesis 32x</sega32x.nameLabel>
+    <sega32x.shortdescription>1994  ·  32-bit Console</sega32x.shortdescription>
+    <sega32x.sys_line1>Sega</sega32x.sys_line1>
+    <sega32x.sys_line2>Genesis 32x</sega32x.sys_line2>
+    <segacd.longdescription>CD-ROM add-on to the Genesis, it launched many FMV games, including the infamous Night Trap, which led to the creation of the ESRB</segacd.longdescription>
+    <segacd.nameLabel>Sega Genesis CD</segacd.nameLabel>
+    <segacd.shortdescription>1991  ·  16-bit Console</segacd.shortdescription>
+    <segacd.sys_line2>SEGA CD</segacd.sys_line2>
+    <sfc.longdescription>Nintendo's second home console introduced advanced graphics and sound capabilities compared with other systems at the time</sfc.longdescription>
+    <sfc.nameLabel>Super Famicom</sfc.nameLabel>
+    <sfc.shortdescription>1990  ·  16-bit Console</sfc.shortdescription>
+    <sfc.sys_line2>Super Famicom</sfc.sys_line2>
+    <sg-1000.longdescription>Sega's first entry into the home video game hardware business provided the basis for the more successful Master System.</sg-1000.longdescription>
+    <sg-1000.nameLabel>Sega SG-1000</sg-1000.nameLabel>
+    <sg-1000.shortdescription>1983  ·  8-bit Console</sg-1000.shortdescription>
+    <sg-1000.sys_line1>Sega</sg-1000.sys_line1>
+    <sg-1000.sys_line2>SG-1000</sg-1000.sys_line2>
+    <sgb.longdescription>Nintendo's second handheld system following the Game &amp; Watch series. It mainly competed with Game Gear and Lynx</sgb.longdescription>
+    <sgb.nameLabel>Nintendo Super-GameBoy</sgb.nameLabel>
+    <sgb.shortdescription>1989  ·  8-bit Handheld Console</sgb.shortdescription>
+    <sgb.sys_line1>Nintendo</sgb.sys_line1>
+    <sgb.sys_line2>Super-GameBoy</sgb.sys_line2>
+    <shmups.longdescription>In a shoot 'em up, the player shoots large numbers of enemies while dodging obstacles, often in a spacecraft or aircraft</shmups.longdescription>
+    <shmups.nameLabel>Shoot 'em Up</shmups.nameLabel>
+    <shmups.shortdescription>Game Genre</shmups.shortdescription>
+    <shmups.sys_line1>Shoot 'em up</shmups.sys_line1>
+    <shmups.sys_line2>SHMUPS</shmups.sys_line2>
+    <snes-hacks.longdescription>Nintendo's second home console introduced advanced graphics and sound capabilities compared with other systems at the time</snes-hacks.longdescription>
+    <snes-hacks.nameLabel>Super Nintendo</snes-hacks.nameLabel>
+    <snes-hacks.shortdescription>1990  ·  16-bit Console</snes-hacks.shortdescription>
+    <snes-hacks.sys_line1>Super nintendo</snes-hacks.sys_line1>
+    <snes-hacks.sys_line2>hacks roms</snes-hacks.sys_line2>
+    <snes.longdescription>Nintendo's second home console introduced advanced graphics and sound capabilities compared with other systems at the time</snes.longdescription>
+    <snes.nameLabel>Super Nintendo</snes.nameLabel>
+    <snes.shortdescription>1990  ·  16-bit Console</snes.shortdescription>
+    <snes.sys_line1>Super</snes.sys_line1>
+    <snes.sys_line2>Nintendo</snes.sys_line2>
+    <snesmsu1.longdescription>Nintendo's second CD version home console introduced advanced graphics and sound capabilities compared with other systems at the time</snesmsu1.longdescription>
+    <snesmsu1.nameLabel>Super Nintendo CD-ROM</snesmsu1.nameLabel>
+    <snesmsu1.shortdescription>1990  ·  16-bit Console</snesmsu1.shortdescription>
+    <snesmsu1.sys_line1>Super</snesmsu1.sys_line1>
+    <snesmsu1.sys_line2>Nintendo CD</snesmsu1.sys_line2>
+    <solarus.longdescription>Solarus is a free and open-source game engine with the goal to allow people to create their own Action-RPG games</solarus.longdescription>
+    <solarus.nameLabel>Solarus</solarus.nameLabel>
+    <solarus.shortdescription>2006 · Open Source Engine</solarus.shortdescription>
+    <solarus.sys_line2>Solarus</solarus.sys_line2>
+    <sports.longdescription>Most sports have been recreated with a game, including team sports, track and field, extreme sports and combat sports</sports.longdescription>
+    <sports.nameLabel>Sports Genre</sports.nameLabel>
+    <sports.shortdescription>Game Genre</sports.shortdescription>
+    <sports.sys_line2>Sports</sports.sys_line2>
+    <steam.longdescription>Developed by Valve Corporation,  Steam offers digital rights management, multiplayer gaming, video streaming and social networking services</steam.longdescription>
+    <steam.nameLabel>Valve Steam</steam.nameLabel>
+    <steam.shortdescription>Digital Platform</steam.shortdescription>
+    <steam.sys_line1>Valve</steam.sys_line1>
+    <steam.sys_line2>Steam</steam.sys_line2>
+    <strategy.longdescription>Strategy video games focus on thinking and planning, and provide strategic, tactical, and sometimes logistical challenges</strategy.longdescription>
+    <strategy.nameLabel>Strategy Genre</strategy.nameLabel>
+    <strategy.shortdescription>Game Genre</strategy.shortdescription>
+    <strategy.sys_line2>Strategy</strategy.sys_line2>
+    <sufami.longdescription>This device is designed to sit on top of the Super Famicom, and features two cartridge slots.</sufami.longdescription>
+    <sufami.nameLabel>sufami turbo</sufami.nameLabel>
+    <sufami.shortdescription>1996  ·  16-bit accessory</sufami.shortdescription>
+    <sufami.sys_line1>bandai</sufami.sys_line1>
+    <sufami.sys_line2>sufami turbo</sufami.sys_line2>
+    <supergrafx.longdescription>The SuperGrafx is an upgraded version of the PC Engine. Only six retail games were produced which took advantage of the improved hardware</supergrafx.longdescription>
+    <supergrafx.nameLabel>SuperGrafx</supergrafx.nameLabel>
+    <supergrafx.shortdescription>1989  ·  16-bit Console</supergrafx.shortdescription>
+    <supergrafx.sys_line2>SuperGrafx</supergrafx.sys_line2>
+    <sys_3do.longdescription>The 3DO Interactive Multiplayer (often called simply the 3DO), is a home video game console platform developed by The 3DO Company</sys_3do.longdescription>
+    <sys_3do.nameLabel>3DO</sys_3do.nameLabel>
+    <sys_3do.shortdescription>1993  ·  32-bit Console</sys_3do.shortdescription>
+    <sys_3do.sys_line2>3DO</sys_3do.sys_line2>
+    <tg-cd.longdescription>Add-on attachment for the TurboGrafx-16. The add-on allows core versions of the console to play TurboGrafx-16 games in CD-ROM format</tg-cd.longdescription>
+    <tg-cd.nameLabel>TurboGrafx CD</tg-cd.nameLabel>
+    <tg-cd.shortdescription>1990  ·  16-bit Console</tg-cd.shortdescription>
+    <tg-cd.sys_line2>TurboGrafx CD</tg-cd.sys_line2>
+    <tg16.longdescription>Originally intended to compete with the NES, it ended up competing with the Sega Genesis, and later on the Super Nintendo</tg16.longdescription>
+    <tg16.nameLabel>TurboGrafx-16</tg16.nameLabel>
+    <tg16.shortdescription>1987  ·  16-bit Console</tg16.shortdescription>
+    <tg16.sys_line2>TurboGrafx-16</tg16.sys_line2>
+    <ti99.longdescription>The Texas Instruments TI-99/4A is a home computer released in June 1981 in the United States. It is an enhanced version of the less successful TI-99/4 which was released in late 1979.</ti99.longdescription>
+    <ti99.nameLabel>TI-99</ti99.nameLabel>
+    <ti99.shortdescription>1981  ·  16 Bit Computer</ti99.shortdescription>
+    <ti99.sys_line1>Texas Instrument</ti99.sys_line1>
+    <ti99.sys_line2>TI-99</ti99.sys_line2>
+    <tic80.longdescription>TIC-80 is a fantasy computer for making, playing and sharing tiny games.</tic80.longdescription>
+    <tic80.nameLabel>TIC-80</tic80.nameLabel>
+    <tic80.shortdescription>2017  ·  16-bit Fantasy Computer</tic80.shortdescription>
+    <tic80.sys_line2>TIC-80</tic80.sys_line2>
+    <turbografxcd.longdescription>Add-on attachment for the TurboGrafx-16. The add-on allows core versions of the console to play TurboGrafx-16 games in CD-ROM format</turbografxcd.longdescription>
+    <turbografxcd.nameLabel>TurboGrafx CD</turbografxcd.nameLabel>
+    <turbografxcd.shortdescription>1990  ·  16-bit Console</turbografxcd.shortdescription>
+    <turbografxcd.sys_line2>TurboGrafx CD</turbografxcd.sys_line2>
+    <turbographx.longdescription>Originally intended to compete with the NES, it ended up competing with the Sega Genesis, and later on the Super Nintendo</turbographx.longdescription>
+    <turbographx.nameLabel>TurboGrafx-16</turbographx.nameLabel>
+    <turbographx.shortdescription>1987  ·  16-bit Console</turbographx.shortdescription>
+    <turbographx.sys_line2>TurboGrafx-16</turbographx.sys_line2>
+    <uzebox.longdescription>The Uzebox is an open source, retro-minimalist game console design. It is based on an AVR 8-bit general purpose microcontroller made by Atmel.</uzebox.longdescription>
+    <uzebox.nameLabel>UZEBOX</uzebox.nameLabel>
+    <uzebox.shortdescription>2007  ·  8-bit Console</uzebox.shortdescription>
+    <uzebox.sys_line1>open source</uzebox.sys_line1>
+    <uzebox.sys_line2>UZEBOX</uzebox.sys_line2>
+    <vectrex.longdescription>Vector display based home video game console that was developed by Western Technologies Smith Engineering</vectrex.longdescription>
+    <vectrex.nameLabel>Vectrex</vectrex.nameLabel>
+    <vectrex.shortdescription>1982  ·  8-bit Console</vectrex.shortdescription>
+    <vectrex.sys_line2>Vectrex</vectrex.sys_line2>
+    <vic20.longdescription>The VIC-20 was the first computer of any description to sell one million units.</vic20.longdescription>
+    <vic20.nameLabel>COMMODORE VIC-20</vic20.nameLabel>
+    <vic20.shortdescription>1980  ·  8-bit Computer</vic20.shortdescription>
+    <vic20.sys_line2>VIC-20</vic20.sys_line2>
+    <virtualboy.longdescription>It was marketed as the first console capable of displaying stereoscopic 3D graphics using a parallax effect to create the illusion of depth</virtualboy.longdescription>
+    <virtualboy.nameLabel>Nintendo VirtualBoy</virtualboy.nameLabel>
+    <virtualboy.shortdescription>1995  ·  32-bit Table-top Console</virtualboy.shortdescription>
+    <virtualboy.sys_line2>VirtualBoy</virtualboy.sys_line2>
+    <vmu.longdescription>The VMU is the primary memory card produced by Sega for the Dreamcast home video game console. The device features a monochrome liquid crystal display (LCD)</vmu.longdescription>
+    <vmu.nameLabel>Visual Memory Unit</vmu.nameLabel>
+    <vmu.shortdescription>1998  ·  8-bit Sanyo LC8670</vmu.shortdescription>
+    <vmu.sys_line1>Dreamcast Visual Memory Unit</vmu.sys_line1>
+    <vmu.sys_line2>SEGA VMU</vmu.sys_line2>
+    <wii.longdescription>The Wii introduced the Wii Remote controller, which can be used as a handheld pointing device and detects movement in three dimensions.</wii.longdescription>
+    <wii.nameLabel>Nintendo Wii</wii.nameLabel>
+    <wii.shortdescription>2006  ·  32-bit Console</wii.shortdescription>
+    <wii.sys_line1>Nintendo</wii.sys_line1>
+    <wii.sys_line2>Wii</wii.sys_line2>
+    <wiiu.longdescription>Successor to the Wii and the first eighth-gen video game console, as it competed with Microsoft's Xbox One and Sony's PS4.</wiiu.longdescription>
+    <wiiu.nameLabel>Nintendo WiiU</wiiu.nameLabel>
+    <wiiu.shortdescription>2012  ·  Handheld Console</wiiu.shortdescription>
+    <wiiu.sys_line1>Nintendo</wiiu.sys_line1>
+    <wiiu.sys_line2>WiiU</wiiu.sys_line2>
+    <wonderswan.longdescription>Powered by a 16 bit central processing unit, it took advantage of a low price point and long battery life in comparison to its competition</wonderswan.longdescription>
+    <wonderswan.nameLabel>Wonderswan</wonderswan.nameLabel>
+    <wonderswan.shortdescription>1999  ·  16-bit Handheld Console</wonderswan.shortdescription>
+    <wonderswan.sys_line2>Wonderswan</wonderswan.sys_line2>
+    <wonderswancolor.longdescription>Powered by a 16 bit central processing unit, it took advantage of a low price point and long battery life in comparison to its competition</wonderswancolor.longdescription>
+    <wonderswancolor.nameLabel>Wonderswan Color</wonderswancolor.nameLabel>
+    <wonderswancolor.shortdescription>1999  ·  16-bit Handheld Console</wonderswancolor.shortdescription>
+    <wonderswancolor.sys_line1>Wonderswan</wonderswancolor.sys_line1>
+    <wonderswancolor.sys_line2>Color</wonderswancolor.sys_line2>
+    <x68000.longdescription>The X68000 is a home computer, sold only in Japan. In terms of hardware, the X68K was very similar to arcade machines of the time</x68000.longdescription>
+    <x68000.nameLabel>X68000</x68000.nameLabel>
+    <x68000.shortdescription>1987  ·  24-bit Computer</x68000.shortdescription>
+    <x68000.sys_line2>X68000</x68000.sys_line2>
+    <zx81.longdescription>Notable for being one of the first computers available in the United Kingdom for less than a hundred pounds</zx81.longdescription>
+    <zx81.nameLabel>SINCLAIR ZX-81</zx81.nameLabel>
+    <zx81.shortdescription>1980  ·  8-bit Computer</zx81.shortdescription>
+    <zx81.sys_line2>ZX-81</zx81.sys_line2>
+    <zxspectrum.longdescription>The Spectrum was among the first mainstream-audience home computers in the UK, similar in significance to the Commodore 64 in the USA</zxspectrum.longdescription>
+    <zxspectrum.nameLabel>Sinclair ZX Spectrum</zxspectrum.nameLabel>
+    <zxspectrum.shortdescription>1982  ·  8-bit Computer</zxspectrum.shortdescription>
+    <zxspectrum.sys_line1>Sinclair</zxspectrum.sys_line1>
+    <zxspectrum.sys_line2>ZX Spectrum</zxspectrum.sys_line2>
+  </variables>
+</theme>

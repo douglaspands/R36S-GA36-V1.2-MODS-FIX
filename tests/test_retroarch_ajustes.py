@@ -251,5 +251,158 @@ class TestRetroarchPrepara(Base):
         self.assertIn('savefile_directory = "~/savefiles"', txt)
 
 
+# --- limita-consumo-e-miniaturas-savestate ---
+
+# chave: (valor do retroarch.cfg de fábrica na p8, valor novo)
+TROCAS_NOVAS = {
+    "sort_savestates_enable": ("true", "false"),
+    "wifi_enabled": ("true", "false"),
+    "wifi_driver": ("connmanctl", "null"),
+    "bluetooth_driver": ("bluetoothctl", "null"),
+    "microphone_driver": ("alsathread", "null"),
+    "midi_driver": ("alsa", "null"),
+    "menu_show_rewind": ("true", "false"),
+    "menu_show_online_updater": ("true", "false"),
+    "quick_menu_show_download_thumbnails": ("true", "false"),
+    "quick_menu_show_start_recording": ("true", "false"),
+    "quick_menu_show_start_streaming": ("true", "false"),
+    "settings_show_network": ("true", "false"),
+    "settings_show_achievements": ("true", "false"),
+    "settings_show_ai_service": ("true", "false"),
+}
+CFG_FABRICA_COMPLETO = CFG_FABRICA + "".join(
+    f'{k} = "{velho}"\n' for k, (velho, _) in TROCAS_NOVAS.items()
+) + 'savestate_thumbnail_enable = "true"\n'
+RACFG_F10 = ROOT / "features" / "10-ptbr-sao-paulo" / "storage" / ".config" / "retroarch" / "retroarch.cfg"
+
+
+def trocas_do_prepara():
+    """[(chave, de, para)] das chamadas troca do retroarch-prepara."""
+    out = []
+    for linha in PREPARA.read_text(encoding="utf-8").splitlines():
+        partes = linha.split()
+        if partes[:1] == ["troca"] and len(partes) == 4:
+            out.append(tuple(p.strip("'\"") for p in partes[1:]))
+    return out
+
+
+class TestRetroarchPreparaEnxuto(Base):
+    prepara = TestRetroarchPrepara.prepara
+    valores = TestRetroarchPrepara.valores
+
+    def test_troca_drivers_menus_e_savestates(self):
+        self.cfg.write_text(CFG_FABRICA_COMPLETO)
+        self.prepara()
+        v = self.valores()
+        for k, (_, novo) in TROCAS_NOVAS.items():
+            self.assertEqual(v[k], novo, k)
+        self.assertEqual(v["savestate_thumbnail_enable"], "true")
+        self.assertEqual(v["rgui_config_directory"], "~/.config/retroarch/config")
+        self.assertEqual(len(self.cfg.read_text().splitlines()), len(CFG_FABRICA_COMPLETO.splitlines()))
+
+    def test_segunda_execucao_com_as_chaves_novas_nao_muda_nada(self):
+        self.cfg.write_text(CFG_FABRICA_COMPLETO)
+        self.prepara()
+        antes = self.cfg.read_bytes()
+        self.prepara()
+        self.assertEqual(self.cfg.read_bytes(), antes)
+
+    def test_valor_escolhido_pelo_usuario_fica(self):
+        self.cfg.write_text(CFG_FABRICA_COMPLETO.replace('microphone_driver = "alsathread"', 'microphone_driver = "sdl2"')
+                            .replace('menu_show_rewind = "true"', 'menu_show_rewind = "false"'))
+        self.prepara()
+        v = self.valores()
+        self.assertEqual(v["microphone_driver"], "sdl2")
+        self.assertEqual(v["menu_show_rewind"], "false")
+        self.assertEqual(v["midi_driver"], "null")
+
+    def test_trocas_batem_com_o_retroarch_cfg_da_feature_10(self):
+        # cartão novo (feature 10) e cartão com --keep-storage (prepara) terminam iguais
+        f10 = {}
+        for linha in RACFG_F10.read_text(encoding="utf-8").splitlines():
+            if " = " in linha and not linha.startswith("#"):
+                k, v = linha.split(" = ", 1)
+                f10[k] = v.strip('"')
+        trocas = {k: (de, para) for k, de, para in trocas_do_prepara()}
+        for k, (velho, novo) in TROCAS_NOVAS.items():
+            self.assertEqual(trocas.get(k), (velho, novo), k)
+        for k, (_, para) in trocas.items():
+            self.assertEqual(f10[k], para, k)
+        self.assertEqual(f10["savestate_thumbnail_enable"], "true")
+
+
+class TestMigraSavestates(Base):
+    def setUp(self):
+        super().setUp()
+        self.saves = self.roms / "savestates"
+
+    def poe(self, rel, conteudo):
+        p = self.saves / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(conteudo)
+        return p
+
+    def foto(self):
+        return {str(p.relative_to(self.saves)): p.read_bytes() for p in self.saves.rglob("*") if p.is_file()}
+
+    def test_cria_a_pasta_de_savestates(self):
+        self.roda(PREPARA)
+        self.assertTrue(self.saves.is_dir())
+
+    def test_move_state_e_miniatura_da_subpasta_do_core(self):
+        self.poe("gba/gpSP/Jogo.state", b"s0")
+        self.poe("gba/gpSP/Jogo.state.png", b"p0")
+        self.poe("gba/gpSP/Jogo.state1", b"s1")
+        self.poe("gba/gpSP/Jogo.state.auto", b"a")
+        self.roda(PREPARA)
+        self.assertEqual(self.foto(), {"gba/Jogo.state": b"s0", "gba/Jogo.state.png": b"p0",
+                                       "gba/Jogo.state1": b"s1", "gba/Jogo.state.auto": b"a"})
+        self.assertFalse((self.saves / "gba" / "gpSP").exists())  # subpasta vazia sai
+
+    def test_nao_sobrescreve_o_que_ja_esta_na_pasta_do_sistema(self):
+        self.poe("gba/Jogo.state", b"novo")
+        self.poe("gba/gpSP/Jogo.state", b"velho")
+        self.poe("gba/gpSP/Jogo.state.png", b"png")
+        self.roda(PREPARA)
+        self.assertEqual(self.foto(), {"gba/Jogo.state": b"novo", "gba/Jogo.state.png": b"png",
+                                       "gba/gpSP/Jogo.state": b"velho"})
+
+    def test_nomes_com_espaco_e_acento(self):
+        self.poe("snes/Snes9x 2005 Plus/Jogo - Ação (BR).state2", b"s")
+        self.poe("snes/Snes9x 2005 Plus/Jogo - Ação (BR).state2.png", b"p")
+        self.roda(PREPARA)
+        self.assertEqual(self.foto(), {"snes/Jogo - Ação (BR).state2": b"s",
+                                       "snes/Jogo - Ação (BR).state2.png": b"p"})
+
+    def test_segunda_execucao_nao_muda_nada(self):
+        self.poe("gba/Jogo.state", b"novo")
+        self.poe("gba/gpSP/Jogo.state", b"velho")
+        self.poe("nes/FCEUmm/Outro.state", b"o")
+        self.roda(PREPARA)
+        antes = self.foto()
+        self.roda(PREPARA)
+        self.assertEqual(self.foto(), antes)
+
+    def test_nao_mexe_no_que_nao_e_save_state(self):
+        self.poe("gba/gpSP/Jogo.srm", b"x")
+        self.poe("gba/Jogo.state", b"s")
+        (self.saves / "gba" / "Vazia").mkdir()
+        self.roda(PREPARA)
+        self.assertEqual(self.foto(), {"gba/gpSP/Jogo.srm": b"x", "gba/Jogo.state": b"s"})
+        self.assertTrue((self.saves / "gba" / "Vazia").is_dir())
+
+    def test_sem_p1_montada_nao_cria_nada(self):
+        self.roms.rmdir()
+        self.roda(PREPARA)
+        self.assertFalse(self.roms.exists())
+
+    def test_log_so_com_a_chave(self):
+        self.poe("gba/gpSP/Jogo.state", b"s")
+        (self.roms / "r36-diagnostico").touch()
+        self.roda(PREPARA)
+        txt = (self.roms / "r36-retroarch.log").read_text(encoding="utf-8")
+        self.assertIn("savestates: gba/gpSP/Jogo.state movido para gba/Jogo.state", txt)
+
+
 if __name__ == "__main__":
     unittest.main()

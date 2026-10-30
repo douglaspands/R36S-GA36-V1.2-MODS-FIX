@@ -1,0 +1,20 @@
+<theme>
+  <formatVersion>7</formatVersion>
+  <include>./../theme.xml</include>
+  <view name="basic, detailed, video, grid">
+    <text name="nameLabel" extra="true">
+      <text>${amiga.nameLabel}</text>
+    </text>
+  </view>
+  <view name="system">
+    <text name="sys_line2" extra="true">
+      <text>${amiga.sys_line2}</text>
+    </text>
+    <text name="shortdescription" extra="true">
+      <text>${amiga.shortdescription}</text>
+    </text>
+    <text name="longdescription" extra="true">
+      <text>${amiga.longdescription}</text>
+    </text>
+  </view>
+</theme>

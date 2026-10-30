@@ -1,6 +1,6 @@
 schema = 1
 name = "Serviços enxutos"
-description = "Não sobe no boot o controle remoto IR (lircd, eventlircd) nem o cron, que o R36S não usa."
+description = "Não sobe no boot o controle remoto IR (lircd, eventlircd), o cron, o relógio por rede (systemd-timesyncd) nem o pulseaudio, que o R36S não usa."
 order = 41
 enabled = true
 
@@ -26,3 +26,19 @@ path = "usr/lib/systemd/system/multi-user.target.wants/eventlircd.service"
 [[remove]]
 layer = "system"
 path = "usr/lib/systemd/system/multi-user.target.wants/cron.service"
+
+# Sem rede nem Wi-Fi, o NTP não tem com quem falar; o daemon (Restart=always) ficava na RAM.
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/sysinit.target.wants/systemd-timesyncd.service"
+
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/sysinit.target.wants/systemd-timesyncd-setup.service"
+
+# O som é ALSA: o emustation-config (set_audio default -> rr_audio.sh alsa) para o
+# pulseaudio segundos depois do boot. O rr_audio.sh ainda o religa se alguém escolher
+# o backend PulseAudio.
+[[remove]]
+layer = "system"
+path = "usr/lib/systemd/system/multi-user.target.wants/pulseaudio.service"

@@ -1,0 +1,23 @@
+# Tasks
+
+## 1. Capturas de referência e réplica numérica (`var/exemplos-gb-gbc/`)
+
+- [x] 1.1 Criar `openspec/changes/shaders-gb-gbc-r36s/verificacao/capturar-sem-shader.sh` usando `~/AppImages/retroarch.appimage` (core Gambatte; sem ele no PC, o mGBA com modelo fixo, paleta `Grayscale` e sem correção de cor) e capturar quadros sem shader de ROMs em `/mnt/backup/PC/R36S/roms/gb` (*Super Mario Land II - 6 Golden Coins*, *Legend of Zelda - Link's Awakening*, *Pokemon - Red Version*) e `/mnt/backup/PC/R36S/roms/gbc` (*Super Mario Bros. Deluxe*, *Legend of Zelda, The - Link's Awakening DX*, *Donkey Kong Country*), verificando que os PNGs nativos/2x são gerados em `~/.cache/shader-gb-gbc-test/` (160x144, `video_gpu_screenshot = "false"`)
+- [x] 1.2 Criar `openspec/changes/shaders-gb-gbc-r36s/verificacao/replica.py` e `LEIA-ME.md` espelhando `gb-modern-dmg.glsl` e `gbc-modern-remaster.glsl` (float32 e meia precisão `fp16=True` em 533x480 e 320x288), verificando que `uv run --with pillow --with numpy python -I openspec/changes/shaders-gb-gbc-r36s/verificacao/replica.py` imprime todas as métricas da spec (`Delta Luma >= 0.20` entre os 4 tons do DMG, nitidez >= 97%, matiz < 2 graus, zero estouro de claros e PSNR fp16 > 30 dB) e grava as pranchas comparativas em `var/exemplos-gb-gbc/`
+
+## 2. Shaders GLSL do Game Boy Clássico (`gb`) e do Game Boy Color (`gbc`)
+
+- [x] 2.1 Criar `features/55-shaders-gb-gbc/feature.toml`, `features/55-shaders-gb-gbc/system/usr/share/common-shaders/gb/gb-modern-dmg.glsl` e `.glslp` (passe único, 1 leitura de textura, `mediump`, sem `pow()`, paleta High-Clarity DMG-01 com 4 tons bem separados e grade dot-matrix reflexiva), verificando permissões `0644` e equivalência exata dos padrões com `replica.py`
+- [x] 2.2 Criar `features/55-shaders-gb-gbc/system/usr/share/common-shaders/gbc/gbc-modern-remaster.glsl` e `.glslp` (passe único, 1 leitura de textura, `mediump`, sem `pow()`, pipeline de cor estilo SNES calibrado em 533x480), verificando permissões `0644` e equivalência exata dos padrões com `replica.py`
+- [x] 2.3 Adicionar os testes de estrutura, parâmetros, `#define` de reserva e restrições da Mali-400 dos dois shaders em `tests/test_shaders_gb_gbc.py`, verificando que `uv run python -I -m unittest tests.test_shaders_gb_gbc` passa
+
+## 3. Serviço de boot, opções do Gambatte e decisão de ativação por padrão
+
+- [x] 3.1 Criar `features/55-shaders-gb-gbc/system/usr/lib/r36/shader-gb-gbc-prepara` e `r36-shader-gb-gbc-prepara.service` (com symlink em `emuelec.target.wants/`), atualizando no mesmo inode cópias antigas em `/storage/shaders/{gb,gbc}`, garantindo o bind de `/tmp/shaders`, configurando `config/Gambatte/gb.opt` (`gambatte_gb_colorization = "disabled"`) e `gbc.opt` (`gambatte_gbc_color_correction = "disabled"`), ativando `gb.shaderset` / `gbc.shaderset` e presets `<Core>/gb.glslp` / `<Core>/gbc.glslp` com suporte às chaves `r36-gb-sem-shader`, `r36-gbc-sem-shader` e `r36-diagnostico`, e verificando `sh -n` no script
+- [x] 3.2 Adicionar em `tests/test_shaders_gb_gbc.py` os testes do serviço `shader-gb-gbc-prepara` via `R36_ROOT` (atualização no mesmo inode, bind de `/tmp/shaders`, criação (a partir do `Gambatte.opt` global, se existir) e preservação de `gb.opt`/`gbc.opt`, idempotência também de `radir/`, p8 e `.opt`, `emuelec.conf`, presets `<Core>/gb.glslp` e `<Core>/gbc.glslp` sem colidir com `mGBA.glslp` do GBA, chaves de desligamento e log sob `r36-diagnostico`), verificando que toda a suíte `uv run python -I -m unittest discover -s tests` passa
+- [x] 3.3 Registrar a decisão do usuário: os shaders `gb-modern-dmg` e `gbc-modern-remaster` ficam **ligados por padrão** no boot (`gb.shaderset`/`gbc.shaderset` e presets `<Core>/gb.glslp` e `<Core>/gbc.glslp`, chaves `r36-gb-sem-shader` e `r36-gbc-sem-shader`), como o GBA na feature 54; escrever os trechos do `README.md` e do `CLAUDE.md` em `docs-shaders-gb-gbc-r36s.md` (a integração os consolida), verificando com `openspec validate shaders-gb-gbc-r36s --strict`. A apresentação das pranchas de `var/exemplos-gb-gbc/` ao usuário já foi feita, sem perguntar o padrão, e fica registrada no relatório da integração (não é verificável por diff)
+
+## 4. Integração e validação da imagem
+
+- [x] 4.1 Gerar o build da imagem (`./build.sh`) e inspecionar `parts/system.img` com `unsquashfs -lls`, verificando a presença, dono `0:0` e permissões de `gb-modern-dmg.*`, `gbc-modern-remaster.*`, `shader-gb-gbc-prepara` e `r36-shader-gb-gbc-prepara.service`
+- [x] 4.2 Validar a gravação em arquivo temporário com `./flash.sh --target-file` e rodar a suíte completa `uv run python -I -m unittest discover -s tests`

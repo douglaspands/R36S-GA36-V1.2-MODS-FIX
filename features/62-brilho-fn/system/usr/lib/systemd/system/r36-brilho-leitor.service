@@ -1,0 +1,17 @@
+[Unit]
+Description=Atalho de brilho FN + D-pad do R36S
+# Sem Before/After do ES nem do autostart: o autostart so termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o udt_joystick criar o micro_gamepad (ate 120 s) e sai com 0 sem ele.
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/r36/brilho-leitor
+Nice=10
+# Se o evtest terminar (ou o script sair sem o dispositivo), o atalho volta. O script
+# espera o dispositivo por conta propria (ate 120 s), entao o reinicio nao vira laco rapido.
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=emuelec.target

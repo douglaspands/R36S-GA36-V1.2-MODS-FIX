@@ -1,0 +1,23 @@
+<theme>
+  <formatVersion>7</formatVersion>
+  <include>./../theme.xml</include>
+  <view name="basic, detailed, video, grid">
+    <text name="nameLabel" extra="true">
+      <text>${gamegear.nameLabel}</text>
+    </text>
+  </view>
+  <view name="system">
+    <text name="sys_line1" extra="true">
+      <text>${gamegear.sys_line1}</text>
+    </text>
+    <text name="sys_line2" extra="true">
+      <text>${gamegear.sys_line2}</text>
+    </text>
+    <text name="shortdescription" extra="true">
+      <text>${gamegear.shortdescription}</text>
+    </text>
+    <text name="longdescription" extra="true">
+      <text>${gamegear.longdescription}</text>
+    </text>
+  </view>
+</theme>

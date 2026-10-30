@@ -1,0 +1,20 @@
+[Unit]
+Description=Prepara os shaders gb-modern-dmg e gbc-modern-remaster como padrão do GB e do GBC (R36S)
+# Sem After=emuelec-autostart.service: o autostart só termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o mount_romfs.sh montar /storage/roms.
+# After=tmp-shaders.mount: o overlay falha neste kernel (sem overlayfs) e o script monta
+# /storage/shaders em /tmp/shaders por bind depois dessa tentativa.
+# After=r36-shader-gba-prepara.service: os dois escrevem no emuelec.conf e montam
+# /tmp/shaders; em série, não há corrida. Sem a feature 54, a ordem não tem efeito.
+After=tmp-shaders.mount r36-shader-gba-prepara.service
+Before=emustation.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/shader-gb-gbc-prepara
+RemainAfterExit=yes
+TimeoutStartSec=60
+
+[Install]
+WantedBy=emuelec.target

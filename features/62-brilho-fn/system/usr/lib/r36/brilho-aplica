@@ -1,0 +1,153 @@
+#!/bin/sh
+# Ponto único do brilho da tela do R36S (feature 62-brilho-fn). Subcomandos:
+#   aplica      lê o nível salvo e o aplica no lcdbl
+#   ajusta +|-  sobe ou desce um passo a partir do nível em uso (só a tela)
+#   salva       grava o nível em uso no arquivo, só se ele mudou
+#   padrao      apaga o nível salvo e aplica o padrão (80)
+#   boot        espera a p1 e faz "aplica", ou "padrao" com o arquivo vazio
+#               r36-brilho-original na raiz da p1 (r36-brilho.service)
+# Quem chama: o brilho-leitor (FN + D-pad: ajusta a cada passo, salva ao soltar a seta,
+# padrao no FN + L3) e o udt_pwr_events.sh (aplica, ao acordar).
+#
+# Por que: a base só lê o brightness.level do emuelec.conf (no autostart e ao acordar) e
+# nenhum botão o muda; e o emuelec.conf não é fonte confiável, porque o ES o regrava. O
+# nível fica em r36-brilho.level (p8, ao lado do emuelec.conf), uma linha com um inteiro
+# de 10 (piso, a tela nunca apaga) a 100. Sem o arquivo vale o brightness.level do
+# emuelec.conf e, sem ele, 80; um valor fora da faixa ou que não seja número vira 80.
+# Escala do lcdbl (0 a 255): (nível*255+50)/100, a mesma da base.
+# O nível em uso fica em /run/r36-brilho.atual: durante a repetição o lcdbl muda a cada
+# passo, mas o arquivo da p8 só é gravado uma vez, no salva.
+# Sem o lcdbl, nenhum subcomando faz nada. Com o arquivo vazio r36-diagnostico na raiz da
+# p1, acrescenta ao r36-brilho.log uma linha por aplica, salva e padrao (o ajusta, que
+# roda a cada passo da repetição, não escreve na p1). O script termina sempre com código 0.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+LCDBL="$ROOT/sys/devices/virtual/disp/disp/attr/lcdbl"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+NIVEL_ARQ="$ROOT/storage/.config/emuelec/configs/r36-brilho.level"
+ATUAL="$ROOT/run/r36-brilho.atual"
+LOG="$ROOT/storage/roms/r36-brilho.log"
+DIAG="$ROOT/storage/roms/r36-diagnostico"
+OFF="$ROOT/storage/roms/r36-brilho-original"
+ESPERA_P1="${R36_BRILHO_ESPERA_P1:-20}"
+PISO=10
+TETO=100
+PASSO=5
+PADRAO=80
+
+# inteiro de PISO a TETO, sem sinal, sem zero à esquerda e com no máximo 3 algarismos
+valido() {
+    case "$1" in
+        ''|*[!0-9]*|0*|????*) return 1 ;;
+    esac
+    [ "$1" -ge "$PISO" ] && [ "$1" -le "$TETO" ]
+}
+
+registra() {
+    [ -e "$DIAG" ] || return 0
+    printf '%s brilho-aplica %s\n' "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" "$1" >> "$LOG" 2>/dev/null
+    return 0
+}
+
+primeira_linha() { head -n 1 "$1" 2>/dev/null | tr -d '\r'; }
+
+nivel_salvo() {
+    if [ -e "$NIVEL_ARQ" ]; then
+        v=$(primeira_linha "$NIVEL_ARQ")
+    else
+        v=$(sed -n 's/^brightness\.level=//p' "$EMUCONF" 2>/dev/null | head -n 1 | tr -d '\r')
+    fi
+    valido "$v" || v=$PADRAO
+    echo "$v"
+}
+
+nivel_atual() {
+    v=$(primeira_linha "$ATUAL")
+    valido "$v" || v=$(nivel_salvo)
+    echo "$v"
+}
+
+escala() { echo $(( ($1 * 255 + 50) / 100 )); }
+
+grava_tela() {
+    escala "$1" > "$LCDBL" 2>/dev/null
+    mkdir -p "$(dirname "$ATUAL")" 2>/dev/null
+    printf '%s\n' "$1" > "$ATUAL" 2>/dev/null
+}
+
+aplica() {
+    n=$(nivel_salvo)
+    grava_tela "$n"
+    registra "aplica nivel=$n lcdbl=$(escala "$n")"
+}
+
+padrao() {
+    rm -f "$NIVEL_ARQ"
+    grava_tela "$PADRAO"
+    registra "padrao nivel=$PADRAO lcdbl=$(escala "$PADRAO") (nivel salvo apagado)"
+}
+
+p1_montada() {
+    if [ -z "$ROOT" ]; then mountpoint -q /storage/roms 2>/dev/null; else [ -d "$ROOT/storage/roms" ]; fi
+}
+
+# No boot (r36-brilho.service): espera a p1, que o mount_romfs.sh monta depois de o
+# emuelec_autostart.sh gravar o brilho de fábrica no lcdbl, e aplica o nível salvo por
+# cima; com r36-brilho-original na p1, volta ao padrão. Sem p1 em 20 s, a chave conta
+# como ausente.
+boot() {
+    i=0
+    until p1_montada; do
+        [ "$i" -ge "$ESPERA_P1" ] && break
+        sleep 1
+        i=$((i + 1))
+    done
+    if p1_montada && [ -e "$OFF" ]; then
+        registra "boot: r36-brilho-original encontrado"
+        padrao
+    else
+        aplica
+    fi
+}
+
+[ -e "$LCDBL" ] || exit 0
+
+case "$1" in
+    aplica)
+        aplica
+        ;;
+    boot)
+        boot
+        ;;
+    ajusta)
+        n=$(nivel_atual)
+        case "$2" in
+            +) n=$((n + PASSO)) ;;
+            -) n=$((n - PASSO)) ;;
+            *) exit 0 ;;
+        esac
+        [ "$n" -gt "$TETO" ] && n=$TETO
+        [ "$n" -lt "$PISO" ] && n=$PISO
+        grava_tela "$n"
+        ;;
+    salva)
+        # nada a gravar se o nível em uso já é o salvo (poupa escrita no SD)
+        n=$(nivel_atual)
+        if [ -e "$NIVEL_ARQ" ]; then
+            [ "$(primeira_linha "$NIVEL_ARQ")" = "$n" ] && mudou=nao || mudou=sim
+        else
+            [ "$(nivel_salvo)" = "$n" ] && mudou=nao || mudou=sim
+        fi
+        if [ "$mudou" = sim ]; then
+            printf '%s\n' "$n" > "$NIVEL_ARQ" 2>/dev/null
+            registra "salva nivel=$n lcdbl=$(escala "$n")"
+        else
+            registra "salva nivel=$n lcdbl=$(escala "$n") (sem mudanca, arquivo nao regravado)"
+        fi
+        ;;
+    padrao)
+        padrao
+        ;;
+esac
+exit 0

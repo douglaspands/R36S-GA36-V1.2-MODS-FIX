@@ -1,0 +1,14 @@
+# Shaders para Game Boy (GB) e Game Boy Color (GBC) no R36S (Allwinner A33).
+# Instala o gb-modern-dmg (4 tons verde-oliva bem separados, grade dot-matrix e
+# sharp-bilinear) em /usr/share/common-shaders/gb e o gbc-modern-remaster (cor viva
+# do gba-modern-remaster, calibrada em 533x480) em /usr/share/common-shaders/gbc.
+# Ficam ligados por padrão: o r36-shader-gb-gbc-prepara cria, no boot, gb.shaderset e
+# gbc.shaderset no emuelec.conf, os presets automáticos por pasta de conteúdo
+# (<Core>/gb.glslp e <Core>/gbc.glslp) e as opções de cor do Gambatte por pasta
+# (gb.opt e gbc.opt). Para desligar, r36-gb-sem-shader ou r36-gbc-sem-shader na raiz da p1.
+
+schema = 1
+name = "Shaders GB e GBC"
+description = "Shaders gb-modern-dmg (4 tons verde-oliva de alta clareza e grade dot-matrix) e gbc-modern-remaster (cor viva e sharp-bilinear), ligados por padrão nos jogos de GB e GBC, com chaves para desligar na p1."
+order = 55
+enabled = true

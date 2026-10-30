@@ -8,6 +8,12 @@
 #  2. gpSP.opt: acrescenta gpsp_boot_mode = "bios" (Boot to BIOS) e gpsp_frame_mixing = "enabled" (interframe blending, o ghosting do
 #     LCD) se a chave não existir; um valor existente não é alterado. Com o arquivo vazio
 #     r36-gpsp-sem-ghost na raiz da p1, remove só a linha "enabled".
+#  3. Save states e hardware ausente no retroarch.cfg, também só sobre a linha de fábrica:
+#     sort_savestates_enable "false" (o RetroArch grava <rom>.state e a miniatura .png em
+#     /storage/roms/savestates/<sistema>/, onde o ES procura), drivers de Wi-Fi, Bluetooth,
+#     microfone e MIDI em "null" e os menus de rede, gravação, streaming e rewind ocultos.
+#     Com a p1 montada, cria /storage/roms/savestates e move os *.state* das subpastas de
+#     core (<sistema>/<core>/) para a pasta do sistema, sem sobrescrever o que já está lá.
 # Com o arquivo vazio r36-diagnostico na raiz da p1, deixa o resultado em r36-retroarch.log.
 # R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
 
@@ -56,6 +62,21 @@ if [ -f "$RACFG" ]; then
     troca log_dir /logs '~/.config/emuelec/logs'
     troca osk_overlay_directory /overlays/keyboards '~/overlays/keyboards'
     registro "retroarch.cfg: $(grep -E '^(rgui_config_directory|savefile_directory|log_dir|osk_overlay_directory) ' "$RACFG" | tr '\n' ' ')"
+    # 3. Save states na pasta do sistema, sem drivers de hardware ausente, menus enxutos
+    troca sort_savestates_enable true false
+    troca wifi_enabled true false
+    troca wifi_driver connmanctl null
+    troca bluetooth_driver bluetoothctl null
+    troca microphone_driver alsathread null
+    troca midi_driver alsa null
+    troca menu_show_rewind true false
+    troca menu_show_online_updater true false
+    troca quick_menu_show_download_thumbnails true false
+    troca quick_menu_show_start_recording true false
+    troca quick_menu_show_start_streaming true false
+    troca settings_show_network true false
+    troca settings_show_achievements true false
+    troca settings_show_ai_service true false
 else
     registro "retroarch.cfg ausente"
 fi
@@ -87,4 +108,37 @@ if [ -e "$OFF" ]; then
 else
     garante "$CHAVE" enabled
 fi
+
+# 3. Save states gravados com sort_savestates_enable "true" (<sistema>/<core>/) vão para a
+# pasta do sistema. Só com a p1 montada: sem ela, /storage/roms é a pasta vazia da p8.
+SAVES="$ROOT/storage/roms/savestates"
+if [ -n "$MONTADA" ]; then
+    mkdir -p "$SAVES"
+    for arq in "$SAVES"/*/*/*.state*; do
+        [ -f "$arq" ] || continue
+        sub="${arq%/*}"
+        dest="${sub%/*}/${arq##*/}"
+        if [ -e "$dest" ]; then
+            registro "savestates: ${arq#"$SAVES"/} mantido, ja existe ${dest#"$SAVES"/}"
+        elif mv "$arq" "$dest"; then
+            registro "savestates: ${arq#"$SAVES"/} movido para ${dest#"$SAVES"/}"
+            rmdir "$sub" 2>/dev/null  # só sai quando fica vazia
+        fi
+    done
+fi
+
+# 4. Atualiza o catálogo de tradução do EmulationStation na p8 se o SYSTEM tiver versão mais nova
+if [ -d "$ROOT/usr/config/emuelec/configs/locale" ] && [ -d "$ROOT/storage/.config/emuelec/configs/locale" ]; then
+    for ldir in "$ROOT/usr/config/emuelec/configs/locale"/*; do
+        [ -d "$ldir" ] || continue
+        lang="${ldir##*/}"
+        src_mo="$ldir/LC_MESSAGES/emulationstation2.mo"
+        dst_dir="$ROOT/storage/.config/emuelec/configs/locale/$lang/LC_MESSAGES"
+        if [ -f "$src_mo" ]; then
+            mkdir -p "$dst_dir" 2>/dev/null
+            cp -f "$src_mo" "$dst_dir/emulationstation2.mo" 2>/dev/null
+        fi
+    done
+fi
+
 exit 0
