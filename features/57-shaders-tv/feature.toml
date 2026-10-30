@@ -1,0 +1,12 @@
+# Shaders para consoles de mesa e arcades no R36S (Allwinner A33).
+# Instala o shader tv-modern-remaster (cor viva, fusão seletiva de dither e
+# feixe CRT calibrado) em /usr/share/common-shaders/tv, a pasta de baixo do overlay /tmp/shaders.
+# Fica ligado por padrão nos jogos de consoles de mesa e arcades: o r36-shader-tv-prepara
+# cria, no boot, o preset automático do RetroArch de cada core correspondente e configura
+# <sistema>.shaderset no emuelec.conf. Para desligar, r36-tv-sem-shader na raiz da p1.
+
+schema = 1
+name = "Shaders TV Remaster"
+description = "Shader tv-modern-remaster (cor viva, fusão seletiva de dither e feixe CRT suave), ligado por padrão nos jogos de mesa e arcades, com chave para desligar na p1."
+order = 57
+enabled = true

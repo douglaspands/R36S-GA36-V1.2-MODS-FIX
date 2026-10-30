@@ -66,47 +66,48 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <maxLogoCount>0</maxLogoCount>
     </carousel>
     
-    <text name="sys_line1" extra="true">
-        <fontPath>./_art/BebasNeue.otf</fontPath>
-        <alignment>left</alignment>
-        <forceUppercase>1</forceUppercase>
-        <color>FFFFFF</color>
-		<fontSize>0.040</fontSize>
-        <origin>0 0</origin>
-        <pos>0.003 0.118</pos>
-        <size>0.40 0.04</size>
-    </text>
-    
-    <text name="sys_line2" extra="true">
-        <fontPath>./_art/BebasNeue.otf</fontPath>
-        <alignment>left</alignment>
-        <forceUppercase>1</forceUppercase>
-		<fontSize>0.18</fontSize>
-        <origin>0 0</origin>
-        <pos>0.003 0.160</pos>
-        <size>0.45 0.20</size>
-        <color>FFFFFF</color>
-    </text>
-
-    <image name="buttonA" extra="true">
-		<path>./_art/var/button.svg</path>
-        <tile>false</tile>
-        <origin>0 0</origin>
-        <pos>0.003 0.48</pos>
-        <size>0 0.085</size>
-	<color>585858</color>
-    </image>
-
-    <text name="shortdescription" extra="true">
+        <text name="shortdescription" extra="true">
         <fontPath>./_art/Acre.otf</fontPath>
         <alignment>left</alignment>
         <forceUppercase>0</forceUppercase>
         <fontSize>0.022</fontSize>
         <color>ffffff</color>
         <origin>0 0</origin>
-        <pos>0.003 0.092</pos>
+        <pos>0.025 0.080</pos>
         <size>0.320 0.025</size>
     </text>
+
+    <text name="sys_line1" extra="true">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>1</forceUppercase>
+        <color>FFFFFF</color>
+        <fontSize>0.045</fontSize>
+        <origin>0 0</origin>
+        <pos>0.025 0.115</pos>
+        <size>0.975 0.045</size>
+    </text>
+    
+    <text name="sys_line2" extra="true">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>1</forceUppercase>
+        <fontSize>0.130</fontSize>
+        <origin>0 0</origin>
+        <pos>0.025 0.160</pos>
+        <size>0.975 0.200</size>
+        <color>FFFFFF</color>
+    </text>
+
+    <image name="buttonA" extra="true">
+        <path>${buttonImage}</path>
+        <path>./_art/var/button.svg</path>
+        <tile>false</tile>
+        <origin>0 0</origin>
+        <pos>0.025 0.460</pos>
+        <size>0 0.085</size>
+        <color>585858</color>
+    </image>
 
     <text name="systemInfo">
         <fontPath>./_art/BebasNeue.otf</fontPath>
@@ -115,7 +116,7 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <forceUppercase>1</forceUppercase>
         <color>FFAE00</color>
         <origin>0 0</origin>
-        <pos>0.003 0.62</pos>
+        <pos>0.025 0.570</pos>
         <size>0.400 0.042</size>
         <fontSize>0.050</fontSize>
     </text>
@@ -126,19 +127,28 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <forceUppercase>0</forceUppercase>
         <fontSize>0.022</fontSize>
         <color>ffffff</color>
- 	<lineSpacing>1.18</lineSpacing>
+        <lineSpacing>1.18</lineSpacing>
         <origin>0 0</origin>
-        <pos>0.003 0.72</pos>
-        <size>0.28 0.24</size>
+        <pos>0.025 0.660</pos>
+        <size>0.30 0.26</size>
     </text>
 
     <image name="controller" extra="true">
         <path>./_art/controllers/${system.theme}.png</path>
         <tile>false</tile>
         <origin>0 0</origin>
-        <pos>0.35 0.65</pos>
-        <maxSize>0.33 0.33</maxSize>
+        <pos>0.35 0.62</pos>
+        <maxSize>0.28 0.28</maxSize>
     </image>
+
+    <helpsystem name="help">
+        <fontPath>./_art/Acre.otf</fontPath>
+        <fontSize>0.022</fontSize>
+        <textColor>A0A0A0</textColor>
+        <iconColor>FFAE00</iconColor>
+        <pos>0.025 0.965</pos>
+        <origin>0 1</origin>
+    </helpsystem>
 </view>
 
 <view name="basic, detailed, video">
@@ -159,17 +169,19 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <fontPath>./_art/Acre.otf</fontPath>
         <alignment>left</alignment>
         <pos>0 0.12</pos>
-	    <size>0.319 0.85</size>
+	    <size>0.319 0.91</size>
         <fontSize>0.03</fontSize>
         <lineSpacing>1.683</lineSpacing>
         <horizontalMargin>0.01</horizontalMargin>
     </textlist>
 	
 	<helpsystem name="help">
+        <fontPath>./_art/Acre.otf</fontPath>
+        <fontSize>0.022</fontSize>
+        <textColor>A0A0A0</textColor>
+        <iconColor>FFAE00</iconColor>
         <pos>1 1</pos>
 	    <origin>1 1</origin>
-        <textColor>ffffff</textColor>
-        <iconColor>ffffff</iconColor>
     </helpsystem>
     
     <text name="top_label" extra="true">
@@ -190,8 +202,8 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <color>FFAE00</color>
         <fontSize>0.060</fontSize>
         <origin>0 0</origin>
-        <pos>0.33 0.012</pos>
-        <size>0.45 0.06</size>
+        <pos>0.33 0.02</pos>
+        <size>0.65 0.08</size>
         <zIndex>50</zIndex>
     </text>
 
@@ -306,27 +318,25 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
     <text name="clock">
       <color>FFFFFF</color>
       <fontSize>0.035</fontSize>
-      <pos>0.905 0.012</pos>
-      <size>0.085 0.050</size>
+      <pos>0.910 0.01</pos>
+      <size>0.09 0.058</size>
       <alignment>right</alignment>
       <verticalAlignment>center</verticalAlignment>
     </text>
     <batteryIndicator name="batteryIndicator">
-      <pos>0.795 0.012</pos>
-      <size>0.100 0.050</size>
-      <alignment>right</alignment>
-      <verticalAlignment>center</verticalAlignment>
-      <incharge>./_art/battery/incharge.svg</incharge>
-      <full>./_art/battery/full.svg</full>
-      <at75>./_art/battery/75.svg</at75>
-      <at50>./_art/battery/50.svg</at50>
-      <at25>./_art/battery/25.svg</at25>
-      <empty>./_art/battery/empty.svg</empty>
+      <pos>0.855 0.01</pos>
+      <size>0.033 0.033</size>
+      <incharge>./art/battery/incharge.svg</incharge>
+      <full>./art/battery/full.svg</full>
+      <at75>./art/battery/75.svg</at75>
+      <at50>./art/battery/50.svg</at50>
+      <at25>./art/battery/25.svg</at25>
+      <empty>./art/battery/empty.svg</empty>
       <color>FFFFFFA0</color>
     </batteryIndicator>
     <batteryIndicator name="batteryIndicator" tinyScreen="true">
-      <pos>0.795 0.012</pos>
-      <size>0.100 0.050</size>
+      <pos>0.915 0.013</pos>
+      <size>0.07 0.07</size>
     </batteryIndicator>
   </view>
 	

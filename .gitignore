@@ -11,3 +11,6 @@ __pycache__/
 
 # Exemplos gerados para validação visual
 var/
+
+# Claude worktrees
+.claude/worktrees/

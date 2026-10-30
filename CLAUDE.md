@@ -6,13 +6,16 @@ do aparelho que não se deduzem do código.
 
 ## Regras de trabalho
 
-- **Shell e modo auto:** comandos com caminhos relativos à raiz do projeto, um por
-  chamada, sem `cd`, sem encadear com `&&` ou `;` e sem pipes complexos. O harness
-  deve usar comandos prefix-matchable permitidos pelo modo auto: proibido usar laços
-  (`for`, `while`), substituições (`$(...)`, backticks) ou variáveis (`$VAR`).
-  Para ler ou alterar arquivos, use ferramentas nativas do harness (`read_file`,
-  `edit_file`, `write_file`). Lógica longa ou iterações vão num script Python executado
-  em chamada única.
+- **Shell e modo auto:** o Antigravity opera em modo auto. Comandos de terminal devem
+  usar caminhos relativos à raiz do projeto, um por chamada direta, sem `cd`, sem
+  encadear com `&&` ou `;`, sem pipes complexos e sem comandos inline `python -c`
+  multilinha. Proibido usar laços (`for`, `while`), substituições (`$(...)`, backticks)
+  ou variáveis (`$VAR`). Para ler ou alterar arquivos no projeto, use SEMPRE as
+  ferramentas nativas do harness (`read_file`, `edit_file`, `write_file`), que são
+  pré-aprovadas e não acionam prompts de permissão. Não use utilitários de shell
+  (`cat`, `grep`, `sed`, `awk`, `find /`, `chmod`, `curl`) para inspeção de arquivos ou
+  sistema. Lógica não destrutiva, iterações e downloads vão exclusivamente em scripts
+  Python dedicados (`uv run python -I script.py`).
 - **Sem sudo**, em nenhuma forma, nem indireta (`./flash.sh --device` chama
   `sudo dd`). Para validar uma gravação, use `./flash.sh --target-file`. O que
   precisar de root ou do cartão real vira instrução para o usuário rodar.
@@ -148,6 +151,17 @@ do aparelho que não se deduzem do código.
   arquivo direto ou se o RetroArch o extrai para outra pasta); o `--set-shader`
   do `shaderset-aplica` cobre o caso. Confira pelo `Specific shader preset found at` do
   `emuelec.log`.
+- **Shaders de TV (Consoles de Mesa e Arcades):** a feature `57-shaders-tv` instala o shader
+  `tv-modern-remaster` (`.glsl` e `.glslp`) em `/usr/share/common-shaders/tv/` (e em `/storage/shaders/tv/`),
+  disponível opcionalmente nos menus do EmulationStation e do RetroArch. **Por padrão é DESLIGADO**
+  (não cria presets automáticos nem injeta `shaderset` no boot, e remove presets residuais anteriores).
+  O shader aplica fusão seletiva de dither horizontal (3 taps) para restaurar 100% da transparência
+  analógica de TV (água de Sonic, luzes e sombras de Streets of Rage 2) mantendo bordas de sprites, textos
+  e HUD 100% nítidos, scanline milimétrica na grade física de 480p e pipeline ultra-leve de 18 instruções
+  para a Mali-400 MP2. Chave opcional na p1: `r36-tv-com-shader` ativa o shader em lote por padrão
+  para os sistemas: `megadrive`, `genesis`, `snes`, `nes`, `mastersystem`, `pce`, `pcengine`, `psx`,
+  `mame`, `fbneo`, `cps1`, `cps2`, `cps3` e `neogeo`. Diagnóstico condicionado à chave `r36-diagnostico`
+  gravado em `r36-shader-tv.log` na p1.
 - **Vídeo e som no RetroArch:** contexto `fbdev_mali` (o vsync depende só do
   driver da Mali) e áudio `sdl2` síncrono (`audio_sync` e `audio_rate_control`
   ligados na base; a feature `46-audio` sobe `audio_latency` de 64 para 96 e baixa

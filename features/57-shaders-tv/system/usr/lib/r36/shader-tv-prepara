@@ -1,0 +1,152 @@
+#!/bin/sh
+# Gerencia o shader tv-modern-remaster para consoles de mesa e arcades:
+#  1. Atualiza, no mesmo arquivo, a cópia do shader na p8 que difere da do SYSTEM (o
+#     rsync --ignore-existing do emuelec_autostart.sh nunca a atualiza). Se /tmp/shaders não
+#     estiver montado (o kernel não tem overlayfs), monta /storage/shaders ali por bind.
+#  2. O shader é OPCIONAL e DESLIGADO POR PADRÃO.
+#     Ele fica disponível na lista do EmulationStation e do RetroArch para ativação manual.
+#  3. Chave para ligar por padrão em todos os sistemas selecionados:
+#     um arquivo vazio r36-tv-com-shader na raiz da p1 (R36-ROMS, pelo PC).
+#     Sem essa chave (padrão), qualquer preset criado anteriormente por este script é removido.
+# Com o arquivo vazio r36-diagnostico na raiz da p1, deixa o resultado em r36-shader-tv.log.
+# R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário.
+
+ROOT="${R36_ROOT:-}"
+SHARE="$ROOT/usr/share/common-shaders/tv"
+P8="$ROOT/storage/shaders/tv"
+RADIR="$ROOT/storage/.config/retroarch"
+CONFIG="$RADIR/config"
+EMUCONF="$ROOT/storage/.config/emuelec/configs/emuelec.conf"
+ROMS="$ROOT/storage/roms"
+ON="$ROMS/r36-tv-com-shader"
+LOG="$ROMS/r36-shader-tv.log"
+DIAG="$ROMS/r36-diagnostico"
+
+OLD_REF='#reference "/storage/shaders/tv/tv-modern-remaster.glslp"'
+TMP_REF='#reference "/tmp/shaders/tv/tv-modern-remaster.glslp"'
+REF='#reference "/usr/share/common-shaders/tv/tv-modern-remaster.glslp"'
+SET_VALUE='tv/tv-modern-remaster.glslp'
+
+SISTEMAS="megadrive
+genesis
+snes
+nes
+mastersystem
+pce
+pcengine
+psx
+mame
+fbneo
+cps1
+cps2
+cps3
+neogeo"
+
+CORES="Genesis Plus GX
+PicoDrive
+Snes9x
+Snes9x 2010
+Snes9x 2005 Plus
+Snes9x 2002
+FCEUmm
+Nestopia
+Gearsystem
+Beetle PCE Fast
+Mednafen PCE Fast
+Beetle SuperGrafx
+PCSX-ReARMed
+FinalBurn Neo
+FB Neo
+MAME 2003-Plus"
+
+[ -f "$SHARE/tv-modern-remaster.glsl" ] || exit 0
+
+linhas() { grep -v '^[[:space:]]*$' "$1" 2>/dev/null | sort -u; }
+nosso() { [ -f "$1" ] && { [ "$(linhas "$1")" = "$REF" ] || [ "$(linhas "$1")" = "$TMP_REF" ] || [ "$(linhas "$1")" = "$OLD_REF" ]; }; }
+registro() { [ -n "$LOGA" ] && printf '%s\n' "$1" >> "$LOG"; }
+
+# 1. Cópia velha na p8: atualiza no mesmo arquivo
+VELHAS=
+for arq in tv-modern-remaster.glsl tv-modern-remaster.glslp; do
+    if [ -f "$SHARE/$arq" ] && [ -f "$P8/$arq" ] && ! cmp -s "$SHARE/$arq" "$P8/$arq"; then
+        cat "$SHARE/$arq" > "$P8/$arq" && VELHAS="$VELHAS $arq"
+    fi
+done
+
+# 1b. /tmp/shaders sem overlay: bind da p8 se necessário
+if [ -z "$ROOT" ] && ! grep -q ' /tmp/shaders ' /proc/mounts 2>/dev/null; then
+    mkdir -p /tmp/shaders && mount -o bind /storage/shaders /tmp/shaders 2>/dev/null && BIND=sim
+fi
+
+# Espera montagem da p1 (até 20s)
+MONTADA=
+if [ -z "$ROOT" ]; then
+    i=0
+    until mountpoint -q /storage/roms 2>/dev/null; do
+        [ "$i" -ge 20 ] && break
+        sleep 1
+        i=$((i + 1))
+    done
+    mountpoint -q /storage/roms 2>/dev/null && MONTADA=sim
+elif [ -d "$ROMS" ]; then
+    MONTADA=sim
+fi
+
+LOGA=
+[ -n "$MONTADA" ] && [ -e "$DIAG" ] && LOGA=sim
+[ -n "$LOGA" ] && : > "$LOG"
+registro "r36-shader-tv-prepara $(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"
+[ -n "$VELHAS" ] && registro "copia velha na p8 atualizada com a do SYSTEM:$VELHAS"
+[ -n "$BIND" ] && registro "/tmp/shaders sem overlay: /storage/shaders montado ali por bind"
+
+LIGADO=
+if [ -e "$ON" ]; then
+    LIGADO=sim
+    registro "chave r36-tv-com-shader encontrada: ativando shaders de tv para consoles de mesa e arcades"
+else
+    registro "modo padrao (desligado): shaders de tv disponiveis opcionalmente nos menus"
+fi
+
+# 2. Configura <sistema>.shaderset no emuelec.conf
+if [ -f "$EMUCONF" ]; then
+    printf '%s\n' "$SISTEMAS" | while IFS= read -r sis; do
+        [ -n "$sis" ] || continue
+        setline="$sis.shaderset=$SET_VALUE"
+        if [ -n "$LIGADO" ]; then
+            if grep -q "^$sis\.shaderset=" "$EMUCONF"; then
+                registro "emuelec.conf: $sis.shaderset ja existe ($(grep "^$sis\.shaderset=" "$EMUCONF" | head -1)), mantida"
+            else
+                [ -n "$(tail -c1 "$EMUCONF")" ] && printf '\n' >> "$EMUCONF"
+                printf '%s\n' "$setline" >> "$EMUCONF" && registro "emuelec.conf: $setline criada"
+            fi
+        else
+            if grep -qxF "$setline" "$EMUCONF"; then
+                grep -vxF "$setline" "$EMUCONF" > "$EMUCONF.r36tmp" && cat "$EMUCONF.r36tmp" > "$EMUCONF"
+                rm -f "$EMUCONF.r36tmp"
+                registro "emuelec.conf: $setline removida (default desligado)"
+            fi
+        fi
+    done
+else
+    registro "emuelec.conf ausente: so os presets de core"
+fi
+
+# 3. Presets automáticos de cada core de mesa e arcade
+printf '%s\n' "$CORES" | while IFS= read -r core; do
+    [ -n "$core" ] || continue
+    for base in "$CONFIG" "$RADIR"; do
+        preset="$base/$core/$core.glslp"
+        if [ -n "$LIGADO" ]; then
+            if [ ! -e "$preset" ]; then
+                mkdir -p "$base/$core" && printf '%s\n' "$REF" > "$preset" &&
+                    registro "preset $core criado em ${preset#"$ROOT"}"
+            fi
+        else
+            if nosso "$preset"; then
+                rm -f "$preset" && registro "preset $core removido de ${preset#"$ROOT"} (default desligado)"
+            fi
+        fi
+    done
+done
+
+exit 0

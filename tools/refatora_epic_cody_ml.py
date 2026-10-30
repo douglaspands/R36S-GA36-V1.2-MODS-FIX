@@ -2,8 +2,10 @@
 """Utilitário de extração e refatoração do tema Epic Cody para Epic Cody ML (Multi-Language).
 
 Desacopla os textos estáticos dos nós <text> dos arquivos theme.xml de cada console/coleção
-em variáveis centralizadas por idioma (_languages/en.xml, pt-br.xml, es-latam.xml) e insere
-o seletor <subset name="language"> no theme.xml raiz.
+em variáveis centralizadas por idioma (_languages/en.xml, pt-br.xml, es-latam.xml), insere
+o seletor <subset name="language"> no theme.xml raiz, aplica margem segura (x=0.025),
+calibra a hierarquia tipográfica e o rodapé helpsystem, elimina truncamentos por reticências
+e gera os SVGs de botões localizados.
 """
 
 import argparse
@@ -293,6 +295,93 @@ def normaliza_var_prefix(sys_name: str) -> str:
         prefix = f"sys_{prefix}"
     return prefix
 
+def gera_svg_botao_entrar() -> str:
+    """Gera o SVG estilizado do botão de ação com o texto (A) ENTRAR."""
+    outer_pill = (
+        "M125,0H25C11.2,0,0,11.2,0,25s11.2,25,25,25h100c13.8,0,25-11.2,25-25S138.8,0,125,0z "
+        "M25.9,46.8C13.8,46.8,4.1,37,4.1,25S13.8,3.2,25.9,3.2c12,0,21.8,9.8,21.8,21.8S37.9,46.8,25.9,46.8z"
+    )
+    a_circle_path = "M22.8,13.1l-3.7,23.1h3.3L23,32h4.5l0.6,4.2h3.7l-3.7-23.1H22.8z M23.5,28.9l1.7-11.7L27,28.9H23.5z"
+
+    def letter_E(x):
+        return f"M{x+9.9:.1f},16.4h-6.3v6.4h5v3.3h-5v6.8h6.3v3.3h-9.9V13.1h9.9V16.4z"
+
+    def letter_N(x):
+        return (
+            f"M{x+11.5:.1f},36.2h-3.7l-4.5-16.7v16.7h-3.3V13.1h4.6l3.7,13.8V13.1h3.2"
+            f"C{x+11.5:.1f},13.1,{x+11.5:.1f},36.2,{x+11.5:.1f},36.2z"
+        )
+
+    def letter_T(x):
+        return (
+            f"M{x+11.2:.1f},16.4h-3.8v19.8h-3.6V16.4h-3.8v-3.3h11.2"
+            f"L{x+11.2:.1f},16.4L{x+11.2:.1f},16.4z"
+        )
+
+    def letter_R(x):
+        body = (
+            f"M{x+7.6:.1f},36.2c-0.2-0.6-0.3-1-0.3-2.8v-3.6c0-2.1-0.7-2.9-2.4-2.9h-1.3v9.4h-3.6V13.1h5.5"
+            f"c3.8,0,5.4,1.7,5.4,5.3v1.8c0,2.4-0.8,3.9-2.4,4.7c1.8,0.8,2.4,2.5,2.4,4.9v3.6c0,1.1,0,1.9,0.4,2.8H{x+7.6:.1f}z"
+        )
+        hole = (
+            f"M{x+5.4:.1f},16.4h-1.7v7.1h1.4c1.4,0,2.2-0.6,2.2-2.4v-2.3C{x+7.3:.1f},17.1,{x+6.7:.1f},16.4,{x+5.4:.1f},16.4z"
+        )
+        return body, hole
+
+    def letter_A(x):
+        return (
+            f"M{x+3.7:.1f},13.1h5.3l3.7,23.1h-3.7l-0.6-4.2h-4.5l-0.6,4.2h-3.3l3.7-23.1z "
+            f"M{x+4.4:.1f},28.9h3.5l-1.8-11.7L{x+4.4:.1f},28.9z"
+        )
+
+    xE = 56.5
+    xN = 68.4
+    xT = 81.7
+    xR1 = 94.7
+    xA = 107.4
+    xR2 = 121.9
+
+    path_E = letter_E(xE)
+    path_N = letter_N(xN)
+    path_T = letter_T(xT)
+    body_R1, hole_R1 = letter_R(xR1)
+    path_A = letter_A(xA)
+    body_R2, hole_R2 = letter_R(xR2)
+
+    combined_main_path = f"{outer_pill} {path_E} {path_N} {path_T} {body_R1} {path_A} {body_R2}"
+
+    return f"""<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.0" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+\t width="150px" height="50px" viewBox="0 0 150 50" enable-background="new 0 0 150 50" xml:space="preserve">
+<g>
+\t<path fill="#FFFFFF" d="{a_circle_path}"/>
+\t<path fill="#FFFFFF" d="{combined_main_path}"/>
+\t<path fill="#FFFFFF" d="{hole_R1}"/>
+\t<path fill="#FFFFFF" d="{hole_R2}"/>
+</g>
+</svg>
+"""
+
+def gera_svg_botao_enter() -> str:
+    """Gera o SVG upstream original com o texto (A) ENTER."""
+    return """<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.0" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+\t width="150px" height="50px" viewBox="0 0 150 50" enable-background="new 0 0 150 50" xml:space="preserve">
+<g>
+\t<path fill="#FFFFFF" d="M22.8,13.1l-3.7,23.1h3.3L23,32h4.5l0.6,4.2h3.7l-3.7-23.1H22.8z M23.5,28.9l1.7-11.7L27,28.9H23.5z"/>
+\t<path fill="#FFFFFF" d="M125,0H25C11.2,0,0,11.2,0,25s11.2,25,25,25h100c13.8,0,25-11.2,25-25S138.8,0,125,0z M25.9,46.8
+\t\tC13.8,46.8,4.1,37,4.1,25S13.8,3.2,25.9,3.2c12,0,21.8,9.8,21.8,21.8S37.9,46.8,25.9,46.8z M75.1,16.4h-6.3v6.4h5v3.3h-5v6.8h6.3
+\t\tv3.3h-9.9V13.1h9.9V16.4z M88.8,36.2h-3.7l-4.5-16.7v16.7h-3.3V13.1h4.6l3.7,13.8V13.1h3.2C88.8,13.1,88.8,36.2,88.8,36.2z
+\t\t M101.6,16.4h-3.8v19.8h-3.6V16.4h-3.8v-3.3h11.2L101.6,16.4L101.6,16.4z M113.1,16.4h-6.3v6.4h5v3.3h-5v6.8h6.3v3.3h-9.9V13.1h9.9
+\t\tV16.4z M122.9,36.2c-0.2-0.6-0.3-1-0.3-2.8v-3.6c0-2.1-0.7-2.9-2.4-2.9h-1.3v9.4h-3.6V13.1h5.5c3.8,0,5.4,1.7,5.4,5.3v1.8
+\t\tc0,2.4-0.8,3.9-2.4,4.7c1.8,0.8,2.4,2.5,2.4,4.9v3.6c0,1.1,0,1.9,0.4,2.8H122.9z"/>
+\t<path fill="#FFFFFF" d="M120.7,16.4H119v7.1h1.4c1.4,0,2.2-0.6,2.2-2.4v-2.3C122.6,17.1,122,16.4,120.7,16.4z"/>
+</g>
+</svg>
+"""
+
 def extrai_textos_do_tarball(tar_path: Path):
     """Lê o tarball do tema upstream e extrai os pares (sistema, campo, texto)."""
     systems_data = {}
@@ -328,8 +417,29 @@ def extrai_textos_do_tarball(tar_path: Path):
     return root_theme_content, systems_data
 
 def refatora_console_tree(root: ET.Element, sys_name: str) -> str:
-    """Substitui o conteúdo de cada nó <text> pelo placeholder ${sistema.campo}."""
+    """Substitui o conteúdo de cada nó <text> pelo placeholder ${sistema.campo} e garante sys_line1."""
     prefix = normaliza_var_prefix(sys_name)
+
+    # Injeta <text name="sys_line1" extra="true"> se ausente na view system
+    sys_view = None
+    for view in root.findall(".//view"):
+        names = [n.strip() for n in (view.get("name") or "").split(",")]
+        if "system" in names:
+            sys_view = view
+            break
+
+    if sys_view is not None and sys_view.find(".//text[@name='sys_line1']") is None:
+        line1_elem = ET.Element("text", {"name": "sys_line1", "extra": "true"})
+        inner = ET.SubElement(line1_elem, "text")
+        inner.text = f"${{{prefix}.sys_line1}}"
+
+        line2_node = sys_view.find(".//text[@name='sys_line2']")
+        if line2_node is not None:
+            idx = list(sys_view).index(line2_node)
+            sys_view.insert(idx, line1_elem)
+        else:
+            sys_view.append(line1_elem)
+
     for text_node in root.findall(".//text[@name]"):
         name_attr = text_node.get("name")
         inner = text_node.find("text")
@@ -356,26 +466,144 @@ def gera_catalogo_xml(variaveis: dict) -> str:
     return "\n".join(lines)
 
 def refatora_raiz_theme_xml(content: str) -> str:
-    """Atualiza o theme.xml raiz adicionando o subset de idiomas se ainda não existir."""
-    if '<subset name="language"' in content:
-        return content
-
-    subset_xml = """\t<subset name="language" displayName="${languageSubsetName}">
+    """Atualiza o theme.xml raiz com seletor de idiomas, margens seguras (x=0.025) e hierarquia calibrada."""
+    # Subset de idiomas
+    if '<subset name="language"' not in content:
+        subset_xml = """\t<subset name="language" displayName="${languageSubsetName}">
         <include name="pt-br" displayName="Português (Brasil)">./_languages/pt-br.xml</include>
         <include name="es-latam" displayName="Español (Latino)">./_languages/es-latam.xml</include>
         <include name="en" displayName="English">./_languages/en.xml</include>
     </subset>\n\n"""
 
-    pattern = r'(\s*<subset name="controller")'
-    match = re.search(pattern, content)
-    if match:
-        idx = match.start(1)
-        return content[:idx] + "\n" + subset_xml + content[idx:]
+        pattern = r'(\s*<subset name="controller")'
+        match = re.search(pattern, content)
+        if match:
+            idx = match.start(1)
+            content = content[:idx] + "\n" + subset_xml + content[idx:]
+        else:
+            idx = content.find('<view name="system">')
+            if idx != -1:
+                content = content[:idx] + subset_xml + content[idx:]
+            else:
+                content = content + "\n" + subset_xml
+
+    # Calibra elementos da visualização system
+    calibrated_system_block = """    <text name="shortdescription" extra="true">
+        <fontPath>./_art/Acre.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>0</forceUppercase>
+        <fontSize>0.022</fontSize>
+        <color>ffffff</color>
+        <origin>0 0</origin>
+        <pos>0.025 0.080</pos>
+        <size>0.320 0.025</size>
+    </text>
+
+    <text name="sys_line1" extra="true">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>1</forceUppercase>
+        <color>FFFFFF</color>
+        <fontSize>0.045</fontSize>
+        <origin>0 0</origin>
+        <pos>0.025 0.115</pos>
+        <size>0.975 0.045</size>
+    </text>
+    
+    <text name="sys_line2" extra="true">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>1</forceUppercase>
+        <fontSize>0.130</fontSize>
+        <origin>0 0</origin>
+        <pos>0.025 0.160</pos>
+        <size>0.975 0.200</size>
+        <color>FFFFFF</color>
+    </text>
+
+    <image name="buttonA" extra="true">
+        <path>${buttonImage}</path>
+        <path>./_art/var/button.svg</path>
+        <tile>false</tile>
+        <origin>0 0</origin>
+        <pos>0.025 0.460</pos>
+        <size>0 0.085</size>
+        <color>585858</color>
+    </image>
+
+    <text name="systemInfo">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <backgroundColor>00000000</backgroundColor>
+        <forceUppercase>1</forceUppercase>
+        <color>FFAE00</color>
+        <origin>0 0</origin>
+        <pos>0.025 0.570</pos>
+        <size>0.400 0.042</size>
+        <fontSize>0.050</fontSize>
+    </text>
+    
+    <text name="longdescription" extra="true">
+        <fontPath>./_art/Acre.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>0</forceUppercase>
+        <fontSize>0.022</fontSize>
+        <color>ffffff</color>
+        <lineSpacing>1.18</lineSpacing>
+        <origin>0 0</origin>
+        <pos>0.025 0.660</pos>
+        <size>0.30 0.26</size>
+    </text>
+
+    <image name="controller" extra="true">
+        <path>./_art/controllers/${system.theme}.png</path>
+        <tile>false</tile>
+        <origin>0 0</origin>
+        <pos>0.35 0.62</pos>
+        <maxSize>0.28 0.28</maxSize>
+    </image>
+
+    <helpsystem name="help">
+        <fontPath>./_art/Acre.otf</fontPath>
+        <fontSize>0.022</fontSize>
+        <textColor>A0A0A0</textColor>
+        <iconColor>FFAE00</iconColor>
+        <pos>0.025 0.965</pos>
+        <origin>0 1</origin>
+    </helpsystem>
+</view>"""
+
+    # Substitui bloco antigo de views do system
+    old_system_pattern = re.compile(
+        r'<text name="sys_line1".*?</view>',
+        re.DOTALL
+    )
+    if old_system_pattern.search(content):
+        content = old_system_pattern.sub(calibrated_system_block, content, count=1)
     else:
-        idx = content.find('<view name="system">')
-        if idx != -1:
-            return content[:idx] + subset_xml + content[idx:]
-        return content + "\n" + subset_xml
+        # Tenta casar shortdescription se ela já veio primeiro
+        alt_pattern = re.compile(
+            r'<text name="shortdescription".*?</view>',
+            re.DOTALL
+        )
+        if alt_pattern.search(content):
+            content = alt_pattern.sub(calibrated_system_block, content, count=1)
+
+    # Helpsystem na view basic, detailed, video
+    helpsystem_games_old = re.compile(
+        r'<helpsystem name="help">\s*<pos>1 1</pos>\s*<origin>1 1</origin>\s*<textColor>ffffff</textColor>\s*<iconColor>ffffff</iconColor>\s*</helpsystem>'
+    )
+    helpsystem_games_new = """<helpsystem name="help">
+        <fontPath>./_art/Acre.otf</fontPath>
+        <fontSize>0.022</fontSize>
+        <textColor>A0A0A0</textColor>
+        <iconColor>FFAE00</iconColor>
+        <pos>1 1</pos>
+	    <origin>1 1</origin>
+    </helpsystem>"""
+    content = helpsystem_games_old.sub(helpsystem_games_new, content)
+
+    return content
 
 def traduz_shortdescription(s: str, lang: str) -> str:
     """Traduz subtítulos técnicos mantendo limites de caracteres (<= 35)."""
@@ -474,9 +702,13 @@ def traduz_shortdescription(s: str, lang: str) -> str:
     return s
 
 def monta_catalogos(en_vars: dict):
-    """Gera os dicionários completos de variáveis para pt-br e es-latam."""
+    """Gera os dicionários completos de variáveis para en, pt-br e es-latam."""
+    en_vars["buttonImage"] = "./_art/var/button.svg"
     pt_vars = dict(en_vars)
     es_vars = dict(en_vars)
+
+    pt_vars["buttonImage"] = "./_art/var/button-pt.svg"
+    es_vars["buttonImage"] = "./_art/var/button-es.svg"
 
     # Metadados de controle e menu
     pt_vars["languageSubsetName"] = "Idioma do Tema"
@@ -489,94 +721,350 @@ def monta_catalogos(en_vars: dict):
     es_vars["on"] = "Activado"
     es_vars["off"] = "Desactivado"
 
+    # Curadorias de títulos e divisão semântica (Linha 1 Marca/Família, Linha 2 Modelo/Identificador)
+    curations = [
+        # ImageViewer (galeria de capturas)
+        ("imageviewer", "sys_line1", "Media", "Galeria", "Galería"),
+        ("imageviewer", "sys_line2", "Images", "Imagens", "Imágenes"),
+        ("imageviewer", "nameLabel", "Image Viewer", "Visualizador de Imagens", "Visor de Imágenes"),
+        ("imageviewer", "shortdescription", "Screenshots and photos", "Capturas de tela e fotos", "Capturas de pantalla y fotos"),
+        ("imageviewer", "longdescription", "Multimedia gallery to view all screenshots and photos saved during gameplay.", DESCRICOES_PT["imageviewer"], DESCRICOES_ES["imageviewer"]),
+
+        # Nintendo
+        ("snes", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("snes", "sys_line2", "Super Nintendo", "Super Nintendo", "Super Nintendo"),
+        ("sfc", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("sfc", "sys_line2", "Super Famicom", "Super Famicom", "Super Famicom"),
+        ("snes-hacks", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("snes-hacks", "sys_line2", "SNES Hacks", "SNES Hacks", "SNES Hacks"),
+        ("snesmsu1", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("snesmsu1", "sys_line2", "Super Nintendo CD", "Super Nintendo CD", "Super Nintendo CD"),
+        ("nes", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("nes", "sys_line2", "NES", "Nintendo", "NES"),
+        ("famicom", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("famicom", "sys_line2", "Famicom", "Famicom", "Famicom"),
+        ("fds", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("fds", "sys_line2", "Disk System", "Disk System", "Disk System"),
+        ("n64", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("n64", "sys_line2", "Nintendo 64", "Nintendo 64", "Nintendo 64"),
+        ("n64dd", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("n64dd", "sys_line2", "Nintendo 64DD", "Nintendo 64DD", "Nintendo 64DD"),
+        ("nds", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("nds", "sys_line2", "Nintendo DS", "Nintendo DS", "Nintendo DS"),
+        ("gb", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("gb", "sys_line2", "Game Boy", "Game Boy", "Game Boy"),
+        ("gbc", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("gbc", "sys_line2", "Game Boy Color", "Game Boy Color", "Game Boy Color"),
+        ("gba", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("gba", "sys_line2", "Game Boy Advance", "Game Boy Advance", "Game Boy Advance"),
+        ("sgb", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("sgb", "sys_line2", "Super Game Boy", "Super Game Boy", "Super Game Boy"),
+        ("virtualboy", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("virtualboy", "sys_line2", "Virtual Boy", "Virtual Boy", "Virtual Boy"),
+        ("gc", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("gc", "sys_line2", "GameCube", "GameCube", "GameCube"),
+        ("wii", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("wii", "sys_line2", "Wii", "Wii", "Wii"),
+        ("wiiu", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("wiiu", "sys_line2", "Wii U", "Wii U", "Wii U"),
+        ("gameandwatch", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("gameandwatch", "sys_line2", "Game & Watch", "Game & Watch", "Game & Watch"),
+
+        # Sony
+        ("psx", "sys_line1", "Sony", "Sony", "Sony"),
+        ("psx", "sys_line2", "PlayStation", "PlayStation", "PlayStation"),
+        ("ps2", "sys_line1", "Sony", "Sony", "Sony"),
+        ("ps2", "sys_line2", "PlayStation 2", "PlayStation 2", "PlayStation 2"),
+        ("psp", "sys_line1", "Sony", "Sony", "Sony"),
+        ("psp", "sys_line2", "PSP", "PSP", "PSP"),
+        ("pspminis", "sys_line1", "Sony", "Sony", "Sony"),
+        ("pspminis", "sys_line2", "PSP Minis", "PSP Minis", "PSP Minis"),
+
+        # Sega
+        ("megadrive", "sys_line1", "Sega", "Sega", "Sega"),
+        ("megadrive", "sys_line2", "Mega Drive", "Mega Drive", "Mega Drive"),
+        ("genesis", "sys_line1", "Sega", "Sega", "Sega"),
+        ("genesis", "sys_line2", "Sega Genesis", "Sega Genesis", "Sega Genesis"),
+        ("mastersystem", "sys_line1", "Sega", "Sega", "Sega"),
+        ("mastersystem", "sys_line2", "Master System", "Master System", "Master System"),
+        ("gamegear", "sys_line1", "Sega", "Sega", "Sega"),
+        ("gamegear", "sys_line2", "Game Gear", "Game Gear", "Game Gear"),
+        ("dreamcast", "sys_line1", "Sega", "Sega", "Sega"),
+        ("dreamcast", "sys_line2", "Dreamcast", "Dreamcast", "Dreamcast"),
+        ("saturn", "sys_line1", "Sega", "Sega", "Sega"),
+        ("saturn", "sys_line2", "Sega Saturn", "Sega Saturn", "Sega Saturn"),
+        ("segacd", "sys_line1", "Sega", "Sega", "Sega"),
+        ("segacd", "sys_line2", "Sega CD", "Sega CD", "Sega CD"),
+        ("megacd", "sys_line1", "Sega", "Sega", "Sega"),
+        ("megacd", "sys_line2", "Mega-CD", "Mega-CD", "Mega-CD"),
+        ("sega32x", "sys_line1", "Sega", "Sega", "Sega"),
+        ("sega32x", "sys_line2", "Sega 32X", "Sega 32X", "Sega 32X"),
+        ("mega32x", "sys_line1", "Sega", "Sega", "Sega"),
+        ("mega32x", "sys_line2", "Mega 32X", "Mega 32X", "Mega 32X"),
+        ("sg-1000", "sys_line1", "Sega", "Sega", "Sega"),
+        ("sg-1000", "sys_line2", "SG-1000", "SG-1000", "SG-1000"),
+        ("naomi", "sys_line1", "Sega", "Sega", "Sega"),
+        ("naomi", "sys_line2", "NAOMI", "NAOMI", "NAOMI"),
+
+        # Atari
+        ("atari2600", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atari2600", "sys_line2", "Atari 2600", "Atari 2600", "Atari 2600"),
+        ("atari5200", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atari5200", "sys_line2", "Atari 5200", "Atari 5200", "Atari 5200"),
+        ("atari7800", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atari7800", "sys_line2", "Atari 7800", "Atari 7800", "Atari 7800"),
+        ("atari800", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atari800", "sys_line2", "Atari 800", "Atari 800", "Atari 800"),
+        ("atarijaguar", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atarijaguar", "sys_line2", "Atari Jaguar", "Atari Jaguar", "Atari Jaguar"),
+        ("atarilynx", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atarilynx", "sys_line2", "Atari Lynx", "Atari Lynx", "Atari Lynx"),
+        ("atarist", "sys_line1", "Atari", "Atari", "Atari"),
+        ("atarist", "sys_line2", "Atari ST", "Atari ST", "Atari ST"),
+
+        # Commodore
+        ("c64", "sys_line1", "Commodore", "Commodore", "Commodore"),
+        ("c64", "sys_line2", "Commodore 64", "Commodore 64", "Commodore 64"),
+        ("c128", "sys_line1", "Commodore", "Commodore", "Commodore"),
+        ("c128", "sys_line2", "Commodore 128", "Commodore 128", "Commodore 128"),
+        ("c16", "sys_line1", "Commodore", "Commodore", "Commodore"),
+        ("c16", "sys_line2", "Commodore 16", "Commodore 16", "Commodore 16"),
+        ("vic20", "sys_line1", "Commodore", "Commodore", "Commodore"),
+        ("vic20", "sys_line2", "VIC-20", "VIC-20", "VIC-20"),
+        ("amiga", "sys_line1", "Commodore", "Commodore", "Commodore"),
+        ("amiga", "sys_line2", "Amiga", "Amiga", "Amiga"),
+        ("amigacd32", "sys_line1", "Commodore", "Commodore", "Commodore"),
+        ("amigacd32", "sys_line2", "Amiga CD32", "Amiga CD32", "Amiga CD32"),
+
+        # NEC
+        ("tg16", "sys_line1", "NEC", "NEC", "NEC"),
+        ("tg16", "sys_line2", "TurboGrafx-16", "TurboGrafx-16", "TurboGrafx-16"),
+        ("turbographx", "sys_line1", "NEC", "NEC", "NEC"),
+        ("turbographx", "sys_line2", "TurboGrafx-16", "TurboGrafx-16", "TurboGrafx-16"),
+        ("tg-cd", "sys_line1", "NEC", "NEC", "NEC"),
+        ("tg-cd", "sys_line2", "TurboGrafx-CD", "TurboGrafx-CD", "TurboGrafx-CD"),
+        ("turbografxcd", "sys_line1", "NEC", "NEC", "NEC"),
+        ("turbografxcd", "sys_line2", "TurboGrafx-CD", "TurboGrafx-CD", "TurboGrafx-CD"),
+        ("pcengine", "sys_line1", "NEC", "NEC", "NEC"),
+        ("pcengine", "sys_line2", "PC Engine", "PC Engine", "PC Engine"),
+        ("pce-cd", "sys_line1", "NEC", "NEC", "NEC"),
+        ("pce-cd", "sys_line2", "PC Engine CD", "PC Engine CD", "PC Engine CD"),
+        ("pcenginecd", "sys_line1", "NEC", "NEC", "NEC"),
+        ("pcenginecd", "sys_line2", "PC Engine CD", "PC Engine CD", "PC Engine CD"),
+        ("supergrafx", "sys_line1", "NEC", "NEC", "NEC"),
+        ("supergrafx", "sys_line2", "SuperGrafx", "SuperGrafx", "SuperGrafx"),
+        ("pc98", "sys_line1", "NEC", "NEC", "NEC"),
+        ("pc98", "sys_line2", "PC-98", "PC-98", "PC-98"),
+        ("pcfx", "sys_line1", "NEC", "NEC", "NEC"),
+        ("pcfx", "sys_line2", "PC-FX", "PC-FX", "PC-FX"),
+
+        # SNK
+        ("neogeo", "sys_line1", "SNK", "SNK", "SNK"),
+        ("neogeo", "sys_line2", "Neo Geo", "Neo Geo", "Neo Geo"),
+        ("neogeocd", "sys_line1", "SNK", "SNK", "SNK"),
+        ("neogeocd", "sys_line2", "Neo Geo CD", "Neo Geo CD", "Neo Geo CD"),
+        ("ngp", "sys_line1", "SNK", "SNK", "SNK"),
+        ("ngp", "sys_line2", "Neo Geo Pocket", "Neo Geo Pocket", "Neo Geo Pocket"),
+        ("ngpc", "sys_line1", "SNK", "SNK", "SNK"),
+        ("ngpc", "sys_line2", "Neo Geo Pocket Color", "Neo Geo Pocket Color", "Neo Geo Pocket Color"),
+
+        # Bandai
+        ("wonderswan", "sys_line1", "Bandai", "Bandai", "Bandai"),
+        ("wonderswan", "sys_line2", "WonderSwan", "WonderSwan", "WonderSwan"),
+        ("wonderswancolor", "sys_line1", "Bandai", "Bandai", "Bandai"),
+        ("wonderswancolor", "sys_line2", "WonderSwan Color", "WonderSwan Color", "WonderSwan Color"),
+
+        # Coleco, Mattel, GCE, Panasonic
+        ("colecovision", "sys_line1", "Coleco", "Coleco", "Coleco"),
+        ("colecovision", "sys_line2", "ColecoVision", "ColecoVision", "ColecoVision"),
+        ("coleco", "sys_line1", "Coleco", "Coleco", "Coleco"),
+        ("coleco", "sys_line2", "ColecoVision", "ColecoVision", "ColecoVision"),
+        ("intellivision", "sys_line1", "Mattel", "Mattel", "Mattel"),
+        ("intellivision", "sys_line2", "Intellivision", "Intellivision", "Intellivision"),
+        ("vectrex", "sys_line1", "GCE", "GCE", "GCE"),
+        ("vectrex", "sys_line2", "Vectrex", "Vectrex", "Vectrex"),
+        ("sys_3do", "sys_line1", "Panasonic", "Panasonic", "Panasonic"),
+        ("sys_3do", "sys_line2", "3DO", "3DO", "3DO"),
+
+        # Computers
+        ("msx", "sys_line1", "Microsoft & ASCII", "Microsoft & ASCII", "Microsoft & ASCII"),
+        ("msx", "sys_line2", "MSX", "MSX", "MSX"),
+        ("msx2", "sys_line1", "Microsoft & ASCII", "Microsoft & ASCII", "Microsoft & ASCII"),
+        ("msx2", "sys_line2", "MSX2", "MSX2", "MSX2"),
+        ("amstradcpc", "sys_line1", "Amstrad", "Amstrad", "Amstrad"),
+        ("amstradcpc", "sys_line2", "Amstrad CPC", "Amstrad CPC", "Amstrad CPC"),
+        ("apple2", "sys_line1", "Apple", "Apple", "Apple"),
+        ("apple2", "sys_line2", "Apple II", "Apple II", "Apple II"),
+        ("x68000", "sys_line1", "Sharp", "Sharp", "Sharp"),
+        ("x68000", "sys_line2", "X68000", "X68000", "X68000"),
+        ("zxspectrum", "sys_line1", "Sinclair", "Sinclair", "Sinclair"),
+        ("zxspectrum", "sys_line2", "ZX Spectrum", "ZX Spectrum", "ZX Spectrum"),
+        ("zx81", "sys_line1", "Sinclair", "Sinclair", "Sinclair"),
+        ("zx81", "sys_line2", "ZX81", "ZX81", "ZX81"),
+
+        # Collections
+        ("auto-allgames", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("auto-allgames", "sys_line2", "All Games", "Todos os Jogos", "Todos los Juegos"),
+        ("auto-allgames", "nameLabel", "All Games", "Todos os Jogos", "Todos los Juegos"),
+
+        ("auto-favorites", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("auto-favorites", "sys_line2", "Favorites", "Favoritos", "Favoritos"),
+        ("auto-favorites", "nameLabel", "Favorites", "Favoritos", "Favoritos"),
+
+        ("auto-lastplayed", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("auto-lastplayed", "sys_line2", "Recent Games", "Jogados Recentemente", "Jugados Recientemente"),
+        ("auto-lastplayed", "nameLabel", "Last Played", "Jogados Recentemente", "Jugados Recientemente"),
+
+        ("custom-collections", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("custom-collections", "sys_line2", "Custom Collections", "Coleções Personalizadas", "Colecciones Personalizadas"),
+        ("custom-collections", "nameLabel", "Custom Collections", "Coleções Personalizadas", "Colecciones Personalizadas"),
+
+        # Systems & Utilities
+        ("power", "sys_line1", "System", "Sistema", "Sistema"),
+        ("power", "sys_line2", "Power Options", "Opções de Energia", "Opciones de Energía"),
+        ("power", "nameLabel", "Power", "Energia", "Energía"),
+
+        ("retropie", "sys_line1", "System", "Sistema", "Sistema"),
+        ("retropie", "sys_line2", "System Settings", "Ajustes do Sistema", "Ajustes del Sistema"),
+        ("retropie", "nameLabel", "Settings", "Ajustes do Sistema", "Ajustes del Sistema"),
+
+        ("retroarch", "sys_line1", "System", "Sistema", "Sistema"),
+        ("retroarch", "sys_line2", "RetroArch", "RetroArch", "RetroArch"),
+        ("retroarch", "nameLabel", "RetroArch", "RetroArch", "RetroArch"),
+
+        ("ports", "sys_line1", "Ports", "Ports", "Ports"),
+        ("ports", "sys_line2", "Native Games", "Jogos Nativos", "Juegos Nativos"),
+        ("ports", "nameLabel", "Ports", "Ports", "Ports"),
+
+        ("kodi", "sys_line1", "Media Center", "Central de Mídia", "Centro Multimedia"),
+        ("kodi", "sys_line2", "Kodi", "Kodi", "Kodi"),
+        ("kodi", "nameLabel", "Kodi", "Kodi", "Kodi"),
+
+        ("pico-8", "sys_line1", "Fantasy Console", "Console Fantasia", "Consola Fantasía"),
+        ("pico-8", "sys_line2", "PICO-8", "PICO-8", "PICO-8"),
+        ("pico-8", "nameLabel", "PICO-8", "PICO-8", "PICO-8"),
+
+        ("daphne", "sys_line1", "Laserdisc", "Laserdisc", "Laserdisc"),
+        ("daphne", "sys_line2", "Daphne", "Daphne", "Daphne"),
+        ("doom", "sys_line1", "id Software", "id Software", "id Software"),
+        ("doom", "sys_line2", "Doom", "Doom", "Doom"),
+        ("easyrpg", "sys_line1", "Engine", "Engine", "Motor"),
+        ("easyrpg", "sys_line2", "EasyRPG", "EasyRPG", "EasyRPG"),
+        ("coco", "sys_line1", "Tandy", "Tandy", "Tandy"),
+        ("coco", "sys_line2", "TRS-80 CoCo", "TRS-80 CoCo", "TRS-80 CoCo"),
+
+        # Arcade
+        ("arcade", "sys_line1", "Arcade", "Arcade", "Arcade"),
+        ("arcade", "sys_line2", "Arcade Classics", "Fliperama", "Recreativas"),
+        ("mame", "sys_line1", "Arcade", "Arcade", "Arcade"),
+        ("mame", "sys_line2", "MAME", "MAME", "MAME"),
+        ("fba", "sys_line1", "Arcade", "Arcade", "Arcade"),
+        ("fba", "sys_line2", "FinalBurn Alpha", "FinalBurn Alpha", "FinalBurn Alpha"),
+        ("fbn", "sys_line1", "Arcade", "Arcade", "Arcade"),
+        ("fbn", "sys_line2", "FinalBurn Neo", "FinalBurn Neo", "FinalBurn Neo"),
+        ("fbneo", "sys_line1", "Arcade", "Arcade", "Arcade"),
+        ("fbneo", "sys_line2", "FinalBurn Neo", "FinalBurn Neo", "FinalBurn Neo"),
+        ("fbneo_fbneo", "sys_line1", "Arcade", "Arcade", "Arcade"),
+        ("fbneo_fbneo", "sys_line2", "FinalBurn Neo", "FinalBurn Neo", "FinalBurn Neo"),
+        ("cps1", "sys_line1", "Capcom", "Capcom", "Capcom"),
+        ("cps1", "sys_line2", "CPS-1", "CPS-1", "CPS-1"),
+        ("cps2", "sys_line1", "Capcom", "Capcom", "Capcom"),
+        ("cps2", "sys_line2", "CPS-2", "CPS-2", "CPS-2"),
+        ("cps3", "sys_line1", "Capcom", "Capcom", "Capcom"),
+        ("cps3", "sys_line2", "CPS-3", "CPS-3", "CPS-3"),
+        ("atomiswave", "sys_line1", "Sammy", "Sammy", "Sammy"),
+        ("atomiswave", "sys_line2", "Atomiswave", "Atomiswave", "Atomiswave"),
+        ("pc98", "sys_line2", "PC-98", "PC-98", "PC-98"),
+        ("residualvm", "sys_line1", "3D Adventure", "Engine 3D", "Motor 3D"),
+        ("residualvm", "sys_line2", "ResidualVM", "ResidualVM", "ResidualVM"),
+        ("scummvm", "sys_line1", "Adventure Engine", "Engine de Aventura", "Motor de Aventura"),
+        ("scummvm", "sys_line2", "ScummVM", "ScummVM", "ScummVM"),
+        ("solarus", "sys_line1", "Engine", "Engine", "Motor"),
+        ("solarus", "sys_line2", "Solarus", "Solarus", "Solarus"),
+        ("tic80", "sys_line1", "Fantasy Computer", "Computador Fantasia", "Computadora Fantasía"),
+        ("tic80", "sys_line2", "TIC-80", "TIC-80", "TIC-80"),
+        ("vectrex", "sys_line1", "GCE", "GCE", "GCE"),
+        ("vectrex", "sys_line2", "Vectrex", "Vectrex", "Vectrex"),
+        ("virtualboy", "sys_line1", "Nintendo", "Nintendo", "Nintendo"),
+        ("virtualboy", "sys_line2", "Virtual Boy", "Virtual Boy", "Virtual Boy"),
+        ("wonderswan", "sys_line1", "Bandai", "Bandai", "Bandai"),
+        ("wonderswan", "sys_line2", "WonderSwan", "WonderSwan", "WonderSwan"),
+        ("x68000", "sys_line1", "Sharp", "Sharp", "Sharp"),
+        ("x68000", "sys_line2", "X68000", "X68000", "X68000"),
+        ("zx81", "sys_line1", "Sinclair", "Sinclair", "Sinclair"),
+        ("zx81", "sys_line2", "ZX81", "ZX81", "ZX81"),
+
+        # Collections
+        ("auto-allgames", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("auto-allgames", "sys_line2", "All Games", "Todos os Jogos", "Todos los Juegos"),
+        ("auto-allgames", "nameLabel", "All Games", "Todos os Jogos", "Todos los Juegos"),
+
+        ("auto-favorites", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("auto-favorites", "sys_line2", "Favorites", "Favoritos", "Favoritos"),
+        ("auto-favorites", "nameLabel", "Favorites", "Favoritos", "Favoritos"),
+
+        ("auto-lastplayed", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("auto-lastplayed", "sys_line2", "Recent Games", "Jogados Recentemente", "Jugados Recientemente"),
+        ("auto-lastplayed", "nameLabel", "Last Played", "Jogados Recentemente", "Jugados Recientemente"),
+
+        ("custom-collections", "sys_line1", "Collection", "Coleção", "Colección"),
+        ("custom-collections", "sys_line2", "Custom Collections", "Coleções Personalizadas", "Colecciones Personalizadas"),
+        ("custom-collections", "nameLabel", "Custom Collections", "Coleções Personalizadas", "Colecciones Personalizadas"),
+
+        # Systems & Utilities
+        ("power", "sys_line1", "System", "Sistema", "Sistema"),
+        ("power", "sys_line2", "Power Options", "Opções de Energia", "Opciones de Energía"),
+        ("power", "nameLabel", "Power", "Energia", "Energía"),
+
+        ("retropie", "sys_line1", "System", "Sistema", "Sistema"),
+        ("retropie", "sys_line2", "System Settings", "Ajustes do Sistema", "Ajustes del Sistema"),
+        ("retropie", "nameLabel", "Settings", "Ajustes do Sistema", "Ajustes del Sistema"),
+
+        ("retroarch", "sys_line1", "System", "Sistema", "Sistema"),
+        ("retroarch", "sys_line2", "RetroArch", "RetroArch", "RetroArch"),
+        ("retroarch", "nameLabel", "RetroArch", "RetroArch", "RetroArch"),
+
+        ("ports", "sys_line1", "Ports", "Ports", "Ports"),
+        ("ports", "sys_line2", "Native Games", "Jogos Nativos", "Juegos Nativos"),
+        ("ports", "nameLabel", "Ports", "Ports", "Ports"),
+
+        ("kodi", "sys_line1", "Media Center", "Central de Mídia", "Centro Multimedia"),
+        ("kodi", "sys_line2", "Kodi", "Kodi", "Kodi"),
+        ("kodi", "nameLabel", "Kodi", "Kodi", "Kodi"),
+
+        ("pico-8", "sys_line1", "Fantasy Console", "Console Fantasia", "Consola Fantasía"),
+        ("pico-8", "sys_line2", "PICO-8", "PICO-8", "PICO-8"),
+        ("pico-8", "nameLabel", "PICO-8", "PICO-8", "PICO-8"),
+
+        ("daphne", "sys_line1", "Laserdisc", "Laserdisc", "Laserdisc"),
+        ("daphne", "sys_line2", "Daphne", "Daphne", "Daphne"),
+        ("doom", "sys_line1", "id Software", "id Software", "id Software"),
+        ("doom", "sys_line2", "Doom", "Doom", "Doom"),
+        ("easyrpg", "sys_line1", "Engine", "Engine", "Motor"),
+        ("easyrpg", "sys_line2", "EasyRPG", "EasyRPG", "EasyRPG"),
+    ]
+
     # Gêneros
-    genres_pt = {
-        "action": ("Ação", "Ação"),
-        "adventure": ("Aventura", "Aventura"),
-        "btmups": ("Beat 'em Ups", "Beat 'em Ups"),
-        "fighting": ("Luta", "Luta"),
-        "fixedscreen": ("Tela Fixa", "Tela Fixa"),
-        "kids": ("Infantil", "Infantil"),
-        "platformers": ("Plataforma", "Plataforma"),
-        "puzzle": ("Puzzle", "Puzzle"),
-        "racing": ("Corrida", "Corrida"),
-        "rpgs": ("RPGs", "RPGs"),
-        "shmups": ("Shmups", "Shmups"),
-        "sports": ("Esportes", "Esportes"),
-        "strategy": ("Estratégia", "Estratégia"),
-    }
+    genres = [
+        ("action", "Action", "Ação", "Acción"),
+        ("adventure", "Adventure", "Aventura", "Aventura"),
+        ("btmups", "Beat 'em Up", "Beat 'em Up", "Beat 'em Up"),
+        ("fighting", "Fighting", "Luta", "Lucha"),
+        ("fixedscreen", "Fixed Screen", "Tela Fixa", "Pantalla Fija"),
+        ("kids", "Kids", "Infantil", "Infantil"),
+        ("platformers", "Platform", "Plataforma", "Plataformas"),
+        ("puzzle", "Puzzle", "Puzzle", "Puzzle"),
+        ("racing", "Racing", "Corrida", "Carreras"),
+        ("rpgs", "RPGs", "RPGs", "RPGs"),
+        ("shmups", "Shmups", "Shmups", "Shmups"),
+        ("sports", "Sports", "Esportes", "Deportes"),
+        ("strategy", "Strategy", "Estratégia", "Estrategia"),
+    ]
 
-    genres_es = {
-        "action": ("Acción", "Acción"),
-        "adventure": ("Aventura", "Aventura"),
-        "btmups": ("Beat 'em Ups", "Beat 'em Ups"),
-        "fighting": ("Lucha", "Lucha"),
-        "fixedscreen": ("Pantalla fija", "Pantalla fija"),
-        "kids": ("Infantil", "Infantil"),
-        "platformers": ("Plataformas", "Plataformas"),
-        "puzzle": ("Puzzle", "Puzzle"),
-        "racing": ("Carreras", "Carreras"),
-        "rpgs": ("RPGs", "RPGs"),
-        "shmups": ("Shmups", "Shmups"),
-        "sports": ("Deportes", "Deportes"),
-        "strategy": ("Estrategia", "Estrategia"),
-    }
-
-    for g, (nl, s2) in genres_pt.items():
-        pt_vars[f"{g}.nameLabel"] = f"Gênero {nl}" if g not in ("rpgs", "shmups", "btmups", "puzzle") else nl
-        pt_vars[f"{g}.sys_line2"] = s2
-
-    for g, (nl, s2) in genres_es.items():
-        es_vars[f"{g}.nameLabel"] = f"Género {nl}" if g not in ("rpgs", "shmups", "btmups", "puzzle") else nl
-        es_vars[f"{g}.sys_line2"] = s2
-
-    # Coleções e utilitários
-    def set_if_exists(dict_vars, key, val):
-        if key in en_vars:
-            dict_vars[key] = val
-
-    set_if_exists(pt_vars, "auto-allgames.nameLabel", "Todos os Jogos")
-    set_if_exists(pt_vars, "auto-allgames.sys_line1", "COLEÇÃO")
-    set_if_exists(pt_vars, "auto-allgames.sys_line2", "Todos os Jogos")
-    set_if_exists(es_vars, "auto-allgames.nameLabel", "Todos los juegos")
-    set_if_exists(es_vars, "auto-allgames.sys_line1", "COLECCIÓN")
-    set_if_exists(es_vars, "auto-allgames.sys_line2", "Todos los juegos")
-
-    set_if_exists(pt_vars, "auto-favorites.nameLabel", "Favoritos")
-    set_if_exists(pt_vars, "auto-favorites.sys_line1", "COLEÇÃO")
-    set_if_exists(pt_vars, "auto-favorites.sys_line2", "Favoritos")
-    set_if_exists(es_vars, "auto-favorites.nameLabel", "Favoritos")
-    set_if_exists(es_vars, "auto-favorites.sys_line1", "COLECCIÓN")
-    set_if_exists(es_vars, "auto-favorites.sys_line2", "Favoritos")
-
-    set_if_exists(pt_vars, "auto-lastplayed.nameLabel", "Jogados Recentemente")
-    set_if_exists(pt_vars, "auto-lastplayed.sys_line1", "COLEÇÃO")
-    set_if_exists(pt_vars, "auto-lastplayed.sys_line2", "Recentes")
-    set_if_exists(es_vars, "auto-lastplayed.nameLabel", "Jugados recientemente")
-    set_if_exists(es_vars, "auto-lastplayed.sys_line1", "COLECCIÓN")
-    set_if_exists(es_vars, "auto-lastplayed.sys_line2", "Recientes")
-
-    set_if_exists(pt_vars, "custom-collections.nameLabel", "Coleções Personalizadas")
-    set_if_exists(pt_vars, "custom-collections.sys_line1", "COLEÇÃO")
-    set_if_exists(pt_vars, "custom-collections.sys_line2", "Coleções")
-    set_if_exists(es_vars, "custom-collections.nameLabel", "Colecciones personalizadas")
-    set_if_exists(es_vars, "custom-collections.sys_line1", "COLECCIÓN")
-    set_if_exists(es_vars, "custom-collections.sys_line2", "Colecciones")
-
-    set_if_exists(pt_vars, "power.nameLabel", "Energia")
-    set_if_exists(pt_vars, "power.sys_line2", "Energia")
-    set_if_exists(es_vars, "power.nameLabel", "Energía")
-    set_if_exists(es_vars, "power.sys_line2", "Energía")
-
-    set_if_exists(pt_vars, "retropie.nameLabel", "Opções")
-    set_if_exists(pt_vars, "retropie.sys_line2", "Opções")
-    set_if_exists(es_vars, "retropie.nameLabel", "Opciones")
-    set_if_exists(es_vars, "retropie.sys_line2", "Opciones")
-
-    set_if_exists(pt_vars, "ports.nameLabel", "Ports")
-    set_if_exists(pt_vars, "ports.sys_line2", "Ports")
-    set_if_exists(es_vars, "ports.nameLabel", "Ports")
-    set_if_exists(es_vars, "ports.sys_line2", "Ports")
+    for g, g_en, g_pt, g_es in genres:
+        curations.append((g, "sys_line1", "Genre", "Gênero", "Género"))
+        curations.append((g, "sys_line2", g_en, g_pt, g_es))
+        curations.append((g, "nameLabel", f"Genre {g_en}", f"Gênero {g_pt}", f"Género {g_es}"))
 
     # Traduz shortdescription e longdescription
     for k, val in en_vars.items():
@@ -590,6 +1078,14 @@ def monta_catalogos(en_vars: dict):
             if sys_key in DESCRICOES_ES:
                 es_vars[k] = DESCRICOES_ES[sys_key]
 
+    # Aplica curadorias explícitas por cima
+    for s, field, v_en, v_pt, v_es in curations:
+        prefix = normaliza_var_prefix(s)
+        k = f"{prefix}.{field}"
+        en_vars[k] = v_en
+        pt_vars[k] = v_pt
+        es_vars[k] = v_es
+
     return pt_vars, es_vars
 
 def executa_refatoracao(tar_path: Path, dest_dir: Path):
@@ -598,6 +1094,14 @@ def executa_refatoracao(tar_path: Path, dest_dir: Path):
     dest_dir.mkdir(parents=True, exist_ok=True)
     lang_dir = dest_dir / "_languages"
     lang_dir.mkdir(parents=True, exist_ok=True)
+    var_art_dir = dest_dir / "_art" / "var"
+    var_art_dir.mkdir(parents=True, exist_ok=True)
+
+    # Gera botões de ação SVG localizados
+    svg_btn = gera_svg_botao_entrar()
+    (var_art_dir / "button.svg").write_text(svg_btn, encoding="utf-8")
+    (var_art_dir / "button-pt.svg").write_text(svg_btn, encoding="utf-8")
+    (var_art_dir / "button-es.svg").write_text(svg_btn, encoding="utf-8")
 
     root_theme, systems_data = extrai_textos_do_tarball(tar_path)
 

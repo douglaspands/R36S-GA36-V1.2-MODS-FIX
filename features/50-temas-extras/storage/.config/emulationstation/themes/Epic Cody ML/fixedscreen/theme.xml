@@ -7,6 +7,9 @@
     </text>
   </view>
   <view name="system">
+    <text name="sys_line1" extra="true">
+      <text>${fixedscreen.sys_line1}</text>
+    </text>
     <text name="sys_line2" extra="true">
       <text>${fixedscreen.sys_line2}</text>
       <fontSize>0.18</fontSize>

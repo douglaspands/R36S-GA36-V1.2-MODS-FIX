@@ -38,7 +38,7 @@ dest = ".config/emulationstation/themes/Epic Cody ML"
 url = "https://codeload.github.com/CodyV59/es-theme-epic-cody-RG351V/tar.gz/b810e33851f2df0f86e9e2570cddab3a40961f8f"
 sha256 = "4a0d1e11850e0a1f0ae54ba3f4c067aefa44751e6fa7996a799493308dbe5d55"
 strip = 1
-exclude = [".git*", "*.md", "theme.xml", "*/theme.xml"]
+exclude = [".git*", "*.md", "theme.xml", "*/theme.xml", "_art/var/button.svg"]
 
 [[external]]
 layer = "roms"

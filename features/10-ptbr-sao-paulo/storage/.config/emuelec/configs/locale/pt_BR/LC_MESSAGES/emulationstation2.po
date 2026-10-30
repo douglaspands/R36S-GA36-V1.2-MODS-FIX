@@ -495,25 +495,25 @@ msgid "SAVE TO CLOUD"
 msgstr "SALVAR NA NUVEM"
 
 msgid "START NEW GAME"
-msgstr "INICIAR NOVO JOGO"
+msgstr "NOVO JOGO"
 
 msgid "START NEW AUTO SAVE"
-msgstr "INICIAR NOVO SALVAMENTO AUTOMÁTICO"
+msgstr "NOVO AUTO SAVE"
 
 msgid "AUTO SAVE"
-msgstr "SALVAMENTO AUTOMÁTICO"
+msgstr "AUTO SAVE"
 
 msgid "SLOT"
-msgstr "ESPAÇO"
+msgstr "SLOT"
 
 msgid "ARE YOU SURE YOU WANT TO DELETE THIS ITEM?"
 msgstr "TEM CERTEZA QUE DESEJA EXCLUIR ESTE ITEM ?"
 
 msgid "LAUNCH"
-msgstr "INICIAR JOGO"
+msgstr "INICIAR"
 
 msgid "COPY TO FREE SLOT"
-msgstr "COPIAR PARA UM ESPAÇO LIVRE"
+msgstr "COPIAR P/ SLOT LIVRE"
 
 msgid "SCRAPER"
 msgstr "PROCURAR MÍDIAS DE JOGO"
@@ -2645,16 +2645,16 @@ msgid "Never overwrite old savestates, always make new ones."
 msgstr "Nunca sobrescreve estados de salvamento antigos, sempre crie novos."
 
 msgid "INCREMENT SLOT"
-msgstr "POR ESPAÇO DE SALVAMENTO"
+msgstr "INCREMENTAR SLOT"
 
 msgid "Increment slot on a new game."
-msgstr "Incrementa novo espaço em um novo jogo."
+msgstr "Incrementa o slot ao iniciar um novo jogo."
 
 msgid "DO NOT INCREMENT"
 msgstr "NÃO INCREMENTAR"
 
 msgid "Use current slot on a new game."
-msgstr "Usa o espaço atual em um novo jogo."
+msgstr "Usa o slot atual ao iniciar um novo jogo."
 
 msgid "SHOW SAVESTATE MANAGER"
 msgstr "EXIBIR GERENCIADOR"

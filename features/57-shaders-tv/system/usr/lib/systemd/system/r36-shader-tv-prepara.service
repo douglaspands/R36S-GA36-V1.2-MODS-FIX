@@ -1,0 +1,19 @@
+[Unit]
+Description=Prepara o shader tv-modern-remaster como padrão de consoles de mesa e arcades (R36S)
+# Sem After=emuelec-autostart.service: o autostart só termina depois do
+# "systemctl start emustation", e esperar por ele trava o boot no splash.
+# O script espera o mount_romfs.sh montar /storage/roms.
+# After=tmp-shaders.mount: o overlay falha neste kernel (sem overlayfs) e o script monta
+# /storage/shaders em /tmp/shaders por bind depois dessa tentativa.
+# After=r36-shader-gb-gbc-prepara.service: escreve no emuelec.conf em série após GB/GBC.
+After=tmp-shaders.mount r36-shader-gb-gbc-prepara.service
+Before=emustation.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/r36/shader-tv-prepara
+RemainAfterExit=yes
+TimeoutStartSec=60
+
+[Install]
+WantedBy=emuelec.target
