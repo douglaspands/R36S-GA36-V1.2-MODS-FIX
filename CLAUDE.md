@@ -1,7 +1,11 @@
 # CLAUDE.md
 
 Fábrica de imagens de cartão SD para o clone do R36S (GA36-MB V1.2, Allwinner A33).
-O `README.md` explica o uso; este arquivo guarda as regras de trabalho e os fatos
+Os `README.md` (inglês), `README.pt-BR.md` e `README.es.md` apresentam o projeto, com a
+mesma estrutura nos três idiomas (atualize os três juntos; a criança tem 6 anos). O
+manual técnico, com o uso do build, do `flash.sh` e a lista de features, é o
+`docs/DESENVOLVIMENTO.md`, e as imagens dos READMEs ficam em `docs/img/`. Este arquivo
+guarda as regras de trabalho e os fatos
 do aparelho que não se deduzem do código.
 
 ## Regras de trabalho

@@ -60,15 +60,15 @@ O projeto SHALL trazer um script de análise que lê `r36-thermal.csv` (e o `.1`
 - **THEN** ele usa as colunas que existem, avisa quais faltam e termina sem erro
 
 ### Requirement: Roteiro de coleta documentado
-O README SHALL descrever as colunas de bateria, a descarga completa que gera o log útil, o que copiar do cartão, a chave que desliga a correção e a validação da curva com um segundo ciclo.
+O manual (`docs/DESENVOLVIMENTO.md`) SHALL descrever as colunas de bateria, a descarga completa que gera o log útil, o que copiar do cartão, a chave que desliga a correção e a validação da curva com um segundo ciclo.
 
 #### Scenario: Seguir o roteiro
-- **WHEN** o usuário segue o roteiro do README
+- **WHEN** o usuário segue o roteiro do manual (`docs/DESENVOLVIMENTO.md`)
 - **THEN** ele sabe carregar a bateria até 100%, ligar o aparelho, jogar ou deixar no menu até desligar sozinho, e copiar `r36-thermal.csv`, `r36-thermal.1.csv` e `r36-sysinfo.txt` da partição `R36-ROMS`
 
 #### Scenario: Validar a curva
 - **WHEN** o usuário termina um segundo ciclo com a correção ligada
-- **THEN** o README diz que o erro do publicado, medido pelo script de análise, é o critério para aceitar ou reajustar os parâmetros da curva
+- **THEN** o manual (`docs/DESENVOLVIMENTO.md`) diz que o erro do publicado, medido pelo script de análise, é o critério para aceitar ou reajustar os parâmetros da curva
 
 ### Requirement: Ajuste da curva no PC
 O projeto SHALL trazer um script que, a partir de um ciclo de descarga completo do `r36-thermal.csv`, gera o arquivo de parâmetros da curva de `battery-level` (resistência de compensação e pontos tensão/percentual), no formato que o aparelho aceita em `r36-bateria-curva.conf`.

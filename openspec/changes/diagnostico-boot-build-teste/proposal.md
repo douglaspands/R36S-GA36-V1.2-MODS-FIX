@@ -29,4 +29,4 @@ Quando um build trava o boot, o aparelho fica parado na imagem do controle e nã
 - **Features novas:** `features/90-boot-log-tela/` e `features/91-boot-log-cartao/`, só na camada `system` (units systemd, scripts em `/usr/lib/r36/` e o drop-in do `emustation.service`).
 - **Imagem:** build normal idêntico ao de hoje. Build de teste com alguns KiB a mais no SYSTEM e, no boot, a tela de log no lugar da imagem do controle até o ES abrir.
 - **Cartão:** a p7 só é escrita no fallback, com `/flash` remontado em leitura e escrita pelo menor tempo possível. A p5 e a p6 (kernel e initramfs) não mudam.
-- **Docs:** `README.md` (opção `--test`, as duas features e como ler o log) e `CLAUDE.md` (fato do aparelho: sem console do kernel na tela).
+- **Docs:** `docs/DESENVOLVIMENTO.md` (opção `--test`, as duas features e como ler o log) e `CLAUDE.md` (fato do aparelho: sem console do kernel na tela).

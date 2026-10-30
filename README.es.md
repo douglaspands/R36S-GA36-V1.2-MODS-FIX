@@ -1,0 +1,150 @@
+[English](README.md) | [Português (Brasil)](README.pt-BR.md) | **Español**
+
+# Clon del R36S (GA36-MB V1.2): fábrica de imágenes de tarjeta SD
+
+Una consola portátil retro más amigable para un niño de 6 años.
+
+![Consola portátil R36S (imagen ilustrativa)](docs/img/r36s.jpg)
+
+*Imagen ilustrativa del R36S.*
+
+## Por qué existe este proyecto
+
+Mantengo este repositorio para mi hijo de 6 años. Le regalaron un clon barato del R36S
+y quería que pudiera encenderlo, encontrar un juego y abrirlo **solo**. Por eso cada
+cambio aquí pasa por una pregunta: ¿ayuda a un niño pequeño en esta pantalla?
+
+Eso significa todo en pantalla en su idioma, menos avisos y animaciones entre encender
+y jugar, imagen y sonido agradables y un menú simple.
+
+## De dónde viene la imagen base
+
+Los clones de esta placa solo arrancan con la imagen de fábrica **EmuELEC 4.7 "Nexus"**.
+Uso la que se compartió en esta publicación de r/R36S:
+<https://www.reddit.com/r/R36S/comments/1w2i8em/r36s_ga36mb_v1220260416_emuelec_no_roms/>
+
+La imagen base nunca se modifica. La compilación parte siempre de ella y cambia solo lo
+que es seguro: archivos de las particiones de sistema, storage y ROMs. Cada cambio
+pedido se convierte en una *feature* versionada, y cada compilación genera una imagen
+nueva, identificada por la hora en que se generó. La imagen base no está incluida en
+este repositorio.
+
+## El clon y su hardware
+
+Esta placa **no** es Rockchip como el R36S original, aunque se venda con ese nombre. Lo
+que se verificó en este dispositivo:
+
+| Ítem | Valor |
+|------|-------|
+| SoC | Allwinner A33 (4x Cortex-A7), remarcado como RK3326 |
+| RAM | 1 GB |
+| GPU | Mali-400 MP2 |
+| Pantalla | 3,5", 640x480 |
+| Sistema | EmuELEC 4.7 "Nexus" (kernel sunxi 3.4.39) |
+| Red | ninguna (sin Wi-Fi, sin SSH) |
+
+- Las imágenes genéricas de R36S (ArkOS, AmberELEC, ROCKNIX...) son para Rockchip y
+  **no arrancan** aquí.
+- El código fuente de este fork de EmuELEC no es público, así que el sistema no se puede
+  recompilar; solo se reemplazan archivos de las particiones.
+- Todo entra y sale por la tarjeta SD, leída en la PC.
+- Batería: la capacidad nominal es desconocida. En una descarga completa medida el 26/10,
+  el dispositivo duró 264 min y entregó 2640 mAh.
+
+## Features y corrección de bugs
+
+- **Idioma:** la compilación elige el idioma del sistema, de EmulationStation y del menú
+  de RetroArch (`./build.sh --idioma <código>`, inglés por defecto). Incluye
+  traducciones completas de EmulationStation al portugués de Brasil y al español
+  latino.
+- **Tema:** `Epic Cody ML`, versión multilingüe del tema Epic Cody.
+- **Arranque limpio:** una sola pantalla con el ícono de control, del arranque al juego.
+- **Imagen:** shaders para GBA, Game Boy y Game Boy Color (activados por defecto) y un
+  shader de TV opcional para consolas de 8/16 bits y arcades.
+- **Corregidos el ghosting del GBA** (mezcla de cuadros del LCD en gpSP) y el **audio
+  con chasquidos**.
+- **Sonido:** una única cadena de ganancia de audio, de modo que el volumen 0 realmente
+  silencia y el volumen guardado se aplica al arrancar, después de los juegos y al
+  despertar.
+- **Controles:** los botones de cara siguen su posición física en RetroArch y el botón
+  **FN** funciona como hotkey.
+- **Brillo:** FN + D-pad arriba/abajo, recordado entre arranques.
+- **Batería:** porcentaje corregido, basado en una descarga medida.
+- **Sistema más liviano:** swap en zram, menos servicios al arrancar, `noatime` en la
+  partición de ROMs y un governor de CPU ajustado.
+- **Cores recompilados para el A33** (por ejemplo, SNES) y mejor rendimiento en PSP.
+- **Save states con miniatura** visibles en EmulationStation.
+- **Ports:** ClassiCube (recreación de Minecraft Classic), sin conexión, como "Classic
+  Craft".
+
+## Atajos
+
+En el juego (FN es el hotkey):
+
+| Atajo | Acción |
+|-------|--------|
+| FN + X | Menú de RetroArch |
+| FN + Y | Captura de pantalla |
+| FN + L / R | Cargar / guardar estado |
+| FN + L2 | Cámara lenta |
+| FN + R2 | Avance rápido |
+| FN + abajo | Pausa |
+| FN + derecha | Mostrar FPS |
+| FN + Start | Salir |
+
+Brillo (en EmulationStation y en el juego):
+
+| Atajo | Acción |
+|-------|--------|
+| FN + D-pad arriba / abajo | Sube / baja el brillo (pasos de 5, de 10 a 100) |
+| FN + clic del L3 | Vuelve al valor por defecto (80) |
+
+ClassiCube: A salta, X abre el inventario, Y toma el bloque, L rompe, R coloca;
+Select + Start cierra el juego y vuelve a EmulationStation.
+
+## Mejoras en imágenes
+
+![Tema: todos los juegos](docs/img/tema-todos-os-jogos.png)
+![Tema: GBA](docs/img/tema-gba.png)
+![Tema: SNES](docs/img/tema-snes.png)
+![Tema: Mega Drive](docs/img/tema-megadrive.png)
+![Tema: PlayStation](docs/img/tema-psx.png)
+![Menú de RetroArch](docs/img/tema-retroarch.png)
+
+Shader del GBA, con y sin él (Mario Kart):
+
+![Comparativo del shader del GBA](docs/img/shader-gba-comparativo.png)
+
+Shader del Game Boy Color:
+
+![Comparativo del shader del GBC](docs/img/shader-gbc-comparativo.png)
+
+Shader de TV opcional para Mega Drive y otras consolas (Sonic):
+
+![Comparativo del shader de TV](docs/img/shader-tv-comparativo.png)
+
+## Cómo grabar
+
+Requiere Linux con Python 3.11 o más nuevo y `squashfs-tools`, `mtools`, `dosfstools`,
+`e2fsprogs`, `util-linux`, `xz` y `coreutils`. Pon la imagen base en `base/` y ejecuta:
+
+```bash
+./build.sh                  # inglés
+./build.sh --idioma pt_BR   # portugués de Brasil
+./build.sh --idioma es_ES   # español
+```
+
+La imagen aparece en `out/<timestamp>/`; grábala con Etcher o con `./flash.sh`. Detalles
+completos (en portugués): [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md).
+
+## Desarrollador
+
+Douglas Panhota: <douglaspands@gmail.com>
+
+## Créditos y aviso
+
+Gracias a los proyectos en los que esto se apoya: [EmuELEC](https://github.com/EmuELEC/EmuELEC),
+el tema Epic Cody, [Libretro / RetroArch](https://www.libretro.com/) y
+[ClassiCube](https://www.classicube.net/). Este repositorio no declara ninguna licencia
+y no promete términos de uso para el software de terceros mencionado. La foto del
+dispositivo es solo ilustrativa y su autor es desconocido.
