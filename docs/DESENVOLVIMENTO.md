@@ -945,7 +945,7 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     - `LANG`: locale completo no padrão POSIX (ex.: `pt_BR.UTF-8`);
     - `LANGUAGE`: código de idioma (ex.: `pt_BR`);
     - Arquivo temporário `/tmp/console_lang` contendo o código resolvido.
-  - **Jogo de demonstração:** acompanha o jogo livre *Mr. Rescue* (`mrrescue.love`) pré-instalado em `/storage/roms/love/` com capa e metadados no `gamelist.xml`, ajustado para suporte nativo e desduplicado aos botões e direcional digital (D-pad) para movimentação, escadas e menus, e volume calibrado para som cristalino sem clipping dinâmico.
+  - **Jogo de demonstração:** acompanha o jogo livre *Mr. Rescue* (`mrrescue.love`) pré-instalado em `/storage/roms/love/` com capa e metadados no `gamelist.xml`, ajustado com suporte nativo e desduplicado aos botões e ao direcional digital (D-pad), navegação de menus isolada exclusivamente no D-pad e eventos discretos (imune a calibrações de boot ou drift do analógico), movimentação in-game contínua pelo analógico ou D-pad, e volume calibrado para som cristalino sem clipping dinâmico.
   - **Compilação hermética:** receita disponível em `ports/love2d/` (`receita.toml` e `compilar.sh`), compilando via container Debian Bookworm sem root.
 
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a

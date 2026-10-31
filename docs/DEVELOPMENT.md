@@ -256,7 +256,7 @@ truncate -s 15000M work/cartao-teste.img
 
 - **`62-brilho-fn`**: on-the-fly screen brightness control using `FN + D-pad Up/Down` (range 10 to 100, step 5), saved across boots in `r36-brilho.level`. Reset to default (80) with `FN + L3 click` or empty file `r36-brilho-original`.
 
-- **`64-love2d`**: official standalone **LÖVE 11.5** runtime for Allwinner A33 (ARMv7-A / NEON / GLES 2.0). Integrates Lua indie games as a first-class console in EmulationStation (`roms/love/` accepting `.love` and `.zip`). Full direct framebuffer GLES2 rendering (`/dev/fb0`), native SDL2 controller mapping, background `FN + Start` exit daemon, glitch-free OpenAL Soft audio (native 48000 Hz, int16, bsinc12), and language environment propagation (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`). Includes bundled *Mr. Rescue* demo.
+- **`64-love2d`**: official standalone **LÖVE 11.5** runtime for Allwinner A33 (ARMv7-A / NEON / GLES 2.0). Integrates Lua indie games as a first-class console in EmulationStation (`roms/love/` accepting `.love` and `.zip`). Full direct framebuffer GLES2 rendering (`/dev/fb0`), native SDL2 controller mapping, background `FN + Start` exit daemon, glitch-free OpenAL Soft audio (native 48000 Hz, int16, bsinc12), and language environment propagation (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`). Includes bundled *Mr. Rescue* demo with D-pad isolated menu navigation (immune to analog drift/calibration issues) and analog gameplay movement.
 
 ### Diagnostics
 

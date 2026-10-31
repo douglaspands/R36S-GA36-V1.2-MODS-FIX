@@ -321,6 +321,41 @@ class TestLove2D(unittest.TestCase):
             self.assertIn("action = 1", cfg_txt)
             self.assertIn("sfx_volume = 0.65", cfg_txt)
 
+    def test_mrrescue_menu_dpad_isolation(self):
+        self.assertTrue(MRRESCUE_ROM.is_file(), "mrrescue.love ausente")
+        with zipfile.ZipFile(MRRESCUE_ROM, "r") as z:
+            main_txt = z.read("main.lua").decode("utf-8")
+
+            # 1. Ausência de laço analógico e cooldowns de menu no updateKeys()
+            self.assertNotIn("AXIS_COOLDOWN", main_txt)
+            self.assertNotIn("xacccool", main_txt)
+            self.assertNotIn("yacccool", main_txt)
+
+            # Extrai o corpo da função updateKeys() (termina na definição de love.run)
+            self.assertIn("function updateKeys()", main_txt)
+            update_keys_body = main_txt.split("function updateKeys()")[1].split("function love.run()")[0]
+            self.assertNotIn('action("down")', update_keys_body)
+            self.assertNotIn('action("up")', update_keys_body)
+            self.assertNotIn('action("left")', update_keys_body)
+            self.assertNotIn('action("right")', update_keys_body)
+
+            # 2. Preservação do analógico para movimentação contínua in-game
+            self.assertIn("keystate.left = true", update_keys_body)
+            self.assertIn("keystate.right = true", update_keys_body)
+            self.assertIn("keystate.up = true", update_keys_body)
+            self.assertIn("keystate.down = true", update_keys_body)
+
+            # 3. Preservação de mapeamentos do D-pad digital
+            # Gamepad API (dpup, dpdown, dpleft, dpright)
+            for dp in ("dpup", "dpdown", "dpleft", "dpright"):
+                self.assertIn(dp, main_txt)
+
+            # Raw buttons (14..17) tanto para D-pad contínuo quanto para eventos discretos
+            for btn in ("isDown(14)", "isDown(15)", "isDown(16)", "isDown(17)"):
+                self.assertIn(btn, main_txt)
+            for btn_code in ("k == 14", "k == 15", "k == 16", "k == 17"):
+                self.assertIn(btn_code, main_txt)
+
     def test_binary_elf_and_abi(self):
         self.assertTrue(BINARY.is_file(), "executável love ausente")
         self.assertTrue(os.access(BINARY, os.X_OK), "executável love não executável")

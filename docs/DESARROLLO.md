@@ -253,7 +253,7 @@ truncate -s 15000M work/cartao-teste.img
 
 - **`62-brilho-fn`**: control de brillo de pantalla directo mediante `FN + D-pad Arriba/Abajo` (rango 10 a 100, pasos de 5), persistido entre reinicios en `r36-brilho.level`. Restablecer a 80 mediante `FN + clic L3` o creando `r36-brilho-original`.
 
-- **`64-love2d`**: motor oficial standalone **LÖVE 11.5** para Allwinner A33 (ARMv7-A / NEON / GLES 2.0). Integra videojuegos indie desarrollados en Lua en EmulationStation (`roms/love/` para archivos `.love` y `.zip`). Renderizado directo en framebuffer GLES2 (`/dev/fb0`), mapeo de controles SDL2, demonio en segundo plano para salida con `FN + Start`, audio cristalino con OpenAL Soft (48000 Hz, int16, bsinc12), y variables de entorno de localización (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`). Incluye el juego de demostración *Mr. Rescue*.
+- **`64-love2d`**: motor oficial standalone **LÖVE 11.5** para Allwinner A33 (ARMv7-A / NEON / GLES 2.0). Integra videojuegos indie desarrollados en Lua en EmulationStation (`roms/love/` para archivos `.love` y `.zip`). Renderizado directo en framebuffer GLES2 (`/dev/fb0`), mapeo de controles SDL2, demonio en segundo plano para salida con `FN + Start`, audio cristalino con OpenAL Soft (48000 Hz, int16, bsinc12), y variables de entorno de localización (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`). Incluye el juego de demostración *Mr. Rescue* con navegación de menús aislada en la cruceta digital D-pad (inmune a derivas de calibración analógica) y movimiento analógico durante la partida.
 
 ### Diagnóstico
 
