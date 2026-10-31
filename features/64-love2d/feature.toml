@@ -1,0 +1,18 @@
+# Motor standalone LÖVE 11.5 para Allwinner A33 (Mali-400 MP2 via OpenGL ES 2.0 e SDL2)
+# Integração no EmulationStation com encerramento Select+Start via gptokeyb e suporte a ROMs na p1.
+
+schema = 1
+name = "LÖVE 2D Standalone"
+description = "Motor LÖVE 11.5 standalone com aceleração GLES 2.0 no Mali-400, suporte a controle e encerramento via gptokeyb."
+order = 64
+enabled = true
+
+[[override]]
+layer = "system"
+path = "usr/config/emulationstation/es_systems.cfg"
+feature = "53-cores-a33"
+
+[[override]]
+layer = "storage"
+path = ".config/emulationstation/es_systems.cfg"
+feature = "53-cores-a33"

@@ -72,6 +72,7 @@ O que foi verificado neste aparelho:
 - **Cores recompilados para o A33** (por exemplo, SNES) e melhor desempenho no PSP.
 - **Save states com miniatura** visíveis no EmulationStation.
 - **Ports:** ClassiCube (recriação do Minecraft Classic), offline, como "Classic Craft".
+- **Jogos LÖVE (Love2D):** runtime LÖVE 11.5 standalone integrado ao EmulationStation com suporte a arquivos `.love` e `.zip` na partição de ROMs, aceleração OpenGL ES 2.0 nativa e o jogo *Mr. Rescue* incluído.
 
 ## Atalhos
 
@@ -97,6 +98,35 @@ Brilho (no EmulationStation e no jogo):
 
 ClassiCube: A pula, X abre o inventário, Y pega o bloco, L quebra, R coloca;
 Select + Start fecha o jogo e volta ao EmulationStation.
+
+LÖVE (Love2D): FN + Start fecha o jogo e volta ao EmulationStation.
+
+## Motor LÖVE (Love2D)
+
+O clone conta com o runtime oficial **LÖVE 11.5** standalone integrado como um console no EmulationStation.
+
+- **Formatos aceitos:** copie arquivos `.love` ou pacotes compactados em `.zip` para a pasta `roms/love/` na partição `R36-ROMS` (FAT32, acessível no PC).
+- **Jogo de demonstração:** acompanha o jogo open-source *Mr. Rescue* pré-instalado com arte de capa e metadados.
+- **Controles no jogo:** botões mapeados nativamente via SDL2 (`micro_gamepad`).
+- **Como sair do jogo:** pressione `FN + Start` a qualquer momento para retornar suavemente ao EmulationStation.
+
+### Para desenvolvedores (suporte a idioma)
+
+O inicializador do LÖVE exporta o idioma ativo do sistema (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE` e `/tmp/console_lang`). Seus jogos em Lua podem detectar o idioma do console e alternar tabelas de texto automaticamente, garantindo fallback limpo para inglês se a tradução não existir:
+
+```lua
+-- Exemplo de detecção de idioma com fallback seguro
+local lang = os.getenv("CONSOLE_LANG") or os.getenv("LANG") or "en_US"
+local code = lang:sub(1, 2):lower() -- 'pt', 'en', 'es'
+
+local translations = {
+    pt = { start = "Iniciar Jogo", quit = "Sair" },
+    es = { start = "Iniciar Juego", quit = "Salir" },
+    en = { start = "Start Game",   quit = "Quit" },
+}
+
+local text = translations[code] or translations["en"]
+```
 
 ## Melhorias em imagens
 
@@ -140,7 +170,7 @@ Douglas Panhota: <douglaspands@gmail.com>
 ## Créditos e aviso
 
 Obrigado aos projetos em que isto se apoia: [EmuELEC](https://github.com/EmuELEC/EmuELEC),
-o tema Epic Cody, [Libretro / RetroArch](https://www.libretro.com/) e
-[ClassiCube](https://www.classicube.net/). Este repositório não declara nenhuma licença
+o tema Epic Cody, [Libretro / RetroArch](https://www.libretro.com/),
+[ClassiCube](https://www.classicube.net/) e [LÖVE](https://love2d.org/). Este repositório não declara nenhuma licença
 e não promete termos de uso para os softwares de terceiros acima. A foto do aparelho é
 apenas ilustrativa e o autor é desconhecido.

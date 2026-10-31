@@ -1,36 +1,13 @@
-# Temas extras do EmulationStation: Minimal, Graphite e Epic Cody ML ficam na partição p8
-# (/storage), enquanto Switch, Crystal e NES-BOX ficam na partição de ROMs
-# (p1, FAT32 em /storage/roms/themes/) ao lado dos jogos. O Epic Cody ML é o novo
-# tema padrão configurado em es_settings.cfg. O build baixa cada tema externo de um commit
-# fixo, confere o sha256 e guarda em work/cache/external/. Os temas não entram no git.
-# Escolha no aparelho: Menu > Configurações da interface > Tema.
+# Tema padrão do EmulationStation: Epic Cody ML na partição p8 (/storage).
+# O tema unificado é configurado em es_settings.cfg com suporte dinâmico a múltiplos idiomas.
+# O build baixa o tema de um commit fixo, confere o sha256 e guarda em work/cache/external/.
 
 schema = 1
-name = "Temas extras"
-description = "Temas Minimal, Graphite e Epic Cody ML no storage, Switch, Crystal e NES-BOX na partição de ROMs."
+name = "Tema Epic Cody ML"
+description = "Tema curado Epic Cody ML com suporte dinâmico a idiomas e identidade unificada."
 order = 50
 enabled = true
-budget_mib = 700
-
-[[remove]]
-layer = "storage"
-path = ".config/emulationstation/themes/NES-BOX"
-
-[[external]]
-layer = "storage"
-dest = ".config/emulationstation/themes/Minimal EmuELEC"
-url = "https://codeload.github.com/EmuELEC/es-theme-minimal-EmuELEC/tar.gz/628546bade3c08a3904c4105fab35c8d1ae49432"
-sha256 = "31ebe08db71bc1a8ab30ee387acbc01617fc2e257dedfa9095cc87c92b48724d"
-strip = 1
-exclude = [".git*", "*.md", "screenshots/*"]
-
-[[external]]
-layer = "storage"
-dest = ".config/emulationstation/themes/Graphite OGA"
-url = "https://codeload.github.com/mtoensing/es-theme-Graphite-OGA/tar.gz/88d5c479f97f5f592d6dab861ebca23b0bbb830d"
-sha256 = "b124fbe13f091c7041ca5634943d65229c5485caa9a8f36aaf2dd5481e362e75"
-strip = 1
-exclude = [".git*", "*.md", "screenshots/*"]
+budget_mib = 250
 
 [[external]]
 layer = "storage"
@@ -38,20 +15,4 @@ dest = ".config/emulationstation/themes/Epic Cody ML"
 url = "https://codeload.github.com/CodyV59/es-theme-epic-cody-RG351V/tar.gz/b810e33851f2df0f86e9e2570cddab3a40961f8f"
 sha256 = "4a0d1e11850e0a1f0ae54ba3f4c067aefa44751e6fa7996a799493308dbe5d55"
 strip = 1
-exclude = [".git*", "*.md", "theme.xml", "*/theme.xml", "_art/var/button.svg"]
-
-[[external]]
-layer = "roms"
-dest = "themes/Switch"
-url = "https://codeload.github.com/Jetup13/es-theme-switch/tar.gz/2066a6e21569590fc94ab875921e575c798785fa"
-sha256 = "7ea436d346da1a0d8f9ae3a0bffcfd20276a7906ba157219d4e8bb22c92a24c7"
-strip = 1
-exclude = [".git*", "*.md", "screenshots/*"]
-
-[[external]]
-layer = "roms"
-dest = "themes/Crystal"
-url = "https://codeload.github.com/dm2912/Crystal/tar.gz/8f1fca3b8b673f5c8211b34329d974a727b10930"
-sha256 = "c8275150f585afe6941b050e91de30152b9b5ede0dd475751bb38b0f33823c31"
-strip = 1
-exclude = [".git*", "*.md", "screenshots/*"]
+exclude = [".git*", "*.md", "theme.xml", "*/theme.xml", "_art/var/button.svg", "_art/ingame-global-bg.*"]

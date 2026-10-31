@@ -41,9 +41,11 @@ def run(cmd, *, env=None, input=None, check=True, capture=True, text=True):
     if check and proc.returncode != 0:
         out = ""
         if capture:
-            out = (proc.stderr or "") + (proc.stdout or "")
-            if not text:
-                out = out.decode(errors="replace")
+            if text:
+                out = (proc.stderr or "") + (proc.stdout or "")
+            else:
+                out_b = (proc.stderr or b"") + (proc.stdout or b"")
+                out = out_b.decode(errors="replace")
         raise R36Error(
             f"falha ao rodar {' '.join(str(c) for c in cmd)} (código {proc.returncode})\n{out.strip()}"
         )

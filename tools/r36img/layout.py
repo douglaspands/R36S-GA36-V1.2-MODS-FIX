@@ -16,6 +16,10 @@ SIG = b"\x55\xaa"
 LBA_ONLY_CHS = b"\xfe\xff\xff"
 EXTENDED_TYPES = (0x05, 0x0F, 0x85)
 
+P1_CANONICAL_START = 4956160
+P1_TYPE_FAT32_LBA = 0x0C
+P1_ALIGNMENT_BYTES = 4 * 1024 * 1024
+
 SOFTW411_MAGIC = b"softw411"
 SOFTW411_SIZE = 16 * 1024
 SOFTW411_PART_OFF = 0x20
@@ -100,6 +104,17 @@ def replace_p1_entry(sector0: bytes, entry: bytes) -> bytes:
     b = bytearray(sector0)
     b[ENTRY_OFF: ENTRY_OFF + ENTRY_SIZE] = entry
     return bytes(b)
+
+
+def build_canonical_p1_entry(target_size_bytes: int) -> bytes:
+    p1_start_bytes = P1_CANONICAL_START * SECTOR
+    if target_size_bytes <= p1_start_bytes:
+        raise R36Error(f"tamanho do alvo insuficiente para a partição p1 ({target_size_bytes} bytes)")
+    available_bytes = target_size_bytes - p1_start_bytes
+    sectors = (available_bytes // P1_ALIGNMENT_BYTES) * (P1_ALIGNMENT_BYTES // SECTOR)
+    if sectors <= 0:
+        raise R36Error(f"tamanho do alvo insuficiente para a partição p1 ({target_size_bytes} bytes)")
+    return struct.pack("<B3sB3sII", 0x00, LBA_ONLY_CHS, P1_TYPE_FAT32_LBA, LBA_ONLY_CHS, P1_CANONICAL_START, sectors)
 
 
 @dataclass(frozen=True)

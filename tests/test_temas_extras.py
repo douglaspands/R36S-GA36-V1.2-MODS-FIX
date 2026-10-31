@@ -16,37 +16,23 @@ class TemasExtrasTest(unittest.TestCase):
 
     def test_descriptor_layers_and_paths(self):
         self.assertEqual(self.feat.id, "50-temas-extras")
-        self.assertEqual(self.feat.budget_mib, 700)
+        self.assertEqual(self.feat.budget_mib, 250)
         self.assertTrue(self.feat.enabled)
 
-        roms_themes = {}
-        storage_themes = {}
+        # O tema único e curado deve ser exclusivamente o Epic Cody ML no storage
+        self.assertEqual(len(self.feat.externals), 1)
+        ext = self.feat.externals[0]
+        self.assertEqual(ext.layer, "storage")
+        self.assertEqual(ext.dest, ".config/emulationstation/themes/Epic Cody ML")
+        self.assertEqual(self.feat.removes, [])
+        self.assertIn(
+            "_art/ingame-global-bg.*",
+            ext.exclude,
+            "feature.toml deve excluir _art/ingame-global-bg.* para proteger arte curada",
+        )
 
-        for ext in self.feat.externals:
-            if ext.layer == "roms":
-                self.assertTrue(
-                    ext.dest.startswith("themes/"),
-                    f"Tema na camada 'roms' deve iniciar com 'themes/': {ext.dest}",
-                )
-                theme_name = ext.dest.split("/", 1)[1]
-                roms_themes[theme_name] = ext
-            elif ext.layer == "storage":
-                self.assertTrue(
-                    ext.dest.startswith(".config/emulationstation/themes/"),
-                    f"Tema na camada 'storage' deve iniciar com '.config/emulationstation/themes/': {ext.dest}",
-                )
-                theme_name = ext.dest.split("themes/", 1)[1]
-                storage_themes[theme_name] = ext
-            else:
-                self.fail(f"Camada inesperada para tema: {ext.layer}")
-
-        self.assertEqual(set(storage_themes.keys()), {"Minimal EmuELEC", "Graphite OGA", "Epic Cody ML"})
-        self.assertEqual(set(roms_themes.keys()), {"Switch", "Crystal"})
-        self.assertIn(("storage", ".config/emulationstation/themes/NES-BOX"), self.feat.removes)
-
-        nesbox = self.feat_dir / "roms" / "themes" / "NES-BOX"
-        self.assertTrue(nesbox.is_dir(), "NES-BOX ausente em roms/themes/")
-        self.assertTrue((nesbox / "theme.xml").is_file(), "theme.xml do NES-BOX ausente")
+        # Ausência de temas secundários em roms/themes/
+        self.assertFalse((self.feat_dir / "roms").exists(), "Camada roms não deve existir na feature 50 unificada")
 
     def test_roms_themes_cache_have_no_symlinks(self):
         cache = ROOT / "work" / "cache" / "external"
@@ -149,6 +135,123 @@ class TemasExtrasTest(unittest.TestCase):
 
         pt_content = (lang_dir / "pt-br.xml").read_text(encoding="utf-8")
         self.assertIn("<nes.sys_line2>Nintendo</nes.sys_line2>", pt_content)
+
+    def test_epic_cody_ml_gamelist_calibracao(self):
+        theme_dir = self.feat_dir / "storage" / ".config" / "emulationstation" / "themes" / "Epic Cody ML"
+        root_theme_file = theme_dir / "theme.xml"
+        root_content = root_theme_file.read_text(encoding="utf-8")
+
+        # View unificada canônica
+        self.assertIn('<view name="basic, detailed, video, grid">', root_content)
+        self.assertNotIn('<view name="basic, detailed, video">', root_content)
+        self.assertNotIn('<view name="basic, detailed">', root_content)
+        self.assertNotIn('<feature supported="video">', root_content)
+
+        # Calibração do gamelist (pos: 0 0.12, size: 0.319 0.805, termina em y=444px antes do rodapé)
+        self.assertIn("<pos>0 0.12</pos>", root_content)
+        self.assertIn("<size>0.319 0.805</size>", root_content)
+        self.assertIn("<horizontalMargin>0.025</horizontalMargin>", root_content)
+
+        # md_image e md_video adaptáveis com margem segura
+        self.assertIn("<pos>0.66 0.485</pos>", root_content)
+        self.assertIn("<maxSize>0.62 0.70</maxSize>", root_content)
+
+        # md_name universal em todas as views (branco e rebaixado para y=0.865 com singleLineScroll ativo)
+        self.assertIn('name="md_name"', root_content)
+        self.assertIn("<pos>0.339 0.865</pos>", root_content)
+        self.assertIn("<size>0.64 0.06</size>", root_content)
+        self.assertIn("<color>FFFFFF</color>", root_content)
+        self.assertIn("<singleLineScroll>true</singleLineScroll>", root_content)
+
+        # Helpsystem alinhado à esquerda na visualização gamelist (0.965 para casar com system view)
+        gamelist_match = re.search(
+            r'<view name="basic,\s*detailed,\s*video,\s*grid">(.*?)</view>', root_content, re.DOTALL
+        )
+        self.assertIsNotNone(gamelist_match, "Bloco gamelist unificado não encontrado")
+        gamelist_xml = gamelist_match.group(1)
+        helpsystem_match = re.search(r'<helpsystem name="help">(.*?)</helpsystem>', gamelist_xml, re.DOTALL)
+        self.assertIsNotNone(helpsystem_match, "helpsystem não encontrado no gamelist")
+        help_xml = helpsystem_match.group(1)
+        self.assertIn("<pos>0.025 0.965</pos>", help_xml)
+        self.assertIn("<origin>0 1</origin>", help_xml)
+        self.assertNotIn("<pos>1 1</pos>", help_xml)
+        self.assertNotIn("<origin>1 1</origin>", help_xml)
+
+        # Menu view calibrada
+        self.assertIn('name="menutitle"', root_content)
+        self.assertIn('name="menufooter"', root_content)
+        self.assertIn('name="menutextsmall"', root_content)
+
+    def test_epic_cody_ml_imagens_cabecalho_limpo(self):
+        from PIL import Image
+
+        art_dir = self.feat_dir / "storage" / ".config" / "emulationstation" / "themes" / "Epic Cody ML" / "_art"
+        png_file = art_dir / "ingame-global-bg.png"
+        jpg_file = art_dir / "ingame-global-bg.jpg"
+        self.assertTrue(png_file.is_file(), "ingame-global-bg.png ausente")
+        self.assertTrue(jpg_file.is_file(), "ingame-global-bg.jpg ausente")
+
+        im_png = Image.open(png_file)
+        self.assertEqual(im_png.size, (640, 480))
+        crop_png = im_png.crop((0, 0, 207, 53))
+        colors_png = set(crop_png.get_flattened_data())
+        self.assertEqual(colors_png, {(0, 0, 0, 255)}, "Cabeçalho do PNG deve ser preto puro")
+
+        # Linha vertical amarela deve terminar em y=444px e não invadir o rodapé (y=445..479)
+        for y in range(445, 480):
+            p = im_png.getpixel((207, y))
+            self.assertEqual(p, (14, 14, 14, 255), f"Linha divisória no PNG em y={y} deve estar limpa")
+
+        im_jpg = Image.open(jpg_file)
+        self.assertEqual(im_jpg.size, (640, 480))
+        crop_jpg = im_jpg.crop((0, 0, 200, 50))
+        for r, g, b in crop_jpg.get_flattened_data():
+            self.assertLessEqual(r, 2)
+            self.assertLessEqual(g, 2)
+            self.assertLessEqual(b, 2)
+
+        for y in range(445, 480):
+            p = im_jpg.getpixel((207, y))
+            self.assertLess(p[0] + p[1] + p[2], 100, f"Linha divisória no JPG em y={y} deve estar escura")
+
+    def test_refatora_epic_cody_ml_script(self):
+        import sys
+
+        sys.path.insert(0, str(ROOT))
+        from tools.refatora_epic_cody_ml import refatora_raiz_theme_xml
+
+        mock_upstream = """<theme>
+<view name="system">
+<text name="sys_line1"><text>Old</text></text>
+</view>
+<view name="basic, detailed, video">
+<textlist name="gamelist"><pos>0 0.12</pos><size>0.319 0.91</size></textlist>
+<helpsystem name="help"><pos>1 1</pos><origin>1 1</origin><textColor>ffffff</textColor><iconColor>ffffff</iconColor></helpsystem>
+</view>
+<view name="basic, detailed">
+<image name="md_image"></image>
+</view>
+<feature supported="video">
+<view name="video">
+<text name="md_name"></text>
+</view>
+</feature>
+<view name="screen">
+</view>
+<view name="menu">
+</view>
+</theme>"""
+        out = refatora_raiz_theme_xml(mock_upstream)
+        self.assertIn('<view name="basic, detailed, video, grid">', out)
+        self.assertNotIn('<view name="basic, detailed, video">', out)
+        self.assertNotIn('<feature supported="video">', out)
+        self.assertIn("<pos>0.025 0.965</pos>", out)
+        self.assertIn("<size>0.319 0.805</size>", out)
+        self.assertIn("<horizontalMargin>0.025</horizontalMargin>", out)
+        self.assertIn("<pos>0.339 0.865</pos>", out)
+        self.assertIn("<color>FFFFFF</color>", out)
+        self.assertIn("<singleLineScroll>true</singleLineScroll>", out)
+        self.assertIn('name="menutitle"', out)
 
 
 class FatSymlinkRejectionTest(TempDirCase):

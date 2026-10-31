@@ -215,18 +215,38 @@ tenha o layout desta família de imagens (gravado antes com `--all`).
 ./flash.sh --device /dev/sdc --part roms --wipe-roms        # p1: apaga ROMs
 ```
 
-### Proteções do `flash.sh`
+### Proteções e Diagnóstico de Saúde do `flash.sh`
 
 - Só aceita **disco inteiro removível** (`RM=1`) ou leitor SD interno
   (`mmcblk`). Recusa `/dev/sdc1` (partição), o SSD do PC e discos com partições
   do sistema montadas. Se o seu leitor USB se declara "fixo" (`RM=0`), use outro
   leitor.
+- **Diagnóstico prévio de saúde física e do leitor**:
+  - Inspeciona mensagens recentes do kernel (`dmesg`) para o dispositivo, alertando
+    sobre quedas de barramento ou falhas de comunicação (`buffer I/O error`,
+    `reset high-speed USB device`, `device offline`).
+  - Executa teste atômico de trava de hardware (*read-only lock*) no último setor do
+    disco antes da escrita, impedindo gravações falsas em memórias flash desgastadas.
+  - Verifica a integridade da FAT32 da partição de ROMs de forma não destrutiva
+    (`fsck.fat -n`) ao selecionar `--keep-roms`.
+- **Reconstrução analítica e canônica do MBR**:
+  - Com `--keep-roms`, o MBR não copia bytes legados ou corrompidos do cartão anterior:
+    a partição `p1` é reconstruída matematicamente com o setor inicial canônico
+    `4956160`, tipo `0x0C` (FAT32 LBA) e tamanho alinhado a 4 MiB para a capacidade
+    real do cartão.
 - Recusa cartão menor que a imagem e avisa quando sobra espaço sem uso.
 - Mostra dispositivo, modelo, capacidade, labels atuais e o que será apagado, e
   exige que você **digite o nome do dispositivo** (ex.: `sdc`).
 - Desmonta as partições do cartão antes de gravar.
 - Confere o sha256 de cada parte antes de gravar e relê tudo depois
   ("verificado").
+- **Sincronização estrita e ejeção segura de hardware**:
+  - Aplica `sync`, `blockdev --flushbufs` e `udevadm settle` antes da validação.
+  - Ao terminar a gravação com sucesso em dispositivos físicos, executa
+    automaticamente `udisksctl power-off -b /dev/sdX` para desenergizar o leitor e
+    permitir a remoção física imediata e segura do cartão microSD.
+  - Flag `--no-eject`: suprime o desligamento elétrico caso queira inspecionar as
+    partições no PC logo após a gravação.
 
 Para testar sem cartão, use um arquivo como alvo (não precisa de sudo):
 
@@ -908,6 +928,23 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     nível salvo na p8 sobrevive a `--keep-storage`.
   - Teste no aparelho: no ES, FN + cima e FN + baixo mudam o brilho na hora; religue e
     confira que o nível ficou; FN + clique do L3 volta a 80.
+
+- **`64-love2d`**: motor de jogos LÖVE 11.5 standalone para o Allwinner A33 (ARMv7-A / NEON / GLES 2.0).
+  Adiciona suporte nativo a jogos indie desenvolvidos em Lua como um videogame de primeira classe no EmulationStation.
+  - **Console no EmulationStation:** reconhece arquivos `.love` e `.zip` colocados em `/storage/roms/love/` (partição `R36-ROMS`, FAT32). O carrossel principal exibe a identidade visual no tema `Epic Cody ML` e em `NES-BOX`.
+  - **Lançador `/usr/bin/love.sh`:** executa o binário standalone no framebuffer direto (`/dev/fb0`) com aceleração de hardware via Mali-400 MP2 (`LOVE_GRAPHICS_USE_OPENGLES=1`).
+  - **Controles e atalho de encerramento:** mapeia o gamepad integrado (`micro_gamepad`) nativamente no SDL2 com `guide:b10` e gerencia o daemon `gptokeyb` em segundo plano para capturar o atalho universal do console `FN + Start` (`guide + start`), finalizando o processo com `SIGTERM` sem conflitos de teclas de teclado e deixando o botão `Select` livre para o jogo.
+  - **Telas de splash neutras:** exibe a tela de carregamento `/usr/config/splash/loading-game.png` com `mpv` e `blank_buffer` no início e reaplica a tela neutra no encerramento (`cleanup`), eliminando resíduos de console.
+  - **Áudio ALSA, OpenAL Soft e diagnóstico sob chave:** define `SDL_AUDIODRIVER=alsa`, alinha a rota analógica (`Speaker Function`) e aplica `/usr/lib/r36/audio-ganho aplica` na entrada e saída. Inclui configuração dedicada do OpenAL Soft (`alsoft.conf` em `/usr/config/openal/` e `/etc/openal/`) com saída nativa a 48000 Hz, 16-bit inteiro (`sample-type = int16`), `dither = false`, reamostragem Sinc de alta fidelidade (`resampler = bsinc12`), `stereo-encoding = pan`, `hrtf = false` e margem digital limpa de pico (`output-limiter = false`, `volume-adjust = -3`), eliminando chiados, compressões não-lineares e artefatos de reamostragem de software da ALSA no codec `sunxi-pcm-codec`. Sob a chave `r36-diagnostico` na partição `R36-ROMS`, ativa `ALSOFT_LOGLEVEL=3` e grava o log em `/storage/roms/love/r36-love-alsoft.log`.
+  - **Viewport físico 640x480:** runtime LÖVE com patches C++ em `ports/love2d/patches/` garantindo criação da janela em tela cheia no framebuffer e escala proporcional com letterboxing automático no display LCD.
+  - **Propagação de idioma para jogos Lua:** o lançador detecta o idioma configurado no EmuELEC (`system.language` no `emuelec.conf` ou `Language` no `es_settings.cfg`, com fallback para `en_US`) e exporta as variáveis de ambiente:
+    - `CONSOLE_LANG`: código completo do idioma (ex.: `pt_BR`, `en_US`, `es_ES`);
+    - `CONSOLE_LANG_SHORT`: código reduzido de dois caracteres em minúsculas (ex.: `pt`, `en`, `es`);
+    - `LANG`: locale completo no padrão POSIX (ex.: `pt_BR.UTF-8`);
+    - `LANGUAGE`: código de idioma (ex.: `pt_BR`);
+    - Arquivo temporário `/tmp/console_lang` contendo o código resolvido.
+  - **Jogo de demonstração:** acompanha o jogo livre *Mr. Rescue* (`mrrescue.love`) pré-instalado em `/storage/roms/love/` com capa e metadados no `gamelist.xml`, ajustado para suporte nativo e desduplicado aos botões e direcional digital (D-pad) para movimentação, escadas e menus, e volume calibrado para som cristalino sem clipping dinâmico.
+  - **Compilação hermética:** receita disponível em `ports/love2d/` (`receita.toml` e `compilar.sh`), compilando via container Debian Bookworm sem root.
 
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.

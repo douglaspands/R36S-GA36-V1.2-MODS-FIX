@@ -14,3 +14,6 @@ var/
 
 # Claude worktrees
 .claude/worktrees/
+
+# Scratch e arquivos temporários de análise
+scratch/

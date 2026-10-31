@@ -151,7 +151,7 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
     </helpsystem>
 </view>
 
-<view name="basic, detailed, video">
+<view name="basic, detailed, video, grid">
 
     <image name="background" extra="true">
         <tile>false</tile>
@@ -169,10 +169,10 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <fontPath>./_art/Acre.otf</fontPath>
         <alignment>left</alignment>
         <pos>0 0.12</pos>
-	    <size>0.319 0.91</size>
+	    <size>0.319 0.805</size>
         <fontSize>0.03</fontSize>
         <lineSpacing>1.683</lineSpacing>
-        <horizontalMargin>0.01</horizontalMargin>
+        <horizontalMargin>0.025</horizontalMargin>
     </textlist>
 	
 	<helpsystem name="help">
@@ -180,49 +180,66 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <fontSize>0.022</fontSize>
         <textColor>A0A0A0</textColor>
         <iconColor>FFAE00</iconColor>
-        <pos>1 1</pos>
-	    <origin>1 1</origin>
+        <pos>0.025 0.965</pos>
+	    <origin>0 1</origin>
     </helpsystem>
     
     <text name="top_label" extra="true">
         <fontPath>./_art/BebasNeue.otf</fontPath>
-        <text></text>
+        <text>${top_label}</text>
         <alignment>left</alignment>
         <color>F8F8F8</color>
-        <fontSize>0.039</fontSize>
+        <fontSize>0.050</fontSize>
         <origin>0 0</origin>
-        <pos>0.01 0.01</pos>
-        <size>0.20 0.08</size>
+        <pos>0.025 0.025</pos>
+        <size>0.28 0.08</size>
     </text>
     
     <text name="nameLabel" extra="true">
         <fontPath>./_art/BebasNeue.otf</fontPath>
-        <alignment>right</alignment>
+        <alignment>left</alignment>
         <forceUppercase>1</forceUppercase>
         <color>FFAE00</color>
-        <fontSize>0.060</fontSize>
+        <fontSize>0.050</fontSize>
         <origin>0 0</origin>
-        <pos>0.33 0.02</pos>
-        <size>0.65 0.08</size>
+        <pos>0.339 0.025</pos>
+        <size>0.64 0.08</size>
         <zIndex>50</zIndex>
     </text>
 
-<!--    <text name="md_description">
-        <fontPath>./_art/Acre.otf</fontPath>
-	    <color>ffffff</color>
-        <fontSize>0.026</fontSize>
-	    <alignment>left</alignment>
-        <forceUppercase>0</forceUppercase>
-        <lineSpacing>1</lineSpacing>
-	    <pos>0.339 0.75</pos>
-	    <size>0.66 0.17</size>
-    </text> -->
-    
-<!-- Define metadata -->
+    <image name="md_image">
+        <tile>false</tile>
+        <origin>0.5 0.5</origin>
+        <pos>0.66 0.485</pos>
+        <maxSize>0.62 0.70</maxSize>
+    </image>
 
-<!-- Place metadata --> 
-        
-<!-- Extra Text Labels. Edit text values if needed.-->       
+    <video name="md_video">
+        <origin>0.5 0.5</origin>
+        <pos>0.66 0.485</pos>
+        <maxSize>0.62 0.70</maxSize>
+        <delay>1.4</delay>
+        <showSnapshotNoVideo>true</showSnapshotNoVideo>
+        <showSnapshotDelay>true</showSnapshotDelay>
+    </video>
+    
+    <text name="md_name">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <color>FFFFFF</color>
+        <fontSize>0.045</fontSize>
+        <origin>0 0</origin>
+        <pos>0.339 0.865</pos>
+        <size>0.64 0.06</size>
+        <zIndex>50</zIndex>
+        <singleLineScroll>true</singleLineScroll>
+    </text>
+
+    <image name="md_marquee">
+        <pos>0.6598958333333333 0.220</pos>
+        <origin>0.5 0.5</origin>
+        <maxSize>0.300 0.180</maxSize>
+    </image>
 
     <text name="txt_descript" extra="true">
         <text></text>
@@ -235,8 +252,7 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <size>0.06 0.2</size>
     </text> 
         
-<!-- Hidden Elements -->
- 
+    <!-- Hidden Elements -->
     <text name="shortdescription, longdescription" extra="true">
         <origin>1 1</origin>
         <pos>0 0</pos>
@@ -253,66 +269,9 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
         <origin>1 1</origin>
         <color>00000000</color>
         <pos>0 0</pos>
-        </datetime>
+    </datetime>
         
 </view>
-
-<view name="basic, detailed">
-    <image name="md_image">
-        <tile>false</tile>
-        <origin>0.5 0.5</origin>
-        <pos>0.66 0.52</pos>
-        <maxSize>0.65 0.75</maxSize>
-    </image>
-        <image name="md_marquee">
-            <pos>0.6598958333333333 0.220</pos>
-            <origin>0.5 0.5</origin>
-            <maxSize>0.300 0.180</maxSize>
-        </image>
-        <image name="logo">
-            <path>./_assets/systems/${system.theme}.svg</path>
-			<path>./_assets/systems/${system.theme}.png</path>
-            <pos>0.705 0.865</pos>
-            <maxSize>0.296 0.122</maxSize>
-            <origin>0.5 0.5</origin>
-        </image>
-
-</view>
-
-<feature supported="video">
-    <view name="video">
-        <image name="tvoverlay" extra="true">
-            <tile>false</tile>
-	    <path>./_art/titlelogo.png</path>
-            <size>1 1</size>
-            <pos>0 0</pos>
-            <zIndex>49</zIndex>
-        </image>
-        <image name="md_marquee">
-            <pos>0.83 0.88</pos>
-            <origin>0.5 0.5</origin>
-            <maxSize>0.300 0.180</maxSize>
-      	    <reflexion>0.15 0.0</reflexion>
-            <zIndex>50</zIndex>
-        </image>
-      <rating name="md_rating">
-         <origin>0.5 0.5</origin>       
-         <pos>0.37 0.95</pos>
-         <size>0.06 0.06</size>
-         <zIndex>50</zIndex>
-         <filledPath>./_art/star_full.png</filledPath>
-         <unfilledPath>./_art/star_hollow.png</unfilledPath>
-      </rating>
-        <video name="md_video">
-            <origin>0.5 0.5</origin>
-            <pos>0.665 0.495</pos>
-            <maxSize>0.68 0.79</maxSize>
-            <delay>1.4</delay>
-            <showSnapshotNoVideo>true</showSnapshotNoVideo>
-            <showSnapshotDelay>true</showSnapshotDelay>
-        </video>
-    </view>
-</feature>
 
    <view name="screen">
     <text name="clock">
@@ -344,12 +303,28 @@ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAl
     <menuBackground name="menubg">
       <color>202020</color>
     </menuBackground>
-	<menuText name="menutext">
-	  <fontPath>./_art/Acre.otf</fontPath>
-	  <fontSize>.037</fontSize>
-	  <color>FFAE00</color>
-	</menuText>
-	<menuTextEdit name="menutextedit">
+    <menuText name="menutitle">
+      <fontPath>./_art/BebasNeue.otf</fontPath>
+      <fontSize>0.038</fontSize>
+      <color>FFAE00</color>
+      <alignment>left</alignment>
+    </menuText>
+    <menuText name="menutext">
+      <fontPath>./_art/Acre.otf</fontPath>
+      <fontSize>0.030</fontSize>
+      <color>FFAE00</color>
+    </menuText>
+    <menuText name="menufooter">
+      <fontPath>./_art/Acre.otf</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>A0A0A0</color>
+    </menuText>
+    <menuText name="menutextsmall">
+      <fontPath>./_art/Acre.otf</fontPath>
+      <fontSize>0.028</fontSize>
+      <color>888888</color>
+    </menuText>
+    <menuTextEdit name="menutextedit">
       <inactive>./_art/assets/textinput_inactive.png</inactive>
       <active>./_art/assets/textinput_active.png</active>
     </menuTextEdit>

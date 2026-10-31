@@ -1,5 +1,6 @@
 """./flash.sh — grava um build no cartão SD, inteiro ou por partição (D10)."""
 
+import contextlib
 import hashlib
 import json
 import os
@@ -69,6 +70,8 @@ def parse_args(argv):
                    help="autoriza apagar a p8 (exigido com --all sem --keep-storage e com --part storage)")
     p.add_argument("--dry-run", action="store_true",
                    help="simulação: faz as verificações e mostra o plano, sem escrever nada")
+    p.add_argument("--no-eject", action="store_true",
+                   help="não desliga nem ejeta o cartão após a gravação (mantém no sistema)")
     p.add_argument("--build", metavar="TIMESTAMP",
                    help="build a gravar (AAAAMMDD-HHMMSS, com -test nos builds de teste); padrão: menu no terminal ou o mais recente em out/")
     p.add_argument("--list-builds", action="store_true",
@@ -298,6 +301,9 @@ class FileTarget:
     def sync(self):
         pass
 
+    def power_off(self) -> bool:
+        return False
+
     def readback_sha256(self, offset, length):
         return sha256_file(self.path, length, offset)
 
@@ -352,6 +358,17 @@ class DeviceTarget:
     def sync(self):
         subprocess.run(["sync"])
         subprocess.run(["sudo", "blockdev", "--flushbufs", self.path], capture_output=True)
+        subprocess.run(["udevadm", "settle"], capture_output=True)
+
+    def power_off(self) -> bool:
+        p = subprocess.run(["udisksctl", "power-off", "-b", self.path], capture_output=True, text=True)
+        if p.returncode == 0:
+            return True
+        sysfs_delete = Path(f"/sys/block/{self.name}/device/delete")
+        if sysfs_delete.exists():
+            p2 = subprocess.run(["sudo", "tee", str(sysfs_delete)], input=b"1\n", capture_output=True)
+            return p2.returncode == 0
+        return False
 
     def readback_sha256(self, offset, length):
         h = hashlib.sha256()
@@ -380,6 +397,105 @@ def _chunks(src, length, override):
                 raise R36Error(f"{src}: leitura curta")
             yield pos, buf
             pos += len(buf)
+
+
+# ----------------------------------------------------------- diagnóstico de saúde
+
+DMESG_IO_PATTERNS = (
+    "buffer i/o error",
+    "reset high-speed usb device",
+    "device offline",
+    "blk_update_request: i/o error",
+)
+
+
+def check_dmesg_io_errors(device_name: str, *, dmesg_fn=None) -> list:
+    """Inspeciona mensagens recentes do dmesg para o dispositivo e retorna alertas de I/O."""
+    dev = os.path.basename(device_name)
+    if dmesg_fn is not None:
+        raw_output = dmesg_fn()
+    else:
+        try:
+            p = subprocess.run(["dmesg"], capture_output=True, text=True)
+            if p.returncode != 0:
+                p = subprocess.run(["sudo", "dmesg"], capture_output=True, text=True)
+            raw_output = p.stdout if p.returncode == 0 else ""
+        except Exception:
+            raw_output = ""
+
+    if not raw_output:
+        return []
+
+    alerts = []
+    for line in raw_output.splitlines():
+        line_lower = line.lower()
+        if dev.lower() in line_lower and any(pat in line_lower for pat in DMESG_IO_PATTERNS):
+            alerts.append(line.strip())
+
+    if alerts:
+        warn(f"ATENÇÃO: Detectados {len(alerts)} erro(s) de I/O no dmesg para o dispositivo {dev}:")
+        for line in alerts[-5:]:
+            warn(f"  {line}")
+        warn("O leitor USB ou cartão microSD pode estar instável. Recomenda-se usar porta USB direta sem hub.")
+    return alerts
+
+
+def test_hardware_write_lock(target) -> None:
+    """Executa teste atômico de escrita, releitura e restauração no último setor do cartão.
+
+    Descarta gravações falsas onde a memória flash travou silenciosamente em modo somente leitura.
+    """
+    if target.size < layout.SECTOR:
+        return
+    offset = target.size - layout.SECTOR
+    orig = target.read(offset, layout.SECTOR)
+    if len(orig) != layout.SECTOR:
+        raise R36Error(f"falha ao ler último setor para teste de trava de hardware em {target.name}")
+
+    inverted = bytes((~b) & 0xFF for b in orig)
+    target.write(None, offset, layout.SECTOR, override=inverted)
+    target.sync()
+    got = target.read(offset, layout.SECTOR)
+
+    if got != inverted:
+        with contextlib.suppress(Exception):
+            target.write(None, offset, layout.SECTOR, override=orig)
+            target.sync()
+        raise R36Error(
+            f"trava de hardware detectada em {target.name}: o cartão está protegido contra gravação física "
+            "(read-only lock) e não pode ser regravado. O cartão deve ser substituído."
+        )
+
+    target.write(None, offset, layout.SECTOR, override=orig)
+    target.sync()
+    restored = target.read(offset, layout.SECTOR)
+    if restored != orig:
+        raise R36Error(f"falha ao restaurar último setor de teste em {target.name}")
+
+
+def check_p1_filesystem(device_path: str, *, run_fn=None) -> bool:
+    """Valida a integridade da FAT32 da p1 de forma não destrutiva (fsck.fat -n)."""
+    p1_path = f"{device_path}p1" if device_path and device_path[-1].isdigit() else f"{device_path}1"
+    target = p1_path if os.path.exists(p1_path) else device_path
+
+    if run_fn is not None:
+        p = run_fn(target)
+    else:
+        try:
+            p = subprocess.run(["sudo", "fsck.fat", "-n", target], capture_output=True, text=True)
+            if p.returncode != 0 and "not found" in p.stderr.lower():
+                p = subprocess.run(["fsck.fat", "-n", target], capture_output=True, text=True)
+        except Exception:
+            return True
+
+    if p.returncode != 0:
+        err_msg = (p.stdout + "\n" + p.stderr).strip()
+        warn(f"AVISO: O sistema de arquivos FAT32 da partição de ROMs ({target}) apresentou inconsistências:")
+        for line in err_msg.splitlines()[:5]:
+            warn(f"  {line}")
+        warn("Recomenda-se fazer backup das ROMs antes de prosseguir.")
+        return False
+    return True
 
 
 # ------------------------------------------------------------- layout do cartão
@@ -493,9 +609,14 @@ def make_plan(args, build_dir, manifest, card: CardState, target_size) -> Plan:
                     f"a p1 do cartão começa no setor {card.p1_entry.start if card.p1_entry else '?'}, "
                     f"esperado {regions['roms']['offset'] // 512}")
                 raise R36Error(f"--keep-roms recusado: não é possível preservar a p1 com segurança ({why})")
+            if not card.p1_entry or card.p1_entry.start != layout.P1_CANONICAL_START:
+                raise R36Error(
+                    f"--keep-roms recusado: a partição p1 deve iniciar no setor {layout.P1_CANONICAL_START} "
+                    f"(detectado: {card.p1_entry.start if card.p1_entry else '?'})"
+                )
             names.remove("roms")
             bootarea = (build_dir / regions["bootarea"]["file"]).read_bytes()
-            entry = layout.p1_entry_bytes(card.sector0)
+            entry = layout.build_canonical_p1_entry(target_size)
             override = layout.replace_p1_entry(bootarea[:512], entry) + bootarea[512:]
         else:
             if card.has_roms:
@@ -616,6 +737,7 @@ def flash(args, *, out_root=None, input_fn=input, lsblk=None, interactive=None) 
         deps.check_flash()
         info = inspect_device(args.device, lsblk() if lsblk else lsblk_json())
         target = DeviceTarget(info)
+        check_dmesg_io_errors(target.name)
     card = read_card(target, build_dir, manifest)
     plan = make_plan(args, build_dir, manifest, card, target.size)
     show_plan(target, build_dir, manifest, card, plan, args)
@@ -627,9 +749,26 @@ def flash(args, *, out_root=None, input_fn=input, lsblk=None, interactive=None) 
     if not confirm(target, input_fn):
         log("Confirmação não confere; nada foi escrito.")
         return 1
+    if isinstance(target, DeviceTarget):
+        log("Verificando se o cartão possui trava de gravação física (read-only lock)...")
+        test_hardware_write_lock(target)
+        if args.keep_roms:
+            check_p1_filesystem(target.path)
     target.unmount()
     write_plan(target, plan)
-    log("\nGravação concluída e verificada. Pode remover o cartão.")
+    if not args.no_eject and isinstance(target, DeviceTarget):
+        ok = target.power_off()
+        if ok:
+            log(f"\n==> Dispositivo {target.path} desenergizado e desconectado com segurança.")
+            log("O cartão microSD pode ser removido fisicamente do computador.")
+        else:
+            log("\nGravação concluída e verificada. Pode remover o cartão.")
+    else:
+        log("\nGravação concluída e verificada.")
+        if args.no_eject:
+            log("Dispositivo mantido conectado (--no-eject).")
+        else:
+            log("Pode remover o cartão.")
     return 0
 
 

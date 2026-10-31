@@ -524,7 +524,8 @@ class FlashWithBuildTest(TempDirCase):
         rc, log = self.run_flash("--target-file", str(card), "--all", "--keep-roms", "--wipe-storage")
         self.assertEqual(rc, 0, log)
         self.assertEqual(sha256_file(card, os.path.getsize(card) - off, off), p1_before)
-        self.assertEqual(layout.p1_entry_bytes(flash.FileTarget(card).read(0, 512)), entry_before)
+        self.assertEqual(layout.p1_entry_bytes(flash.FileTarget(card).read(0, 512)),
+                         layout.build_canonical_p1_entry(os.path.getsize(card)))
         self.assertIn("gba/jogo.gba", mtools.listing(card, off))
 
     def test_corrupted_artifact_raises(self):
@@ -543,6 +544,158 @@ class FlashWithBuildTest(TempDirCase):
             self.run_flash("--target-file", str(card), "--all", "--wipe-roms", "--wipe-storage", out_root=bad_root)
         self.assertIn("artefato corrompido", str(cm.exception))
         self.assertEqual(os.stat(card).st_blocks, 0)
+
+
+class CanonicalMbrGenerationTest(unittest.TestCase):
+    """Testes para reconstrução canônica analítica da entrada MBR da p1."""
+
+    def test_canonical_mbr_sizes(self):
+        sizes = [
+            (16 * 1024 * 1024 * 1024, "16 GB"),
+            (32 * 1024 * 1024 * 1024, "32 GB"),
+            (64 * 1024 * 1024 * 1024, "64 GB"),
+            (128 * 1024 * 1024 * 1024, "128 GB"),
+            (15000 * 1024 * 1024, "15000 MiB"),
+        ]
+        import struct
+        for size_bytes, desc in sizes:
+            with self.subTest(desc=desc):
+                entry = layout.build_canonical_p1_entry(size_bytes)
+                self.assertEqual(len(entry), 16)
+                status, chs_s, type_, chs_e, start, sectors = struct.unpack("<B3sB3sII", entry)
+                self.assertEqual(status, 0)
+                self.assertEqual(chs_s, layout.LBA_ONLY_CHS)
+                self.assertEqual(type_, 0x0C)
+                self.assertEqual(chs_e, layout.LBA_ONLY_CHS)
+                self.assertEqual(start, layout.P1_CANONICAL_START)
+                self.assertEqual(sectors % (layout.P1_ALIGNMENT_BYTES // layout.SECTOR), 0)
+                end_bytes = (start + sectors) * layout.SECTOR
+                self.assertLessEqual(end_bytes, size_bytes)
+                self.assertLess(size_bytes - end_bytes, layout.P1_ALIGNMENT_BYTES)
+
+    def test_canonical_mbr_insufficient_size(self):
+        with self.assertRaises(R36Error):
+            layout.build_canonical_p1_entry(layout.P1_CANONICAL_START * layout.SECTOR)
+
+
+class FlashHealthAndSafeEjectTest(unittest.TestCase):
+    """Testes para diagnóstico de saúde e ejeção de hardware."""
+
+    def test_dmesg_io_errors_detection(self):
+        mock_output = (
+            "[ 123.456] usb 1-1: reset high-speed USB device number 3 using xhci_hcd\n"
+            "[ 123.789] sd 3:0:0:0: [sdc] tag#0 blk_update_request: I/O error, dev sdc, sector 100\n"
+            "[ 123.790] Buffer I/O error on dev sdc, logical block 12, async page read\n"
+            "[ 124.000] sd 2:0:0:0: [sdb] Attached SCSI disk\n"
+        )
+        alerts, out = quiet(flash.check_dmesg_io_errors, "sdc", dmesg_fn=lambda: mock_output)
+        self.assertEqual(len(alerts), 2)
+        self.assertIn("blk_update_request: I/O error", alerts[0])
+        self.assertIn("Buffer I/O error", alerts[1])
+        self.assertIn("ATENÇÃO: Detectados 2 erro(s) de I/O", out)
+
+    def test_dmesg_clean(self):
+        mock_output = "[ 100.000] sd 3:0:0:0: [sdc] 31116288 512-byte logical blocks\n"
+        alerts, out = quiet(flash.check_dmesg_io_errors, "sdc", dmesg_fn=lambda: mock_output)
+        self.assertEqual(alerts, [])
+        self.assertEqual(out, "")
+
+    def test_hardware_write_lock_success(self):
+        storage = bytearray(1024 * 1024)
+
+        class FakeTarget:
+            name = "sdc"
+            size = len(storage)
+            def read(self, off, n):
+                return bytes(storage[off:off + n])
+            def write(self, src, off, n, override=None):
+                storage[off:off + n] = override
+            def sync(self):
+                pass
+
+        target = FakeTarget()
+        last_sector_before = target.read(target.size - 512, 512)
+        flash.test_hardware_write_lock(target)
+        self.assertEqual(target.read(target.size - 512, 512), last_sector_before)
+
+    def test_hardware_write_lock_detected(self):
+        storage = bytearray(1024 * 1024)
+
+        class LockedTarget:
+            name = "sdc"
+            size = len(storage)
+            def read(self, off, n):
+                return bytes(storage[off:off + n])
+            def write(self, src, off, n, override=None):
+                pass
+            def sync(self):
+                pass
+
+        with self.assertRaises(R36Error) as cm:
+            flash.test_hardware_write_lock(LockedTarget())
+        self.assertIn("trava de hardware detectada", str(cm.exception))
+
+    def test_check_p1_filesystem(self):
+        class Result:
+            def __init__(self, rc, stdout="", stderr=""):
+                self.returncode, self.stdout, self.stderr = rc, stdout, stderr
+
+        ok, out = quiet(flash.check_p1_filesystem, "/dev/sdc", run_fn=lambda t: Result(0))
+        self.assertTrue(ok)
+        self.assertEqual(out, "")
+
+        ok, out = quiet(flash.check_p1_filesystem, "/dev/sdc",
+                        run_fn=lambda t: Result(1, stderr="0x25: Dirty bit is set. Fs was not properly unmounted"))
+        self.assertFalse(ok)
+        self.assertIn("AVISO: O sistema de arquivos FAT32", out)
+        self.assertIn("Dirty bit is set", out)
+
+    def test_no_eject_flag_parsed(self):
+        a = flash.parse_args(["--target-file", "x", "--all", "--wipe-roms", "--wipe-storage", "--no-eject"])
+        self.assertTrue(a.no_eject)
+
+    def test_device_target_sync_calls_settle(self):
+        calls = []
+        def fake_run(cmd, **kw):
+            calls.append(cmd)
+            class P:
+                returncode = 0
+                stdout = ""
+                stderr = ""
+            return P()
+
+        info = flash.DiskInfo("sdc", "/dev/sdc", 1000)
+        orig = flash.subprocess.run
+        flash.subprocess.run = fake_run
+        try:
+            flash.DeviceTarget(info).sync()
+        finally:
+            flash.subprocess.run = orig
+
+        self.assertIn(["sync"], calls)
+        self.assertIn(["sudo", "blockdev", "--flushbufs", "/dev/sdc"], calls)
+        self.assertIn(["udevadm", "settle"], calls)
+
+    def test_device_target_power_off_udisksctl(self):
+        calls = []
+        def fake_run(cmd, **kw):
+            calls.append(cmd)
+            class P:
+                returncode = 0
+                stdout = ""
+                stderr = ""
+            return P()
+
+        info = flash.DiskInfo("sdc", "/dev/sdc", 1000)
+        orig = flash.subprocess.run
+        flash.subprocess.run = fake_run
+        try:
+            ok = flash.DeviceTarget(info).power_off()
+        finally:
+            flash.subprocess.run = orig
+
+        self.assertTrue(ok)
+        self.assertEqual(calls, [["udisksctl", "power-off", "-b", "/dev/sdc"]])
 
 
 if __name__ == "__main__":

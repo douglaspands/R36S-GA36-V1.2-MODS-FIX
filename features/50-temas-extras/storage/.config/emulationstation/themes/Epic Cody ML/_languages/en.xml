@@ -268,6 +268,16 @@
     <kodi.shortdescription>Streaming Video Service</kodi.shortdescription>
     <kodi.sys_line1>Media Center</kodi.sys_line1>
     <kodi.sys_line2>Kodi</kodi.sys_line2>
+    <love.longdescription>LÖVE is a free and open-source 2D game engine used to create games in Lua.</love.longdescription>
+    <love.nameLabel>LÖVE</love.nameLabel>
+    <love.shortdescription>2008 · 2D Game Engine</love.shortdescription>
+    <love.sys_line1>Game Engine</love.sys_line1>
+    <love.sys_line2>LÖVE</love.sys_line2>
+    <love2d.longdescription>LÖVE is a free and open-source 2D game engine used to create games in Lua.</love2d.longdescription>
+    <love2d.nameLabel>LÖVE</love2d.nameLabel>
+    <love2d.shortdescription>2008 · 2D Game Engine</love2d.shortdescription>
+    <love2d.sys_line1>Game Engine</love2d.sys_line1>
+    <love2d.sys_line2>LÖVE</love2d.sys_line2>
     <languageSubsetName>Theme Language</languageSubsetName>
     <mame.longdescription>Coin-operated entertainment machines. The golden age is defined as a period between the late 1970s and ending in the mid-1980s</mame.longdescription>
     <mame.nameLabel>M.A.M.E.</mame.nameLabel>
@@ -657,5 +667,6 @@
     <zxspectrum.shortdescription>1982  ·  8-bit Computer</zxspectrum.shortdescription>
     <zxspectrum.sys_line1>Sinclair</zxspectrum.sys_line1>
     <zxspectrum.sys_line2>ZX Spectrum</zxspectrum.sys_line2>
-  </variables>
+      <top_label>GAMES</top_label>
+    </variables>
 </theme>

@@ -1,0 +1,20 @@
+# Ambiente hermético para compilação do LÖVE 11.5 para Allwinner A33 (armhf / Debian Bookworm)
+FROM docker.io/library/debian:bookworm@sha256:bc49dc1918ee1a47a93e65b5e4676e8680fb754b133197b92ca52bfe6731d5f0
+
+RUN dpkg --add-architecture armhf \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+      gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libc6-dev-armhf-cross make pkg-config \
+      libtool autoconf automake file \
+      libsdl2-dev:armhf \
+      libluajit-5.1-dev:armhf \
+      libfreetype-dev:armhf \
+      libopenal-dev:armhf \
+      libmodplug-dev:armhf \
+      libvorbis-dev:armhf \
+      libphysfs-dev:armhf \
+      libtheora-dev:armhf \
+      libmpg123-dev:armhf \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build/src

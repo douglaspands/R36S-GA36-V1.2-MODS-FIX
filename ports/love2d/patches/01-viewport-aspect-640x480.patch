@@ -1,0 +1,48 @@
+diff -uNr a/src/modules/graphics/opengl/Graphics.cpp b/src/modules/graphics/opengl/Graphics.cpp
+--- a/src/modules/graphics/opengl/Graphics.cpp
++++ b/src/modules/graphics/opengl/Graphics.cpp
+@@ -136,7 +136,15 @@
+ 	if (!isCanvasActive())
+ 	{
+ 		// Set the viewport to top-left corner.
+-		gl.setViewport({0, 0, pixelwidth, pixelheight});
++		float scale = std::min((float)pixelwidth / (float)width, (float)pixelheight / (float)height);
++		if (scale <= 0.0f)
++			scale = 1.0f;
++		int vp_w = (int)(width * scale + 0.5f);
++		int vp_h = (int)(height * scale + 0.5f);
++		int vp_x = (pixelwidth - vp_w) / 2;
++		int vp_y = (pixelheight - vp_h) / 2;
++		gl.setViewport({vp_x, vp_y, vp_w, vp_h});
+ 
+ 		// Re-apply the scissor if it was active, since the rectangle passed to
+ 		// glScissor is affected by the viewport dimensions.
+diff -uNr a/src/modules/graphics/opengl/OpenGL.cpp b/src/modules/graphics/opengl/OpenGL.cpp
+--- a/src/modules/graphics/opengl/OpenGL.cpp
++++ b/src/modules/graphics/opengl/OpenGL.cpp
+@@ -824,7 +824,7 @@
+ 	else
+ 	{
+ 		// With no Canvas active, we need to compensate for glScissor starting
+ 		// from the lower left of the viewport instead of the top left.
+-		glScissor(v.x, state.viewport.h - (v.y + v.h), v.w, v.h);
++		glScissor(state.viewport.x + v.x, state.viewport.y + state.viewport.h - (v.y + v.h), v.w, v.h);
+ 	}
+ 
+ 	state.scissor = v;
+diff -uNr a/src/modules/window/sdl/Window.cpp b/src/modules/window/sdl/Window.cpp
+--- a/src/modules/window/sdl/Window.cpp
++++ b/src/modules/window/sdl/Window.cpp
+@@ -438,6 +438,13 @@
+ 	// Use the desktop resolution if a width or height of 0 is specified.
+ 	if (width == 0 || height == 0)
+ 	{
++		width = 640;
++		height = 480;
++	}
++	if (f.fullscreen)
++	{
++		f.fstype = FULLSCREEN_DESKTOP;
+ 	}
+ 
+ 	Uint32 sdlflags = SDL_WINDOW_OPENGL;

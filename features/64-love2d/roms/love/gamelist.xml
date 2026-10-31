@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./mrrescue.love</path>
+		<name>Mr. Rescue</name>
+		<desc>Mr. Rescue é um jogo de ação arcade 2D onde você assume o papel de um bombeiro entrando em prédios em chamas para resgatar civis, apagar incêndios e enfrentar monstros flamejantes.</desc>
+		<image>./images/mrrescue.png</image>
+		<rating>0.8</rating>
+		<releasedate>20130101T000000</releasedate>
+		<developer>Simon Larsen</developer>
+		<publisher>Tangram Games</publisher>
+		<genre>Ação / Arcade</genre>
+		<players>1</players>
+	</game>
+</gameList>

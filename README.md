@@ -71,6 +71,7 @@ that name. What was verified on this device:
 - **Cores recompiled for the A33** (for example SNES) and better PSP performance.
 - **Save states with thumbnails** visible in EmulationStation.
 - **Ports:** ClassiCube (a Minecraft Classic remake), offline, as "Classic Craft".
+- **LÖVE (Love2D) games:** standalone LÖVE 11.5 runtime integrated into EmulationStation supporting `.love` and `.zip` files on the ROMs partition, native OpenGL ES 2.0 acceleration, and the game *Mr. Rescue* included.
 
 ## Shortcuts
 
@@ -96,6 +97,35 @@ Brightness (in EmulationStation and in game):
 
 ClassiCube: A jumps, X opens the inventory, Y picks a block, L breaks, R places;
 Select + Start quits back to EmulationStation.
+
+LÖVE (Love2D): FN + Start quits back to EmulationStation.
+
+## LÖVE (Love2D) Engine
+
+The clone includes the official standalone **LÖVE 11.5** runtime integrated as a console in EmulationStation.
+
+- **Supported formats:** copy `.love` files or `.zip` packages to the `roms/love/` folder on the `R36-ROMS` partition (FAT32, accessible on PC).
+- **Demo game:** comes with the open-source game *Mr. Rescue* pre-installed with cover art and metadata.
+- **In-game controls:** native gamepad mapping via SDL2 (`micro_gamepad`).
+- **How to quit:** press `FN + Start` at any time to smoothly return to EmulationStation.
+
+### For developers (language localization)
+
+The LÖVE launcher exports the console's active language (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`, and `/tmp/console_lang`). Your Lua games can detect the console's language and switch text tables automatically, ensuring a safe fallback to English if the translation is unavailable:
+
+```lua
+-- Language detection with safe fallback
+local lang = os.getenv("CONSOLE_LANG") or os.getenv("LANG") or "en_US"
+local code = lang:sub(1, 2):lower() -- 'pt', 'en', 'es'
+
+local translations = {
+    pt = { start = "Iniciar Jogo", quit = "Sair" },
+    es = { start = "Iniciar Juego", quit = "Salir" },
+    en = { start = "Start Game",   quit = "Quit" },
+}
+
+local text = translations[code] or translations["en"]
+```
 
 ## Improvements in pictures
 
@@ -139,7 +169,7 @@ Douglas Panhota: <douglaspands@gmail.com>
 ## Credits and notice
 
 Thanks to the projects this builds on: [EmuELEC](https://github.com/EmuELEC/EmuELEC),
-the Epic Cody theme, [Libretro / RetroArch](https://www.libretro.com/) and
-[ClassiCube](https://www.classicube.net/). This repository does not state any license
+the Epic Cody theme, [Libretro / RetroArch](https://www.libretro.com/),
+[ClassiCube](https://www.classicube.net/) and [LÖVE](https://love2d.org/). This repository does not state any license
 and promises no terms of use for the third-party software above. The device photo is
 only illustrative and its author is unknown.

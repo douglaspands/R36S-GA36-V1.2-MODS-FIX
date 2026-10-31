@@ -589,19 +589,179 @@ def refatora_raiz_theme_xml(content: str) -> str:
         if alt_pattern.search(content):
             content = alt_pattern.sub(calibrated_system_block, content, count=1)
 
-    # Helpsystem na view basic, detailed, video
-    helpsystem_games_old = re.compile(
-        r'<helpsystem name="help">\s*<pos>1 1</pos>\s*<origin>1 1</origin>\s*<textColor>ffffff</textColor>\s*<iconColor>ffffff</iconColor>\s*</helpsystem>'
-    )
-    helpsystem_games_new = """<helpsystem name="help">
+    # Helpsystem na view basic, detailed, video, grid e unificação de views
+    calibrated_gamelist_block = """<view name="basic, detailed, video, grid">
+
+    <image name="background" extra="true">
+        <tile>false</tile>
+        <path>./_art/ingame-global-bg.png</path>
+        <size>1 1</size>
+        <pos>0 0</pos>
+    </image>
+
+    <textlist name="gamelist">
+        <selectorColor>1c1c1c</selectorColor>
+        <selectedColor>FFAE00</selectedColor>
+        <selectorHeight>0.06</selectorHeight>
+        <primaryColor>585858</primaryColor>
+        <secondaryColor>888888</secondaryColor>
+        <fontPath>./_art/Acre.otf</fontPath>
+        <alignment>left</alignment>
+        <pos>0 0.12</pos>
+	    <size>0.319 0.805</size>
+        <fontSize>0.03</fontSize>
+        <lineSpacing>1.683</lineSpacing>
+        <horizontalMargin>0.025</horizontalMargin>
+    </textlist>
+	
+	<helpsystem name="help">
         <fontPath>./_art/Acre.otf</fontPath>
         <fontSize>0.022</fontSize>
         <textColor>A0A0A0</textColor>
         <iconColor>FFAE00</iconColor>
-        <pos>1 1</pos>
-	    <origin>1 1</origin>
-    </helpsystem>"""
-    content = helpsystem_games_old.sub(helpsystem_games_new, content)
+        <pos>0.025 0.965</pos>
+	    <origin>0 1</origin>
+    </helpsystem>
+    
+    <text name="top_label" extra="true">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <text>${top_label}</text>
+        <alignment>left</alignment>
+        <color>F8F8F8</color>
+        <fontSize>0.050</fontSize>
+        <origin>0 0</origin>
+        <pos>0.025 0.025</pos>
+        <size>0.28 0.08</size>
+    </text>
+    
+    <text name="nameLabel" extra="true">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <forceUppercase>1</forceUppercase>
+        <color>FFAE00</color>
+        <fontSize>0.050</fontSize>
+        <origin>0 0</origin>
+        <pos>0.339 0.025</pos>
+        <size>0.64 0.08</size>
+        <zIndex>50</zIndex>
+    </text>
+
+    <image name="md_image">
+        <tile>false</tile>
+        <origin>0.5 0.5</origin>
+        <pos>0.66 0.485</pos>
+        <maxSize>0.62 0.70</maxSize>
+    </image>
+
+    <video name="md_video">
+        <origin>0.5 0.5</origin>
+        <pos>0.66 0.485</pos>
+        <maxSize>0.62 0.70</maxSize>
+        <delay>1.4</delay>
+        <showSnapshotNoVideo>true</showSnapshotNoVideo>
+        <showSnapshotDelay>true</showSnapshotDelay>
+    </video>
+    
+    <text name="md_name">
+        <fontPath>./_art/BebasNeue.otf</fontPath>
+        <alignment>left</alignment>
+        <color>FFFFFF</color>
+        <fontSize>0.045</fontSize>
+        <origin>0 0</origin>
+        <pos>0.339 0.865</pos>
+        <size>0.64 0.06</size>
+        <zIndex>50</zIndex>
+        <singleLineScroll>true</singleLineScroll>
+    </text>
+
+    <image name="md_marquee">
+        <pos>0.6598958333333333 0.220</pos>
+        <origin>0.5 0.5</origin>
+        <maxSize>0.300 0.180</maxSize>
+    </image>
+
+    <text name="txt_descript" extra="true">
+        <text></text>
+        <fontPath>./_art/Acre.otf</fontPath>
+        <alignment>left</alignment>
+        <fontSize>0.02</fontSize>
+        <color>FFAE00</color>
+        <origin>0 0</origin>
+        <pos>0.339 0.630</pos>
+        <size>0.06 0.2</size>
+    </text> 
+        
+    <!-- Hidden Elements -->
+    <text name="shortdescription, longdescription" extra="true">
+        <origin>1 1</origin>
+        <pos>0 0</pos>
+        <color>00000000</color>
+    </text>
+        
+    <text name="md_lbl_releasedate, md_lbl_developer, md_developer, md_lbl_playcount, md_playcount, md_lbl_lastplayed, md_lbl_publisher, md_publsher">
+        <origin>1 1</origin>
+        <color>00000000</color>
+        <pos>0 0</pos>
+    </text>
+
+    <datetime name="md_releasedate, md_lastplayed">
+        <origin>1 1</origin>
+        <color>00000000</color>
+        <pos>0 0</pos>
+    </datetime>
+        
+</view>"""
+
+    # Substitui todo o bloco de gamelist antigo (basic, detailed, video e features)
+    old_gamelist_pattern = re.compile(
+        r'<view name="basic,\s*detailed,\s*video">.*?(?=\s*<view name="screen">)',
+        re.DOTALL
+    )
+    if old_gamelist_pattern.search(content):
+        content = old_gamelist_pattern.sub(calibrated_gamelist_block + "\n\n", content, count=1)
+    else:
+        alt_gamelist_pattern = re.compile(
+            r'<view name="basic,\s*detailed,\s*video,\s*grid">.*?(?=\s*<view name="screen">)',
+            re.DOTALL
+        )
+        if alt_gamelist_pattern.search(content):
+            content = alt_gamelist_pattern.sub(calibrated_gamelist_block + "\n\n", content, count=1)
+
+    # Menu calibrado
+    calibrated_menu_block = """  <view name="menu">
+    <menuBackground name="menubg">
+      <color>202020</color>
+    </menuBackground>
+    <menuText name="menutitle">
+      <fontPath>./_art/BebasNeue.otf</fontPath>
+      <fontSize>0.038</fontSize>
+      <color>FFAE00</color>
+      <alignment>left</alignment>
+    </menuText>
+    <menuText name="menutext">
+      <fontPath>./_art/Acre.otf</fontPath>
+      <fontSize>0.030</fontSize>
+      <color>FFAE00</color>
+    </menuText>
+    <menuText name="menufooter">
+      <fontPath>./_art/Acre.otf</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>A0A0A0</color>
+    </menuText>
+    <menuText name="menutextsmall">
+      <fontPath>./_art/Acre.otf</fontPath>
+      <fontSize>0.028</fontSize>
+      <color>888888</color>
+    </menuText>
+    <menuTextEdit name="menutextedit">
+      <inactive>./_art/assets/textinput_inactive.png</inactive>
+      <active>./_art/assets/textinput_active.png</active>
+    </menuTextEdit>
+  </view>"""
+
+    old_menu_pattern = re.compile(r'<view name="menu">.*?</view>', re.DOTALL)
+    if old_menu_pattern.search(content):
+        content = old_menu_pattern.sub(calibrated_menu_block, content, count=1)
 
     return content
 
@@ -709,6 +869,10 @@ def monta_catalogos(en_vars: dict):
 
     pt_vars["buttonImage"] = "./_art/var/button-pt.svg"
     es_vars["buttonImage"] = "./_art/var/button-es.svg"
+
+    en_vars["top_label"] = "GAMES"
+    pt_vars["top_label"] = "GAMES"
+    es_vars["top_label"] = "JUEGOS"
 
     # Metadados de controle e menu
     pt_vars["languageSubsetName"] = "Idioma do Tema"

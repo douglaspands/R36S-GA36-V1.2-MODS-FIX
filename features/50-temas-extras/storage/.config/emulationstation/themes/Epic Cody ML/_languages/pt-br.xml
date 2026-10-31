@@ -268,6 +268,16 @@
     <kodi.shortdescription>Central de Mídia</kodi.shortdescription>
     <kodi.sys_line1>Central de Mídia</kodi.sys_line1>
     <kodi.sys_line2>Kodi</kodi.sys_line2>
+    <love.longdescription>LÖVE é um motor de jogos 2D livre e de código aberto para criação de jogos em Lua.</love.longdescription>
+    <love.nameLabel>LÖVE</love.nameLabel>
+    <love.shortdescription>2008  ·  Motor de Jogos 2D</love.shortdescription>
+    <love.sys_line1>Motor de Jogos</love.sys_line1>
+    <love.sys_line2>LÖVE</love.sys_line2>
+    <love2d.longdescription>LÖVE é um motor de jogos 2D livre e de código aberto para criação de jogos em Lua.</love2d.longdescription>
+    <love2d.nameLabel>LÖVE</love2d.nameLabel>
+    <love2d.shortdescription>2008  ·  Motor de Jogos 2D</love2d.shortdescription>
+    <love2d.sys_line1>Motor de Jogos</love2d.sys_line1>
+    <love2d.sys_line2>LÖVE</love2d.sys_line2>
     <languageSubsetName>Idioma do Tema</languageSubsetName>
     <mame.longdescription>Emulador dedicado à preservação histórica do hardware de fliperamas e jogos arcade.</mame.longdescription>
     <mame.nameLabel>M.A.M.E.</mame.nameLabel>
@@ -657,5 +667,6 @@
     <zxspectrum.shortdescription>1982  ·  Computador 8-bit</zxspectrum.shortdescription>
     <zxspectrum.sys_line1>Sinclair</zxspectrum.sys_line1>
     <zxspectrum.sys_line2>ZX Spectrum</zxspectrum.sys_line2>
-  </variables>
+      <top_label>GAMES</top_label>
+    </variables>
 </theme>
