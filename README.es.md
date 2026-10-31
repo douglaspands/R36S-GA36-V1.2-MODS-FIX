@@ -114,6 +114,18 @@ El clon cuenta con el runtime oficial **LÖVE 11.5** standalone integrado como c
 - **Controles en el juego:** botones mapeados de forma nativa mediante SDL2 (`micro_gamepad`).
 - **Cómo salir del juego:** pulsa `FN + Start` en cualquier momento para volver de forma fluida a EmulationStation.
 
+### ¿Por qué LÖVE en lugar de PICO-8?
+
+Nos encanta profundamente la propuesta de PICO-8 y el movimiento de las *fantasy consoles*: la creatividad de los desarrolladores independientes, las limitaciones encantadoras y la pura diversión de los juegos creados por la comunidad son inspiradoras. Sin embargo, en el complejo ecosistema de clones del R36S, el PICO-8 oficial es software propietario cerrado, y sus emuladores o capas de compatibilidad sufren con frecuencia de problemas de estabilidad, fallos de audio o incompatibilidades según el SoC o la revisión de placa (como este clon con Allwinner A33).
+
+**LÖVE 11.5** resuelve esto por completo:
+- **100% libre y de código abierto:** compilado nativamente para el hardware con aceleración Mali-400 GLES2 y LuaJIT.
+- **Portabilidad universal:** funciona con total estabilidad en todas las variantes y revisiones del R36S, sin depender de binarios externos cerrados.
+- **Resolución nativa de 640x480:** aprovecha cada píxel de la pantalla IPS con nitidez absoluta, sin el recorte ni escalado forzado de 128x128.
+- **Libertad creativa:** conserva toda la magia de crear juegos en Lua con físicas fluidas, sonido estéreo cristalino y margen para proyectos mucho más ambiciosos.
+
+![Tema: LÖVE en el tema Epic Cody ML](docs/img/tema-love.png)
+
 ### Para desarrolladores (soporte de idioma)
 
 El iniciador de LÖVE exporta el idioma activo del sistema (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE` y `/tmp/console_lang`). Tus juegos en Lua pueden detectar el idioma de la consola y cambiar tablas de texto automáticamente, asegurando un fallback seguro al inglés si la traducción no existe:
@@ -139,6 +151,7 @@ local text = translations[code] or translations["en"]
 ![Tema: SNES](docs/img/tema-snes.png)
 ![Tema: Mega Drive](docs/img/tema-megadrive.png)
 ![Tema: PlayStation](docs/img/tema-psx.png)
+![Tema: LÖVE](docs/img/tema-love.png)
 ![Menú de RetroArch](docs/img/tema-retroarch.png)
 
 Shader del GBA, con y sin él (Mario Kart):
@@ -159,13 +172,13 @@ Requiere Linux con Python 3.11 o más nuevo y `squashfs-tools`, `mtools`, `dosfs
 `e2fsprogs`, `util-linux`, `xz` y `coreutils`. Pon la imagen base en `base/` y ejecuta:
 
 ```bash
-./build.sh                  # inglés
-./build.sh --idioma pt_BR   # portugués de Brasil
-./build.sh --idioma es_ES   # español
+./build.sh               # inglés
+./build.sh --lang pt_BR  # portugués de Brasil
+./build.sh --lang es_ES  # español
 ```
 
 La imagen aparece en `out/<timestamp>/`; grábala con Etcher o con `./flash.sh`. Detalles
-completos (en portugués): [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md).
+completos: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 
 ## Desarrollador
 

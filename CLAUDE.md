@@ -3,8 +3,9 @@
 Fábrica de imagens de cartão SD para o clone do R36S (GA36-MB V1.2, Allwinner A33).
 Os `README.md` (inglês), `README.pt-BR.md` e `README.es.md` apresentam o projeto, com a
 mesma estrutura nos três idiomas (atualize os três juntos; a criança tem 6 anos). O
-manual técnico, com o uso do build, do `flash.sh` e a lista de features, é o
-`docs/DESENVOLVIMENTO.md`, e as imagens dos READMEs ficam em `docs/img/`. Este arquivo
+manual técnico, com o uso do build, do `flash.sh` e a lista de features, está disponível
+nos três idiomas (`docs/DEVELOPMENT.md` em inglês, `docs/DESENVOLVIMENTO.md` em português e
+`docs/DESARROLLO.md` em espanhol), e as imagens dos READMEs ficam em `docs/img/`. Este arquivo
 guarda as regras de trabalho e os fatos
 do aparelho que não se deduzem do código.
 
@@ -110,15 +111,16 @@ do aparelho que não se deduzem do código.
   `retroarch.cfg`. Onde o ES grava a troca de idioma pelo menu (`emuelec.conf` ou só
   `es_settings.cfg`) ainda não foi visto no aparelho (task 1.1 da change
   `retroarch-idioma-do-emuelec`).
-- **Idioma do build:** `./build.sh --idioma <código>` (padrão **`en_US`**; um
-  `./build.sh` sem argumento sai em inglês, e português pede `--idioma pt_BR`) troca
+- **Idioma do build:** `./build.sh --lang <código>` (padrão **`en_US`**; um
+  `./build.sh` sem argumento sai em inglês, e português pede `--lang pt_BR`; `--idioma` é
+  aceito como alias retrocompatível) troca
   `system.language`, `Language` e `user_language` nas cópias em `work/`; os arquivos da
   feature 10 no repositório ficam em `pt_BR`. O idioma entra no nome da imagem
   (`<prefixo>_<idioma>_build_<timestamp>[-test].img.xz`, `en-us`/`pt-br`), no manifest
   (`"language"`) e no `R36-BUILD.txt` (`idioma:`); o diretório de saída continua
   `<timestamp>[-test]`. Só sai sem idioma se `--features` não traz os arquivos de idioma
-  e `--idioma` não foi passado (ou com `--no-features`). Os builds para o aparelho do
-  usuário (criança que lê português) são `./build.sh --idioma pt_BR`.
+  e `--lang` não foi passado (ou com `--no-features`). Os builds para o aparelho do
+  usuário (criança que lê português) são `./build.sh --lang pt_BR`.
 - **Localização da interface (ES):** a feature `10-ptbr-sao-paulo` fornece os
   catálogos completos `pt_BR` e `es_MX` (`.po` e `.mo` compilados) em
   `/usr/config/emuelec/configs/locale/` (SYSTEM), traduzindo 100% das mensagens do

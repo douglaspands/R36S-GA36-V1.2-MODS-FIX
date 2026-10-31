@@ -109,7 +109,7 @@ O build SHALL recusar gerar uma imagem que contenha o arquivo `.please_resize_me
 - **THEN** o build falha e informa a feature e o caminho responsáveis
 
 ### Requirement: Artefatos de saída versionados
-Cada build SHALL ser identificado por um timestamp no formato `AAAAMMDD-HHMMSS`. O build SHALL aceitar a opção opcional `--timestamp <TIMESTAMP>` para fixar o timestamp explicitamente; se omitido, o timestamp SHALL ser gerado a partir do horário local atual. A imagem completa SHALL se chamar `<prefixo>_<idioma>_build_<timestamp>.img.xz`, com prefixo configurado (`r36s_ga36-mb_v1.2-20260416`) e `<idioma>` o código do idioma do build em minúsculas com `-` no lugar de `_` (`en-us` no padrão `en_US`, `pt-br` com `--idioma pt_BR`); um build sem features, que não tem idioma, SHALL se chamar `<prefixo>_build_<timestamp>.img.xz`. O diretório `<timestamp>`, sem o idioma, SHALL conter a imagem, uma imagem por partição gravável e um manifest (timestamp, idioma, tamanho do cartão, sha256, offsets e features). O manifest SHALL registrar `"language"` com o código original (`en_US`) e o `R36-BUILD.txt` a linha `idioma: en_US`. Um diretório existente SHALL NOT ser sobrescrito.
+Cada build SHALL ser identificado por um timestamp no formato `AAAAMMDD-HHMMSS`. O build SHALL aceitar a opção opcional `--timestamp <TIMESTAMP>` para fixar o timestamp explicitamente; se omitido, o timestamp SHALL ser gerado a partir do horário local atual. A imagem completa SHALL se chamar `<prefixo>_<idioma>_build_<timestamp>.img.xz`, com prefixo configurado (`r36s_ga36-mb_v1.2-20260416`) e `<idioma>` o código do idioma do build em minúsculas com `-` no lugar de `_` (`en-us` no padrão `en_US`, `pt-br` com `--lang pt_BR` ou `--idioma pt_BR`); um build sem features, que não tem idioma, SHALL se chamar `<prefixo>_build_<timestamp>.img.xz`. O diretório `<timestamp>`, sem o idioma, SHALL conter a imagem, uma imagem por partição gravável e um manifest (timestamp, idioma, tamanho do cartão, sha256, offsets e features). O manifest SHALL registrar `"language"` com o código original (`en_US`) e o `R36-BUILD.txt` a linha `idioma: en_US`. Um diretório existente SHALL NOT ser sobrescrito.
 
 O build SHALL aceitar a opção `--test`, que o marca como imagem de teste (intermediária). Num build de teste, o diretório SHALL se chamar `<timestamp>-test` e a imagem completa SHALL se chamar `<prefixo>_<idioma>_build_<timestamp>-test.img.xz`. O timestamp registrado no manifest SHALL continuar sendo apenas `AAAAMMDD-HHMMSS`, o manifest SHALL conter `"test": true`, e o `R36-BUILD.txt` SHALL conter a linha `teste: sim`. Num build sem `--test`, o nome, o manifest e o `R36-BUILD.txt` SHALL ficar exatamente como se a opção não existisse. A opção `--test` SHALL NOT alterar o conteúdo das partições, o conjunto de features nem o tamanho do cartão.
 
@@ -142,7 +142,7 @@ O build SHALL aceitar a opção `--test`, que o marca como imagem de teste (inte
 - **THEN** o nome do diretório e da imagem não têm o sufixo `-test`, o manifest não tem o campo `test`, e o `R36-BUILD.txt` não tem a linha `teste:`
 
 #### Scenario: Outro idioma no nome
-- **WHEN** um build é gerado com `--idioma pt_BR`
+- **WHEN** um build é gerado com `--lang pt_BR` (ou `--idioma pt_BR`)
 - **THEN** a imagem completa tem `_pt-br_` no nome, o diretório continua só com o timestamp, e o manifest e o `R36-BUILD.txt` registram `pt_BR`
 
 #### Scenario: Build sem features

@@ -130,21 +130,23 @@ class AplicaIdioma(TempDirCase):
         self.assertTrue(build.traz_idioma([exemplo, f10]))
         self.assertFalse(build.traz_idioma([exemplo]))
         self.assertFalse(build.traz_idioma([]))
-        # sem --idioma o padrão é opcional (um --features de outra feature sai sem idioma);
-        # com --idioma explícito, a falta dos arquivos é erro
+        # sem --lang o padrão é opcional (um --features de outra feature sai sem idioma);
+        # com --lang explícito, a falta dos arquivos é erro
         a = build.parse_args(["--features", "00-exemplo"])
-        self.assertEqual((a.idioma, a.idioma_opcional), ("en_US", True))
+        self.assertEqual((a.lang, a.lang_opcional), ("en_US", True))
+        a = build.parse_args(["--lang", "en_US"])
+        self.assertEqual((a.lang, a.lang_opcional), ("en_US", False))
         a = build.parse_args(["--idioma", "en_US"])
-        self.assertEqual((a.idioma, a.idioma_opcional), ("en_US", False))
+        self.assertEqual((a.lang, a.lang_opcional), ("en_US", False))
         a = build.parse_args(["--no-features"])
-        self.assertEqual((a.idioma, a.idioma_opcional), (None, False))
+        self.assertEqual((a.lang, a.lang_opcional), (None, False))
 
     def test_build_recusa_idioma_sem_features_e_codigo_invalido(self):
         with self.assertRaises(R36Error) as cm:
-            build.build(CFG, none=True, idioma="en_US", out_root=self.tmp / "out", work_root=self.tmp / "work")
+            build.build(CFG, none=True, lang="en_US", out_root=self.tmp / "out", work_root=self.tmp / "work")
         self.assertIn("exige as features", str(cm.exception))
         with self.assertRaises(R36Error) as cm:
-            build.build(CFG, idioma="xx_YY", out_root=self.tmp / "out", work_root=self.tmp / "work")
+            build.build(CFG, lang="xx_YY", out_root=self.tmp / "out", work_root=self.tmp / "work")
         self.assertIn("pt_BR", str(cm.exception))
         self.assertFalse((self.tmp / "out").exists())
 
@@ -156,7 +158,7 @@ class BuildComIdioma(TempDirCase):
 
     def gera(self, idioma):
         ts = "20261013-153045"
-        return build.build(CFG, size_mib=7000, names=["10-ptbr-sao-paulo"], idioma=idioma, timestamp=ts,
+        return build.build(CFG, size_mib=7000, names=["10-ptbr-sao-paulo"], lang=idioma, timestamp=ts,
                            test=True, fast=True, compress=False,
                            out_root=self.tmp / idioma / "out", work_root=self.tmp / idioma / "work")
 

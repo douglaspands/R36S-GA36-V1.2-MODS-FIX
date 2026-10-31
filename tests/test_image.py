@@ -110,8 +110,9 @@ class BuildInfoTextTest(unittest.TestCase):
 
     def test_idioma_line(self):
         name = "x_en-us_build_20261013-153045.img.xz"
-        txt = build.build_info_text("20261013-153045", name, 7000, [], idioma="en_US")
+        txt = build.build_info_text("20261013-153045", name, 7000, [], lang="en_US")
         self.assertIn("idioma: en_US\n", txt)
+        self.assertIn("idioma: pt_BR\n", build.build_info_text("20261013-153045", name, 7000, [], lang="pt_BR"))
         self.assertIn("idioma: pt_BR\n", build.build_info_text("20261013-153045", name, 7000, [], idioma="pt_BR"))
         self.assertNotIn("idioma:", build.build_info_text("20261013-153045", name, 7000, []))
 
@@ -120,20 +121,24 @@ class ImageNameTest(unittest.TestCase):
     P = "r36s_ga36-mb_v1.2-20260416"
 
     def test_padrao_en_us(self):
-        idioma = build.parse_args([]).idioma
-        name = build.image_name(self.P, "20261013-153045", idioma)
+        lang = build.parse_args([]).lang
+        name = build.image_name(self.P, "20261013-153045", lang=lang)
         self.assertEqual(name, f"{self.P}_en-us_build_20261013-153045.img.xz")
         self.assertRegex(name, NAME_RE)
 
     def test_pt_br_e_teste(self):
-        idioma = build.parse_args(["--idioma", "pt_BR"]).idioma
-        name = build.image_name(self.P, "20261013-153045-test", idioma)
+        lang = build.parse_args(["--lang", "pt_BR"]).lang
+        name = build.image_name(self.P, "20261013-153045-test", lang=lang)
         self.assertEqual(name, f"{self.P}_pt-br_build_20261013-153045-test.img.xz")
         self.assertRegex(name, NAME_RE)
+        # compatibilidade com --idioma
+        lang_legado = build.parse_args(["--idioma", "pt_BR"]).idioma
+        name_legado = build.image_name(self.P, "20261013-153045-test", idioma=lang_legado)
+        self.assertEqual(name_legado, f"{self.P}_pt-br_build_20261013-153045-test.img.xz")
 
     def test_sem_features_sem_idioma(self):
-        idioma = build.parse_args(["--no-features"]).idioma
-        self.assertEqual(build.image_name(self.P, "20261013-153045", idioma),
+        lang = build.parse_args(["--no-features"]).lang
+        self.assertEqual(build.image_name(self.P, "20261013-153045", lang=lang),
                          f"{self.P}_build_20261013-153045.img.xz")
 
 
@@ -147,7 +152,7 @@ class FullBuildTest(TempDirCase):
         # o padrão do ./build.sh (en_US, opcional): a 00-exemplo não traz os arquivos de idioma,
         # então o build sai sem idioma no nome
         out_dir = build.build(CFG, size_mib=7000, names=["00-exemplo"], timestamp=ts,
-                              idioma="en_US", idioma_opcional=True,
+                              lang="en_US", lang_opcional=True,
                               out_root=self.tmp / "out", work_root=self.tmp / "work")
         self.assertEqual(out_dir.name, ts)
         manifest = json.loads((out_dir / "manifest.json").read_text())

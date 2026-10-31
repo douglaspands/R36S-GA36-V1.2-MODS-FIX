@@ -1,5 +1,6 @@
 """./build.sh — gera a imagem do cartão a partir da base e das features."""
 
+import argparse
 import json
 import os
 import re
@@ -16,7 +17,7 @@ from .cli import PtParser, positive_int
 from .errors import R36Error
 from .util import extract_region, fmt_mib, log, run, sha256_file
 
-# Idioma de fábrica da imagem (--idioma): código do EmuELEC -> user_language do RetroArch 1.17
+# Idioma de fábrica da imagem (--lang): código do EmuELEC -> user_language do RetroArch 1.17
 # (enumeração RETRO_LANGUAGE_*). A mesma tabela está no idioma-aplica da feature 56.
 IDIOMAS = {"pt_BR": 7, "pt_PT": 8, "en_US": 0, "en_GB": 0, "es_ES": 3, "fr_FR": 2, "de_DE": 4, "it_IT": 5}
 IDIOMA_PADRAO = "en_US"
@@ -38,8 +39,8 @@ base de fábrica (base/) e das features do diretório features/.
 
 Idioma: a imagem sai em inglês (padrão en_US) no EmuELEC, no EmulationStation e no
 menu do RetroArch, se as features selecionadas trazem os arquivos de idioma (hoje, a
-10-ptbr-sao-paulo); sem eles, e sem --idioma, a imagem sai sem idioma. Para português
-do Brasil, use --idioma pt_BR.
+10-ptbr-sao-paulo); sem eles, e sem --lang, a imagem sai sem idioma. Para português
+do Brasil, use --lang pt_BR.
 
 Roda como usuário comum (sem sudo). A saída fica em out/<AAAAMMDD-HHMMSS>/:
   <prefixo>_<idioma>_build_<timestamp>.img.xz   imagem completa (Etcher/dd),
@@ -53,7 +54,7 @@ Com --no-features a imagem não tem idioma no nome (<prefixo>_build_<timestamp>.
 EPILOG = """\
 exemplos:
   ./build.sh                          cartão de 16 GB (15000 MiB), features habilitadas, em inglês
-  ./build.sh --idioma pt_BR           o mesmo, em português do Brasil
+  ./build.sh --lang pt_BR             o mesmo, em português do Brasil
   ./build.sh --no-features            build igual à base (teste de referência)
   ./build.sh --size-mib 7400          cartão de "8 GB" (meça com: lsblk -b)
   ./build.sh --features 00-exemplo    só a feature 00-exemplo (mesmo desabilitada)
@@ -84,10 +85,11 @@ def _build_parser():
                         "ganham o sufixo -test; o conteúdo não muda")
     p.add_argument("--timestamp", metavar="AAAAMMDD-HHMMSS",
                    help="timestamp do build no formato AAAAMMDD-HHMMSS (se omitido, usa a hora local atual)")
-    p.add_argument("--idioma", metavar="CÓDIGO",
+    p.add_argument("--lang", metavar="CÓDIGO", dest="lang",
                    help=f"idioma de fábrica do EmuELEC, do EmulationStation e do RetroArch "
-                        f"(padrão {IDIOMA_PADRAO}, inglês; para português do Brasil, --idioma pt_BR). "
+                        f"(padrão {IDIOMA_PADRAO}, inglês; para português do Brasil, --lang pt_BR). "
                         f"Aceitos: {', '.join(IDIOMAS)}. Também entra no nome da imagem")
+    p.add_argument("--idioma", metavar="CÓDIGO", dest="lang", help=argparse.SUPPRESS)
     return p
 
 
@@ -99,16 +101,19 @@ def parse_args(argv):
     if args.timestamp is not None:
         if not re.match(r"^\d{8}-\d{6}$", args.timestamp):
             p.error(f"--timestamp deve estar no formato AAAAMMDD-HHMMSS (recebido {args.timestamp!r})")
-    if args.idioma is not None and args.idioma not in IDIOMAS:
-        p.error(f"idioma {args.idioma!r} desconhecido; aceitos: {', '.join(IDIOMAS)}")
-    if args.no_features and args.idioma is not None:
+    if args.lang is not None and args.lang not in IDIOMAS:
+        p.error(f"idioma {args.lang!r} desconhecido; aceitos: {', '.join(IDIOMAS)}")
+    if args.no_features and args.lang is not None:
         p.error("o idioma exige as features (os arquivos de configuração vêm delas); "
-                "--idioma não vale com --no-features")
+                "--lang não vale com --no-features")
     # o padrão só vale se as features escolhidas trazem os arquivos de idioma (um --features
-    # de outra feature continua funcionando, sem idioma); um --idioma explícito é exigido
-    args.idioma_opcional = args.idioma is None and not args.no_features
-    if args.idioma_opcional:
-        args.idioma = IDIOMA_PADRAO
+    # de outra feature continua funcionando, sem idioma); um --lang explícito é exigido
+    args.lang_opcional = args.lang is None and not args.no_features
+    if args.lang_opcional:
+        args.lang = IDIOMA_PADRAO
+    # Alias retrocompatíveis no namespace de argumentos
+    args.idioma = args.lang
+    args.idioma_opcional = args.lang_opcional
     if args.features is not None:
         names = [n.strip() for n in args.features.split(",") if n.strip()]
         if not names:
@@ -117,9 +122,10 @@ def parse_args(argv):
     return args
 
 
-def image_name(prefix, dirname, idioma=None):
+def image_name(prefix, dirname, lang=None, idioma=None):
     """<prefixo>[_<idioma>]_build_<dirname>.img.xz, com o idioma em minúsculas e hífen (en-us)."""
-    tag = f"_{idioma.lower().replace('_', '-')}" if idioma else ""
+    lang = lang if lang is not None else idioma
+    tag = f"_{lang.lower().replace('_', '-')}" if lang else ""
     return f"{prefix}{tag}_build_{dirname}.img.xz"
 
 
@@ -139,7 +145,7 @@ def aplica_idioma(plan, idioma, work_dir):
         c = next((c for c in reversed(plan.changes) if c.path == path), None)
         if c is None or c.op not in ("added", "replaced") or c.kind != "file":
             raise R36Error(
-                f"--idioma {idioma}: nenhuma das features selecionadas traz storage:/{path} "
+                f"--lang {idioma}: nenhuma das features selecionadas traz storage:/{path} "
                 f"(vem da feature {IDIOMA_FEATURE}); inclua-a em --features")
         with open(c.src, encoding="utf-8", errors="surrogateescape", newline="") as f:
             txt = f.read()
@@ -147,8 +153,8 @@ def aplica_idioma(plan, idioma, work_dir):
         if achados != 1:
             onde = f"storage:/{path} (feature {c.feature}, {c.src})"
             raise R36Error(
-                f"--idioma {idioma}: {onde} não tem a chave {chave}" if not achados else
-                f"--idioma {idioma}: {onde} tem a chave {chave} {achados} vezes; deveria ter uma")
+                f"--lang {idioma}: {onde} não tem a chave {chave}" if not achados else
+                f"--lang {idioma}: {onde} tem a chave {chave} {achados} vezes; deveria ter uma")
         novo = rx.sub(subst(idioma, IDIOMAS[idioma]), txt)
         dst = work_dir / path
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -161,14 +167,15 @@ def aplica_idioma(plan, idioma, work_dir):
         plan.final[path] = replace(plan.final[path], size=size)
 
 
-def build_info_text(ts, image_name, size_mib, feats, test=False, idioma=None):
+def build_info_text(ts, image_name, size_mib, feats, test=False, lang=None, idioma=None):
+    lang = lang if lang is not None else idioma
     lines = [
         "R36S GA36-MB V1.2 - registro do build",
         f"imagem: {image_name}",
         f"tamanho_cartao_mib: {size_mib}",
     ]
-    if idioma:
-        lines.append(f"idioma: {idioma}")
+    if lang:
+        lines.append(f"idioma: {lang}")
     if test:
         lines.append("teste: sim")
     lines.append("features:")
@@ -192,18 +199,20 @@ def _step(msg):
 
 
 def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=False, timestamp=None, test=False,
-          idioma=None, idioma_opcional=False, features_dir=None, out_root=None, work_root=None,
-          compress=True):
+          lang=None, lang_opcional=False, idioma=None, idioma_opcional=False, features_dir=None, out_root=None,
+          work_root=None, compress=True):
     """Executa o build completo. Devolve o diretório de saída.
-    `idioma` (um código de IDIOMAS) troca o idioma de fábrica nas cópias dos arquivos das features
+    `lang` (um código de IDIOMAS) troca o idioma de fábrica nas cópias dos arquivos das features
     e entra no nome da imagem; None é um build sem idioma (o ./build.sh passa o padrão en_US).
-    Com `idioma_opcional` (o padrão do ./build.sh, sem --idioma), features que não trazem os
+    Com `lang_opcional` (o padrão do ./build.sh, sem --lang), features que não trazem os
     arquivos de idioma geram um build sem idioma em vez de erro.
     `compress=False` (só para testes) pula o .img.xz; parts/ e manifest são gerados igual."""
+    lang = lang if lang is not None else idioma
+    lang_opcional = lang_opcional or idioma_opcional
     t0 = time.monotonic()
-    if idioma is not None:
-        if idioma not in IDIOMAS:
-            raise R36Error(f"idioma {idioma!r} desconhecido; aceitos: {', '.join(IDIOMAS)}")
+    if lang is not None:
+        if lang not in IDIOMAS:
+            raise R36Error(f"idioma {lang!r} desconhecido; aceitos: {', '.join(IDIOMAS)}")
         if none:
             raise R36Error("o idioma exige as features (os arquivos de configuração vêm delas)")
     deps.check_build()
@@ -211,15 +220,15 @@ def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=Fal
     _step("Conferindo a imagem base (sha256)")
     basemod.verify_base(cfg)
     feats = features.select(features.discover(features_dir or cfg.root / "features"), names, none)
-    if idioma is not None and idioma_opcional and not traz_idioma(feats):
+    if lang is not None and lang_opcional and not traz_idioma(feats):
         log(f"    as features escolhidas não trazem os arquivos de idioma ({IDIOMA_FEATURE}): build sem idioma")
-        idioma = None
-    if idioma is not None and not feats:
+        lang = None
+    if lang is not None and not feats:
         raise R36Error("o idioma exige as features (os arquivos de configuração vêm delas)")
 
     ts = timestamp or datetime.now().strftime("%Y%m%d-%H%M%S")
     dirname = ts + "-test" if test else ts
-    name = image_name(cfg.image_prefix, dirname, idioma)
+    name = image_name(cfg.image_prefix, dirname, lang=lang)
     out_root = Path(out_root or cfg.root / "out")
     work_root = Path(work_root or cfg.root / "work")
     out_root.mkdir(parents=True, exist_ok=True)
@@ -235,7 +244,7 @@ def build(cfg, *, size_mib=None, names=None, none=False, fast=False, offline=Fal
     ok = False
     try:
         _build_into(cfg, out_dir, work, ts, name, size, feats, fast, compress, offline,
-                    external.cache_dir(work_root), test, idioma)
+                    external.cache_dir(work_root), test, lang)
         ok = True
     finally:
         if ok:
@@ -407,8 +416,8 @@ def main(argv=None):
     try:
         cfg = config.load()
         build(cfg, size_mib=args.size_mib, names=args.features, none=args.no_features, fast=args.fast,
-              offline=args.offline, timestamp=args.timestamp, test=args.test, idioma=args.idioma,
-              idioma_opcional=args.idioma_opcional)
+              offline=args.offline, timestamp=args.timestamp, test=args.test, lang=args.lang,
+              lang_opcional=args.lang_opcional)
         return 0
     except R36Error as e:
         print(f"ERRO: {e}", file=sys.stderr)

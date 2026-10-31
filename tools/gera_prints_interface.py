@@ -193,7 +193,7 @@ def renderiza_modal_savestate(bg_base_img, slot_thumbnails):
 
     return im
 
-def renderiza_system_view(sys_name, line1, line2, shortdesc, longdesc, controller_img, poster_img):
+def renderiza_system_view(sys_name, line1, line2, shortdesc, longdesc, controller_img, poster_img, games_info="788 JOGOS DISPONÍVEIS"):
     im = Image.new("RGBA", (640, 480), (10, 10, 10, 255))
 
     # Poster à direita (y=0..480, x=320..640) com fade gradiente para a esquerda
@@ -228,7 +228,7 @@ def renderiza_system_view(sys_name, line1, line2, shortdesc, longdesc, controlle
     draw.text((32, 228), "(A) ENTRAR", font=font_acre_list, fill=C_BG)
 
     # 5. systemInfo (pos 0.025 0.570 -> x=16, y=274)
-    draw.text((16, 274), "788 JOGOS DISPONÍVEIS", font=font_bebas_title, fill=C_AMBER)
+    draw.text((16, 274), games_info.upper(), font=font_bebas_title, fill=C_AMBER)
 
     # 6. longdescription (pos 0.025 0.660 -> x=16, y=317, width ~192px)
     import textwrap
@@ -376,7 +376,28 @@ def main():
     )
     im_sys.save(OUTPUT_DIR / "06_system_snes.png")
 
-    # 7. Detalhe e Régua de Alinhamento (Zoom da Gamelist)
+    # 7. Carrossel de Videogames (System View - LÖVE)
+    love_dir = ROOT / "features" / "50-temas-extras" / "storage" / ".config" / "emulationstation" / "themes" / "Epic Cody ML" / "love2d"
+    love_poster = Image.open(love_dir / "poster.png").convert("RGBA") if (love_dir / "poster.png").exists() else None
+    love_logo = Image.open(love_dir / "logo.png").convert("RGBA") if (love_dir / "logo.png").exists() else None
+    longdesc_love = (
+        "LÖVE é um motor de jogos 2D livre e de código aberto para criação de jogos em Lua."
+    )
+    im_love = renderiza_system_view(
+        "love2d", "Motor de Jogos", "LÖVE",
+        "2008  ·  Motor de Jogos 2D",
+        longdesc_love,
+        love_logo,
+        love_poster,
+        games_info="1 JOGO DISPONÍVEL",
+    )
+    im_love.save(OUTPUT_DIR / "07_system_love.png")
+    love_dst = ROOT / "docs" / "img" / "tema-love.png"
+    im_love.save(love_dst)
+    if (VAR / "prints-tema-epic-cody").exists():
+        im_love.save(VAR / "prints-tema-epic-cody" / "love.png")
+
+    # 8. Detalhe e Régua de Alinhamento (Zoom da Gamelist)
     regua = im_snes.copy()
     draw_r = ImageDraw.Draw(regua)
     # Linhas de guia em ciano para auditoria

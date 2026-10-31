@@ -1,3 +1,5 @@
+Disponível em: [English](DEVELOPMENT.md) | Português | [Español](DESARROLLO.md)
+
 # Fábrica de imagens do R36S clone (GA36-MB V1.2)
 
 Este repositório gera imagens de cartão SD para um **clone do R36S** com placa
@@ -9,7 +11,7 @@ gera uma imagem nova, identificada pelo horário em que foi gerada.
 O aparelho é feito para **crianças de 6 anos brincarem** (o filho de quem mantém
 este repositório). Isso orienta as escolhas das features: tudo na tela no idioma
 dele (português do Brasil no sistema, no EmulationStation e no menu do RetroArch,
-com `./build.sh --idioma pt_BR`), porque ler na própria língua facilita muito a
+com `./build.sh --lang pt_BR`), porque ler na própria língua facilita muito a
 leitura de quem está aprendendo;
 menos avisos e animações no caminho entre ligar e jogar; imagem e som agradáveis
 (shaders do GBA, do Game Boy e do Game Boy Color, sem o ghosting do LCD, áudio sem
@@ -71,12 +73,12 @@ A pasta `base/` e todas as imagens ficam fora do git.
 
 **Idioma: o padrão é inglês.** Um `./build.sh` sem argumento gera a imagem em
 inglês (`en_US`) no EmuELEC, no EmulationStation e no menu do RetroArch. Para
-português do Brasil, passe `--idioma pt_BR`. Assim a imagem já sai no idioma de
+português do Brasil, passe `--lang pt_BR`. Assim a imagem já sai no idioma de
 quem vai usar o aparelho, sem editar arquivos.
 
 ```bash
 ./build.sh                    # cartão de 16 GB (15000 MiB), features habilitadas, em inglês
-./build.sh --idioma pt_BR     # o mesmo, em português do Brasil
+./build.sh --lang pt_BR       # o mesmo, em português do Brasil
 ./build.sh --no-features      # imagem equivalente à de fábrica (teste de referência)
 ./build.sh --offline          # usa só o cache de downloads das features (sem rede)
 ./build.sh --test             # marca o build como imagem de teste (sufixo -test)
@@ -88,7 +90,7 @@ fica em `out/<AAAAMMDD-HHMMSS>/`:
 
 - `r36s_ga36-mb_v1.2-20260416_<idioma>_build_<timestamp>.img.xz`: a imagem
   completa, para gravar com Etcher ou `xz -dc ... | sudo dd`. O `<idioma>` é o
-  código em minúsculas com hífen: `en-us` no padrão, `pt-br` com `--idioma pt_BR`.
+  código em minúsculas com hífen: `en-us` no padrão, `pt-br` com `--lang pt_BR`.
   Um build sem idioma (`--no-features`) tem o nome
   `r36s_ga36-mb_v1.2-20260416_build_<timestamp>.img.xz`;
 - `parts/*.img`: uma imagem por região, usadas pelo `./flash.sh`;
@@ -106,7 +108,7 @@ aparece no menu e no `--list-builds` com o marcador `test`, e se indica com
 
 ### Idioma
 
-`--idioma <código>` escolhe o idioma de fábrica da imagem. Aceitos: `pt_BR`,
+`--lang <código>` (ou `--idioma <código>`, mantido como alias retrocompatível) escolhe o idioma de fábrica da imagem. Aceitos: `pt_BR`,
 `pt_PT`, `en_US` (padrão), `en_GB`, `es_ES`, `fr_FR`, `de_DE` e `it_IT`. O build
 troca três chaves nas cópias que monta em `work/`: `system.language` no
 `emuelec.conf`, `Language` no `es_settings.cfg` e `user_language` no
@@ -116,10 +118,10 @@ troca três chaves nas cópias que monta em `work/`: `system.language` no
 
 - Código fora da lista: o build para antes de gerar qualquer arquivo e mostra a
   lista.
-- `--no-features --idioma ...`: erro (os arquivos vêm das features).
+- `--no-features --lang ...`: erro (os arquivos vêm das features).
 - `--features` sem a `10-ptbr-sao-paulo` (por exemplo, para testar só a sua
-  feature): sem `--idioma`, o build sai sem idioma (nome sem idioma); com
-  `--idioma`, erro dizendo qual arquivo de configuração falta.
+  feature): sem `--lang`, o build sai sem idioma (nome sem idioma); com
+  `--lang`, erro dizendo qual arquivo de configuração falta.
 - O idioma vale para uma p8 nova (`--wipe-storage`). Com `--keep-storage`, o
   EmuELEC e o ES ficam no idioma que o cartão já tem, e o RetroArch o acompanha no
   primeiro jogo (veja `idioma-aplica` na feature `56-retroarch-ajustes`).
@@ -127,8 +129,8 @@ troca três chaves nas cópias que monta em `work/`: `system.language` no
 | Quero                     | Comando                       | Nome da imagem          |
 |---------------------------|-------------------------------|-------------------------|
 | inglês (padrão)           | `./build.sh`                  | `..._en-us_build_...`   |
-| português do Brasil       | `./build.sh --idioma pt_BR`   | `..._pt-br_build_...`   |
-| espanhol                  | `./build.sh --idioma es_ES`   | `..._es-es_build_...`   |
+| português do Brasil       | `./build.sh --lang pt_BR`     | `..._pt-br_build_...`   |
+| espanhol                  | `./build.sh --lang es_ES`     | `..._es-es_build_...`   |
 
 ### Tamanho do cartão
 
@@ -267,7 +269,7 @@ que em muitos sistemas é um tmpfs pequeno.
   em inglês, preservando termos técnicos gamer (*Save State*, *Core*, *Shader*, *Bezel*,
   *BIOS*, *ROMs*, *RetroAchievements*) e ajustando textos para a tela de 3.5" (640x480).
   Os arquivos da feature estão em `pt_BR` (`user_language = "7"`, para a criança ler os
-  menus na própria língua), mas o idioma da imagem é o de `./build.sh --idioma` (padrão
+  menus na própria língua), mas o idioma da imagem é o de `./build.sh --lang` (padrão
   `en_US`; veja "Idioma" em "Gerar uma imagem"). Numa p8 mantida com `--keep-storage` o
   idioma do EmuELEC que ela já tem continua, e o do RetroArch passa a segui-lo (feature
   `56-retroarch-ajustes`); para trocar, Configurações > Interface do usuário >
