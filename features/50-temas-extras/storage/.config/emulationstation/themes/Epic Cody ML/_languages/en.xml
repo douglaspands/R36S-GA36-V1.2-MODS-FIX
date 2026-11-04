@@ -233,6 +233,11 @@
     <gba.shortdescription>2001  ·  32-bit Handheld Console</gba.shortdescription>
     <gba.sys_line1>Nintendo</gba.sys_line1>
     <gba.sys_line2>Game Boy Advance</gba.sys_line2>
+    <gba-recomp.longdescription>Recompiled Game Boy Advance games run as native programs, with no emulator. Copy .recomp files to the gba-recomp folder.</gba-recomp.longdescription>
+    <gba-recomp.nameLabel>GBA Recomp</gba-recomp.nameLabel>
+    <gba-recomp.shortdescription>2001  ·  Recompiled Games</gba-recomp.shortdescription>
+    <gba-recomp.sys_line1>Nintendo</gba-recomp.sys_line1>
+    <gba-recomp.sys_line2>GBA Recomp</gba-recomp.sys_line2>
     <gbc.longdescription>The Game Boy Color features a color screen. It is slightly thicker and taller and features a slightly smaller screen then the Game Boy Pocket</gbc.longdescription>
     <gbc.nameLabel>GameBoy Color</gbc.nameLabel>
     <gbc.shortdescription>1998  ·  8-bit Handheld Console</gbc.shortdescription>

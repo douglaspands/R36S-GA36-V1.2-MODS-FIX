@@ -233,6 +233,11 @@
     <gba.shortdescription>2001  ·  Portátil 32-bit</gba.shortdescription>
     <gba.sys_line1>Nintendo</gba.sys_line1>
     <gba.sys_line2>Game Boy Advance</gba.sys_line2>
+    <gba-recomp.longdescription>Jogos de Game Boy Advance recompilados rodam como programas nativos, sem emulador. Copie os arquivos .recomp para a pasta gba-recomp.</gba-recomp.longdescription>
+    <gba-recomp.nameLabel>GBA Recomp</gba-recomp.nameLabel>
+    <gba-recomp.shortdescription>2001  ·  Jogos Recompilados</gba-recomp.shortdescription>
+    <gba-recomp.sys_line1>Nintendo</gba-recomp.sys_line1>
+    <gba-recomp.sys_line2>GBA Recomp</gba-recomp.sys_line2>
     <gbc.longdescription>Evolução do Game Boy com tela colorida reflexiva e processador com o dobro de velocidade.</gbc.longdescription>
     <gbc.nameLabel>GameBoy Color</gbc.nameLabel>
     <gbc.shortdescription>1998  ·  Portátil 8-bit</gbc.shortdescription>

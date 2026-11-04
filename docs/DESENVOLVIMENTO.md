@@ -842,7 +842,10 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     linha por executável (`ok` ou `ERRO`, o caminho, o sha256 e a mensagem de
     erro) e as opções de montagem de `/storage` e `/storage/roms`. Um erro em
     um arquivo não impede os outros nem o boot.
-  - **Limites**: só varre `R36-ROMS/ports/`; o que um port criar ou trocar com
+  - **Jogos recompilados**: varre também as pastas `R36-ROMS/*-recomp/` (por
+    padrão de nome, sem lista de consoles), com o mesmo cache, a mesma limpeza e
+    o mesmo log. `recomp.log` e `recomp.log.1` nunca são tratados como executáveis.
+  - **Limites**: só varre `R36-ROMS/ports/` e `R36-ROMS/*-recomp/`; o que um port criar ou trocar com
     o aparelho ligado só vale no boot seguinte; binários que reescrevem a si
     mesmos em execução não são atendidos. Para levar o serviço ao aparelho,
     grave o SYSTEM uma vez (`--part system`).
@@ -947,6 +950,15 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
     - Arquivo temporário `/tmp/console_lang` contendo o código resolvido.
   - **Jogo de demonstração:** acompanha o jogo livre *Mr. Rescue* (`mrrescue.love`) pré-instalado em `/storage/roms/love/` com capa e metadados no `gamelist.xml`, ajustado com suporte nativo e desduplicado aos botões e ao direcional digital (D-pad), navegação de menus isolada exclusivamente no D-pad e eventos discretos (imune a calibrações de boot ou drift do analógico), movimentação in-game contínua pelo analógico ou D-pad, e volume calibrado para som cristalino sem clipping dinâmico.
   - **Compilação hermética:** receita disponível em `ports/love2d/` (`receita.toml` e `compilar.sh`), compilando via container Debian Bookworm sem root.
+
+- **`66-recomp`**: consoles de jogos recompilados, isto é, uma ROM convertida em um executável nativo armhf, sem core nem RetroArch. Hoje só existe o `gba-recomp`; o recompilador em si é uma change futura.
+  - **Sistema no EmulationStation:** `gba-recomp` lê `/storage/roms/gba-recomp/` (partição `R36-ROMS`) e aceita arquivos `.recomp` (ou `.RECOMP`). Um sistema `*-recomp` sem jogos não aparece no menu. A pasta vem com um `LEIAME.txt` em três idiomas.
+  - **Formato do jogo:** um `.recomp` é um ELF armhf (ARMv7-A, hard-float) que só usa bibliotecas da imagem (glibc até 2.36, libstdc++ até `GLIBCXX_3.4.29`; um C++ mais novo precisa de `-static-libstdc++`). O ELF abre a janela e o som pelas bibliotecas do sistema (SDL2, GLES2, ALSA).
+  - **Execução:** o `r36-ports-exec` (feature `58-ports-exec`) guarda uma cópia `0755` na p8 e a monta por cima do arquivo da p1. O `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, o mesmo para todos os consoles, confere a assinatura ELF e executa o jogo direto, sem `emuelecRunEmu.sh` nem `--core`, por um symlink `/tmp/r36-recomp-game` (15 caracteres: é o nome de processo que o `gptokeyb` procura, mesmo com o ELF de nome longo ou arbitrário).
+  - **Saída do jogo:** `FN + Start` encerra o jogo com `SIGTERM` pelo `gptokeyb` (perfil `/usr/config/gptokeyb/recomp.gptk`: só `hotkey`, `start` e `back`, nenhuma tecla de ação do teclado sobre os botões do jogo). O `Select` chega ao jogo e o FN sozinho não faz nada. Não há `es_input.cfg` novo: o FN segue sem função no ES.
+  - **Áudio, idioma e log:** como no LÖVE (rota `Speaker Function`, `audio-ganho aplica` antes e depois; `CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG` e `LANGUAGE`). O log fica em `R36-ROMS/<console>-recomp/recomp.log` (rotaciona em `recomp.log.1` ao passar de 100 KB) com o jogo, o sistema, o `ldd` (biblioteca faltando aparece como `not found`) e o código de saída; os registros extras só saem com a chave `r36-diagnostico`.
+  - **Tema:** `gba-recomp/` no tema Epic Cody ML (`theme.xml`, `logo.png`, `poster.png`, `system.png` e a arte em `_art/posters` e `_art/controllers`), derivado da arte do GBA com um selo RECOMP por `tools/gera_arte_gba_recomp.py`, com as variáveis `gba-recomp.*` nos três idiomas.
+  - **Acrescentar um console:** declare o sistema `<console>-recomp` (as duas cópias do `es_systems.cfg`, comando `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, extensão `.recomp`), a pasta em `roms/` e a pasta do tema. Nem o lançador nem o `r36-ports-exec` mudam. O ELF de teste (`tools/recomp_teste/`) serve para validar no aparelho.
 
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.

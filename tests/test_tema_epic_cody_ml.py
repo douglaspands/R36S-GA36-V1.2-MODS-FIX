@@ -96,6 +96,45 @@ class TestTemaEpicCodyML(unittest.TestCase):
             elif k.endswith(".longdescription"):
                 self.assertLessEqual(len(v), 190, f"longdescription muito longa em {k}: {v!r} ({len(v)} chars)")
 
+    def test_gba_recomp_pasta_e_arte(self):
+        pasta = self.theme_dir / "gba-recomp"
+        for nome in ("theme.xml", "logo.png", "poster.png", "system.png"):
+            self.assertTrue((pasta / nome).is_file(), f"gba-recomp/{nome} ausente")
+        # O tema acha pôster e controle por ${system.theme} (= gba-recomp)
+        self.assertTrue((self.theme_dir / "_art" / "posters" / "gba-recomp.png").is_file())
+        self.assertTrue((self.theme_dir / "_art" / "controllers" / "gba-recomp.png").is_file())
+        for nome in ("logo.png", "poster.png", "system.png"):
+            self.assertEqual((pasta / nome).read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
+        # Mesma estrutura do theme.xml do gba, com as variáveis do próprio sistema
+        novo = (pasta / "theme.xml").read_text(encoding="utf-8")
+        base = (self.theme_dir / "gba" / "theme.xml").read_text(encoding="utf-8")
+        self.assertEqual(novo, base.replace("${gba.", "${gba-recomp."))
+        for chave in ("nameLabel", "sys_line1", "sys_line2", "shortdescription", "longdescription"):
+            self.assertIn("${gba-recomp.%s}" % chave, novo)
+
+    def test_gba_recomp_variaveis_nos_tres_idiomas_sem_reticencias(self):
+        chaves = ("nameLabel", "sys_line1", "sys_line2", "shortdescription", "longdescription")
+        textos = {}
+        for idioma in ("pt-br", "es-latam", "en"):
+            raiz = ET.parse(self.languages_dir / f"{idioma}.xml").getroot().find("variables")
+            vars_ = {e.tag: (e.text or "").strip() for e in raiz}
+            for chave in chaves:
+                self.assertTrue(vars_.get(f"gba-recomp.{chave}"), f"{idioma}: gba-recomp.{chave} ausente")
+            textos[idioma] = vars_
+            # Limites do tema (maiores valores já usados pelos outros sistemas): sem reticências
+            self.assertLessEqual(len(vars_["gba-recomp.sys_line1"]), 32, idioma)
+            self.assertLessEqual(len(vars_["gba-recomp.sys_line2"]), 23, idioma)
+            self.assertLessEqual(len(vars_["gba-recomp.shortdescription"]), 35, idioma)
+            self.assertLessEqual(len(vars_["gba-recomp.longdescription"]), 190, idioma)
+            for chave in chaves:
+                self.assertNotIn("...", vars_[f"gba-recomp.{chave}"])
+                self.assertNotIn("…", vars_[f"gba-recomp.{chave}"])
+        # Nada em inglês nos idiomas pt-br e es-latam, exceto o termo "Recomp"
+        self.assertNotEqual(textos["pt-br"]["gba-recomp.longdescription"], textos["en"]["gba-recomp.longdescription"])
+        self.assertNotEqual(textos["es-latam"]["gba-recomp.longdescription"], textos["en"]["gba-recomp.longdescription"])
+        self.assertNotEqual(textos["pt-br"]["gba-recomp.shortdescription"], textos["en"]["gba-recomp.shortdescription"])
+        self.assertNotEqual(textos["es-latam"]["gba-recomp.shortdescription"], textos["en"]["gba-recomp.shortdescription"])
+
     def test_root_theme_has_language_subset_default_pt_br(self):
         root_theme_file = self.theme_dir / "theme.xml"
         self.assertTrue(root_theme_file.is_file(), "theme.xml raiz deve existir")

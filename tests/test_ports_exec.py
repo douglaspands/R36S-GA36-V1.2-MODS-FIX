@@ -41,6 +41,7 @@ class Feature(UnitCase):
     def test_toml(self):
         t = tomllib.loads((FEATURE / "feature.toml").read_text(encoding="utf-8"))
         self.assertEqual((t["schema"], t["order"], t["enabled"]), (1, 58, True))
+        self.assertIn("*-recomp", t["description"])
 
     def test_script_executavel_e_valido(self):
         self.assertTrue(os.access(SCRIPT, os.X_OK), "ports-exec sem bit de execução")
@@ -340,6 +341,85 @@ class PortsExec(TempDirCase):
         self.assertFalse(list(FEATURE.rglob("*outrojogo*")))
         # Nada fora de ports/ e da p8 foi tocado
         self.assertEqual(sorted(p.name for p in scripts.iterdir()), ["OutroJogo.sh"])
+
+    # --- pastas *-recomp (change recomp-sistemas-es) ---
+
+    def escreve_recomp(self, rel, dados):
+        p = self.roms / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(dados)
+        return p
+
+    def test_recomp_vira_copia_executavel_e_montagem(self):
+        dados = elf("gba")
+        jogo = self.escreve_recomp("gba-recomp/Jogo.recomp", dados)
+        jogo.chmod(0o644)
+        self.roda()
+        copia = self.store / sha(dados)
+        self.assertEqual(stat.S_IMODE(copia.stat().st_mode), 0o755)
+        self.assertEqual(self.montagens(), [["--bind", str(copia), str(jogo)]])
+        self.assertEqual(jogo.read_bytes(), dados)
+
+    def test_console_novo_funciona_sem_alterar_o_servico(self):
+        jogo = self.escreve_recomp("snes-recomp/Outro.recomp", elf("snes"))
+        self.roda()
+        self.assertEqual([m[2] for m in self.montagens()], [str(jogo)])
+        self.assertNotIn("snes", SCRIPT.read_text(encoding="utf-8"))
+
+    def test_log_do_lancador_nao_e_executavel(self):
+        # Mesmo um log que por azar comece com a assinatura ELF fica de fora, por nome
+        self.escreve_recomp("gba-recomp/recomp.log", elf("log"))
+        self.escreve_recomp("gba-recomp/recomp.log.1", elf("log1"))
+        self.escreve_recomp("gba-recomp/LEIAME.txt", b"texto")
+        self.roda()
+        self.assertEqual(self.montagens(), [])
+        self.assertEqual(self.copias(), [])
+
+    def test_so_primeiro_nivel_e_padrao_de_nome(self):
+        self.escreve_recomp("gba-recomp/Jogo.recomp", elf("a"))
+        self.escreve_recomp("gba-recomp/sub/Fundo.recomp", elf("b"))
+        self.escreve_recomp("gba/Jogo.gba", elf("c"))
+        self.escreve_recomp("recomp/Jogo.recomp", elf("d"))
+        self.escreve_recomp("x-recomp-y/Jogo.recomp", elf("e"))
+        self.roda()
+        self.assertEqual(self.copias(), sorted([sha(elf("a")), sha(elf("b"))]))
+
+    def test_cartao_sem_pasta_recomp_so_trata_os_ports(self):
+        binario = self.escreve("jogo/jogo", elf("p"))
+        self.roda()
+        self.assertEqual([m[2] for m in self.montagens()], [str(binario)])
+
+    def test_recomp_removido_apaga_a_copia_e_preserva_a_dos_ports(self):
+        self.escreve("jogo/jogo", elf("port"))
+        jogo = self.escreve_recomp("gba-recomp/Jogo.recomp", elf("rec"))
+        self.roda()
+        self.assertEqual(len(self.copias()), 2)
+        jogo.unlink()
+        self.roda()
+        self.assertEqual(self.copias(), [sha(elf("port"))])
+
+    def test_erro_de_montagem_em_recomp_nao_impede_o_resto(self):
+        self.escreve("a/jogo", elf("port"))
+        self.escreve_recomp("gba-recomp/recusado.recomp", elf("r"))
+        ok = self.escreve_recomp("gba-recomp/Bom.recomp", elf("bom"))
+        self.roda()
+        self.assertEqual(len(self.montagens()), 3)
+        self.assertIn(str(ok), [m[2] for m in self.montagens()])
+        erros = [linha for linha in self.log().splitlines() if linha.startswith("ERRO")]
+        self.assertEqual(len(erros), 1)
+        self.assertIn("/storage/roms/gba-recomp/recusado.recomp", erros[0])
+        self.assertIn("permissão negada", erros[0])
+
+    def test_log_lista_o_recomp_com_sha256(self):
+        self.escreve_recomp("gba-recomp/Jogo.recomp", elf("log"))
+        self.roda()
+        self.assertIn(f"ok /storage/roms/gba-recomp/Jogo.recomp {sha(elf('log'))}", self.log())
+
+    def test_recomp_sem_pasta_ports_ainda_e_tratado(self):
+        shutil.rmtree(self.ports)
+        jogo = self.escreve_recomp("gba-recomp/Jogo.recomp", elf("a"))
+        self.roda()
+        self.assertEqual([m[2] for m in self.montagens()], [str(jogo)])
 
 
 if __name__ == "__main__":

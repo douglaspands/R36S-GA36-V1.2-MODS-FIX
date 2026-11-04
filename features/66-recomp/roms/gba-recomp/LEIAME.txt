@@ -1,0 +1,14 @@
+=== English ===
+Put your recompiled games here (files ending in .recomp), with the console turned off.
+Turn the console on: the games show up in the "GBA Recomp" system.
+To leave a game: hold FN and press Start.
+
+=== Português ===
+Coloque aqui os jogos recompilados (arquivos que terminam em .recomp), com o aparelho desligado.
+Ligue o aparelho: os jogos aparecem no sistema "GBA Recomp".
+Para sair de um jogo: segure o FN e aperte o Start.
+
+=== Español ===
+Pon aquí los juegos recompilados (archivos que terminan en .recomp), con la consola apagada.
+Enciende la consola: los juegos aparecen en el sistema "GBA Recomp".
+Para salir de un juego: mantén pulsado FN y pulsa Start.
