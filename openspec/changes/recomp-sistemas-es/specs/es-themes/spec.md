@@ -14,11 +14,15 @@ O tema Epic Cody ML SHALL trazer uma pasta `gba-recomp/` com `theme.xml`, `logo.
 - **THEN** `gba-recomp/` contém `theme.xml`, `logo.png`, `poster.png` e `system.png`
 
 ### Requirement: Textos de gba-recomp nos três idiomas
-Os arquivos `_languages/pt-br.xml`, `es-latam.xml` e `en.xml` SHALL declarar as variáveis `gba-recomp.nameLabel`, `sys_line1`, `sys_line2`, `shortdescription` e `longdescription`, e o `theme.xml` do sistema SHALL consumi-las. Nenhum texto SHALL ficar em inglês nos idiomas `pt-br` e `es-latam`, exceto termos técnicos preservados pelo tema (como "Recomp").
+Os arquivos `_languages/pt-br.xml`, `es-latam.xml` e `en.xml` SHALL declarar as variáveis `gba-recomp.nameLabel`, `sys_line1`, `sys_line2`, `shortdescription` e `longdescription`, e o `theme.xml` do sistema SHALL consumi-las. Os textos SHALL ser idênticos aos do sistema `gba`, exceto `sys_line1`, que SHALL ser a empresa do GBA seguida de " (recomp)". Nenhum texto SHALL ficar em inglês nos idiomas `pt-br` e `es-latam`, exceto termos técnicos preservados pelo tema (como "recomp").
 
 #### Scenario: Idioma português
 - **WHEN** o tema está em `pt-br` e o jogador vê a lista de sistemas
 - **THEN** a descrição de `gba-recomp` está em português
+
+#### Scenario: Primeira linha com a marca recomp
+- **WHEN** o jogador vê a lista de sistemas com o tema em qualquer idioma
+- **THEN** `gba-recomp` mostra "Nintendo (recomp)" na primeira linha e o resto do texto igual ao do `gba`, e o selo amarelo "RECOMP" aparece sobre o pôster e o controle
 
 #### Scenario: Variável ausente
 - **WHEN** os três arquivos de idioma são conferidos

@@ -129,6 +129,10 @@ class TestTemaEpicCodyML(unittest.TestCase):
             for chave in chaves:
                 self.assertNotIn("...", vars_[f"gba-recomp.{chave}"])
                 self.assertNotIn("…", vars_[f"gba-recomp.{chave}"])
+            # Aparência idêntica à do GBA; a única diferença é "(recomp)" ao lado da empresa
+            for chave in ("nameLabel", "sys_line2", "shortdescription", "longdescription"):
+                self.assertEqual(vars_[f"gba-recomp.{chave}"], vars_[f"gba.{chave}"], f"{idioma}: {chave}")
+            self.assertEqual(vars_["gba-recomp.sys_line1"], vars_["gba.sys_line1"] + " (recomp)", idioma)
         # Nada em inglês nos idiomas pt-br e es-latam, exceto o termo "Recomp"
         self.assertNotEqual(textos["pt-br"]["gba-recomp.longdescription"], textos["en"]["gba-recomp.longdescription"])
         self.assertNotEqual(textos["es-latam"]["gba-recomp.longdescription"], textos["en"]["gba-recomp.longdescription"])
