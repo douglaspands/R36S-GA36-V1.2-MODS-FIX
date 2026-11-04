@@ -37,7 +37,12 @@ Ver `proposal.md` (Why). Estado atual relevante, lido no repositório:
 
 **D6. O log do serviço continua em `roms/ports/r36-ports-exec.log`.** A pasta `ports/` existe na base (o sistema `ports` do ES a usa), então o log segue num lugar conhecido. Alternativa: um log por pasta — mais arquivos na p1 para o PC.
 
-**D7. Extensão `.recomp`, ELF por assinatura.** O ES precisa de uma extensão para listar; `.recomp` deixa claro o que é e não colide com outras. Quem decide se é executável é a assinatura ELF, como já faz o `ports-exec`.
+**D7. (revisada) Extensão `.sh`: o jogo é o script da raiz da pasta.** A primeira versão listava `.recomp` (um ELF solto). Os pacotes recompilados que o usuário já tem no cartão têm outro formato: `Jogo.sh` na raiz de `gba-recomp/` chama `Jogo/launch.sh`, que roda `Jogo/Jogo.elf` (e cria `Jogo/saves/`). O ES passa a listar só `.sh` (`.sh .SH`); `.recomp` e `.elf` não são listados. **O recompilador pode gerar o binário com qualquer extensão e quem coordena como dispará-lo é o `.sh`**: nada no lançador nem no `ports-exec` depende da extensão do binário, só da assinatura ELF. Consequências:
+- `recomp.sh` roda o `.sh` com `bash` explícito e, para o `gptokeyb`, procura o primeiro arquivo com assinatura ELF (que não seja `.so`) na pasta com o nome do `.sh` (e, se não houver, ao lado dele); o `comm` é o nome do arquivo cortado em 15 caracteres (`Donkey Kong Country.elf` vira `Donkey Kong Cou`). O symlink de nome fixo (D3) fica só para um ELF passado direto. Vários binários na pasta: vale o primeiro, e se o `.sh` disparar outro o FN + Start não o encerra (plano B: monitorar os filhos do script).
+- `ports-exec` passa a montar `0755` também os scripts com `#!` dentro das pastas `*-recomp` (só lá; em `ports/` continua só ELF), porque o `.sh` da raiz faz `exec` do `launch.sh` e a p1 não tem bit de execução.
+- O `launch.sh` do pacote define o próprio `SDL_GAMECONTROLLERCONFIG` (layout Nintendo) e sobrescreve o do lançador; a saída por FN + Start não depende disso.
+- Risco: o ES pode listar também o `launch.sh` de dentro de cada pasta de jogo. Só se vê no aparelho; se acontecer, esconder no `gamelist.xml`.
+- A ordem de teste muda: o ELF de teste vai num pacote (`Teste.sh` + `Teste/Teste.elf`).
 
 **D8. Arte do tema derivada da do GBA por script, com selo RECOMP.** Um script em `tools/` (Python via `uv`, regra do projeto) gera `logo.png`, `poster.png` e `system.png` a partir da arte já presente no tema, sem baixar nada. Quando o tema não traz arte do GBA para derivar (a pasta `gba/` só tem `theme.xml`), o script usa a arte genérica do tema e compõe o selo; isso é conferido na primeira tarefa do tema.
 
@@ -52,4 +57,4 @@ Ver `proposal.md` (Why). Estado atual relevante, lido no repositório:
 - [`mount --bind` cobre os arquivos da p1, e o ES lista o arquivo da p1] → comportamento já validado pelos ports; recomp usa o mesmo caminho.
 - [Cópia `0755` de ELFs grandes enche a p8] → a limpeza apaga cópias sem uso a cada boot; ELFs de GBA recompilado ficam de poucos MiB a dezenas de MiB. Conferir o espaço livre da p8 com 20 jogos de teste.
 - [Terceira cópia do `es_systems.cfg` aumenta a chance de divergência] → `test_es_systems.py` compara as duas camadas e confere a presença só do `gba-recomp` como `*-recomp`.
-- [Quem copiar um `.recomp` no cartão com a p1 já montada não vê o jogo até religar] → o ES só relê as pastas no boot; o aparelho não tem rede e o fluxo normal é copiar pelo PC com o aparelho desligado.
+- [Quem copiar um jogo no cartão com a p1 já montada não vê o jogo até religar] → o ES só relê as pastas no boot; o aparelho não tem rede e o fluxo normal é copiar pelo PC com o aparelho desligado.

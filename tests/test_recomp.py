@@ -44,7 +44,7 @@ class Feature(unittest.TestCase):
         for cfg in (ES_SYSTEM, ES_STORAGE):
             s = sistemas(cfg)["gba-recomp"]
             self.assertEqual(s.findtext("path"), "/storage/roms/gba-recomp")
-            self.assertEqual(s.findtext("extension").split(), [".recomp", ".RECOMP"])
+            self.assertEqual(s.findtext("extension").split(), [".sh", ".SH"])
             self.assertEqual(s.findtext("theme"), "gba-recomp")
             comando = s.findtext("command")
             self.assertEqual(comando, '/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"')
@@ -69,7 +69,7 @@ class Feature(unittest.TestCase):
     def test_leiame_da_pasta_do_console(self):
         self.assertTrue(LEIAME.is_file())
         texto = LEIAME.read_text(encoding="utf-8")
-        for termo in (".recomp", "FN", "Start"):
+        for termo in (".sh", "FN", "Start"):
             self.assertIn(termo, texto)
         # Três idiomas
         for termo in ("English", "Português", "Español"):
@@ -225,9 +225,78 @@ class Execucao(TempDirCase):
         falso.write_text("isto não é um ELF\n", encoding="utf-8")
         r = self.roda(falso, "gba-recomp")
         self.assertNotEqual(r.returncode, 0)
-        self.assertIn("não é um ELF", self.log())
+        self.assertIn("não é um script", self.log())
         self.assertFalse((self.teste / "gptokeyb.args").exists(), "gptokeyb não deveria subir")
         self.assertFalse((self.root / "tmp" / NOME_PROCESSO).exists())
+
+    # --- jogo em .sh (o caso do ES) ---
+
+    def script(self, nome="Jogo.sh", corpo="#!/bin/bash\necho SCRIPT_RODOU:$0:$PWD\n"):
+        """.sh sem bit de execução, como na FAT32."""
+        destino = self.pasta / nome
+        destino.write_text(corpo, encoding="utf-8")
+        destino.chmod(0o644)
+        return destino
+
+    def test_script_roda_com_bash_sem_bit_de_execucao(self):
+        jogo = self.script()
+        r = self.roda(jogo, "gba-recomp")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        log = self.log()
+        self.assertIn("tipo: script", log)
+        self.assertIn(f"SCRIPT_RODOU:{jogo}:{self.pasta}", log)
+        self.assertIn("saída: 0", log)
+        self.assertNotIn("--- ldd", log)
+        self.assertFalse((self.root / "tmp" / NOME_PROCESSO).exists())
+
+    def test_script_mata_o_elf_da_pasta_com_o_nome_dele_em_15_caracteres(self):
+        jogo = self.script("Donkey Kong Country.sh")
+        (self.pasta / "Donkey Kong Country").mkdir()
+        shutil.copyfile(shutil.which("env"), self.pasta / "Donkey Kong Country" / "Donkey Kong Country.elf")
+        self.roda(jogo, "gba-recomp")
+        args = (self.teste / "gptokeyb.args").read_text(encoding="utf-8").strip()
+        self.assertEqual(args, f"1 Donkey Kong Cou -c {self.root}/usr/config/gptokeyb/recomp.gptk -killsignal 15")
+        self.assertIn("processo que o FN + Start encerra: Donkey Kong Cou", self.log())
+
+    def test_binario_com_qualquer_extensao_e_achado_pela_assinatura(self):
+        # O .sh decide como disparar o binário: o nome e a extensão dele não importam
+        jogo = self.script()
+        (self.pasta / "Jogo").mkdir()
+        (self.pasta / "Jogo" / "dados.txt").write_text("texto", encoding="utf-8")
+        shutil.copyfile(shutil.which("env"), self.pasta / "Jogo" / "libmotor.so.1")
+        shutil.copyfile(shutil.which("env"), self.pasta / "Jogo" / "Motor.bin")
+        self.roda(jogo, "gba-recomp")
+        args = (self.teste / "gptokeyb.args").read_text(encoding="utf-8").strip()
+        self.assertTrue(args.startswith("1 Motor.bin -c "), args)
+
+    def test_binario_sem_extensao_ao_lado_do_script(self):
+        jogo = self.script()
+        shutil.copyfile(shutil.which("env"), self.pasta / "motor")
+        self.roda(jogo, "gba-recomp")
+        args = (self.teste / "gptokeyb.args").read_text(encoding="utf-8").strip()
+        self.assertTrue(args.startswith("1 motor -c "), args)
+
+    def test_so_biblioteca_e_texto_nao_contam_como_binario(self):
+        jogo = self.script()
+        shutil.copyfile(shutil.which("env"), self.pasta / "libx.so")
+        (self.pasta / "gamelist.xml").write_text("<gameList/>", encoding="utf-8")
+        self.roda(jogo, "gba-recomp")
+        self.assertFalse((self.teste / "gptokeyb.args").exists())
+
+    def test_script_sem_elf_roda_mas_avisa_que_fn_start_nao_encerra(self):
+        jogo = self.script()
+        r = self.roda(jogo, "gba-recomp")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse((self.teste / "gptokeyb.args").exists())
+        log = self.log()
+        self.assertIn("nenhum binário ELF", log)
+        self.assertIn("SCRIPT_RODOU", log)
+
+    def test_script_com_falha_devolve_o_codigo(self):
+        jogo = self.script(corpo="#!/bin/bash\nexit 7\n")
+        r = self.roda(jogo, "gba-recomp")
+        self.assertEqual(r.returncode, 7)
+        self.assertIn("saída: 7", self.log())
 
     def test_codigo_de_saida_de_falha_vai_para_o_log(self):
         jogo = self.elf(como="false")

@@ -6,7 +6,7 @@ O projeto quer jogos recompilados estaticamente: uma ROM vira um ELF nativo armh
 
 ## What Changes
 
-- Novo sistema do EmulationStation `gba-recomp` (pasta `/storage/roms/gba-recomp`, extensão `.recomp`), com comando `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`. Só o GBA entra agora; outros consoles entram depois acrescentando uma linha numa tabela, sem lançador novo.
+- Novo sistema do EmulationStation `gba-recomp` (pasta `/storage/roms/gba-recomp`, extensão `.sh`: o script da raiz da pasta que inicia o jogo), com comando `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`. Só o GBA entra agora; outros consoles entram depois acrescentando uma linha numa tabela, sem lançador novo.
 - Novo lançador genérico `/usr/bin/recomp.sh`, no molde do `love.sh`: executa o ELF direto (sem core), ajusta rota e ganho de áudio, propaga idioma, mostra as telas neutras de carga e saída e grava log rotativo.
 - **FN + Start encerra o jogo**: o lançador sobe o `gptokeyb` com `guide` (FN, botão 10) como hotkey e `-killsignal 15`, tendo como alvo o nome do processo (`basename` do ELF). O Select continua livre para o jogo.
 - O serviço `r36-ports-exec` (feature `58-ports-exec`) passa a varrer também `roms/*-recomp/`: cada ELF ganha uma cópia `0755` na p8 montada por cima do arquivo da p1 (FAT32 não guarda bit de execução). O log passa a listar também esses executáveis.
@@ -18,7 +18,7 @@ Fora do escopo: o recompilador ROM→ELF (change `recompilador-gba`), os demais 
 ## Capabilities
 
 ### New Capabilities
-- `recomp-systems`: sistemas `<console>-recomp` no EmulationStation, o lançador genérico `recomp.sh` que executa o ELF sem core, a saída do jogo por FN + Start e o contrato de formato do jogo (`.recomp` = ELF armhf).
+- `recomp-systems`: sistemas `<console>-recomp` no EmulationStation, o lançador genérico `recomp.sh` que executa o ELF sem core, a saída do jogo por FN + Start e o contrato de formato do jogo (`.sh` que executa um ELF armhf).
 
 ### Modified Capabilities
 - `ports-executables`: o serviço de cópia `0755` passa a cobrir também `roms/*-recomp/`, além de `roms/ports/`.

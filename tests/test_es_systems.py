@@ -56,7 +56,7 @@ class TestEsSystems(unittest.TestCase):
         self.assertEqual([n for n in sistemas if n.endswith("-recomp")], ["gba-recomp"])
         s = sistemas["gba-recomp"]
         self.assertEqual(s.findtext("path"), "/storage/roms/gba-recomp")
-        self.assertEqual(s.findtext("extension").split(), [".recomp", ".RECOMP"])
+        self.assertEqual(s.findtext("extension").split(), [".sh", ".SH"])
         self.assertEqual(s.findtext("command"), '/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"')
         self.assertEqual(s.findtext("theme"), "gba-recomp")
 

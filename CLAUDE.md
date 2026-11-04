@@ -74,16 +74,20 @@ do aparelho que não se deduzem do código.
   os ports que o usuário põe pelo PC. Para sobreviver a `--keep-roms`, guarde a
   cópia mestre no SYSTEM e restaure na p1 com um serviço de boot
   `Before=emustation.service` que espera `/storage/roms` virar ponto de montagem.
-- **Jogos recompilados (feature `66-recomp`):** um `.recomp` é um ELF armhf (ABI da base,
-  acima) em `roms/<console>-recomp/` (hoje só `gba-recomp`), sistema próprio do ES, sem core nem
-  RetroArch; o comando é `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, o mesmo para todo console.
+- **Jogos recompilados (feature `66-recomp`):** o ES lista só o **`.sh`** da raiz de
+  `roms/<console>-recomp/` (hoje só `gba-recomp`; sistema próprio, sem core nem RetroArch). O
+  pacote do jogo é `Jogo.sh` + pasta `Jogo/` (`launch.sh`, o ELF armhf na ABI da base, acima, e
+  `saves/`); o `.sh` faz `exec` do `launch.sh`. O comando é `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`,
+  o mesmo para todo console, e roda o `.sh` com `bash` explícito (a p1 não tem bit de execução).
   O `58-ports-exec` varre `roms/*-recomp` por padrão de nome e monta uma cópia `0755` da p8
-  por cima do arquivo da p1 (cache, limpeza e log `ports/r36-ports-exec.log` dos ports);
-  `recomp.log` e `recomp.log.1` nunca são executáveis. O `recomp.sh` roda o ELF pelo symlink
-  `/tmp/r36-recomp-game` (15 caracteres, o `comm` que o `gptokeyb` mata, qualquer que seja o
-  nome do ELF) e a saída é **FN + Start** (`gptokeyb ... -killsignal 15`, perfil
-  `recomp.gptk` sem teclas de ação); o Select chega ao jogo e o `es_input.cfg` não muda. Que
-  o `comm` sai do nome do symlink e que o ES esconde o sistema vazio só se confirmam no
+  por cima de cada ELF e de cada script `#!` ali (em `ports/` só ELF; cache, limpeza e log
+  `ports/r36-ports-exec.log` dos ports); `recomp.log` e `recomp.log.1` nunca são executáveis.
+  A saída é **FN + Start** (`gptokeyb <comm> -killsignal 15`, perfil `recomp.gptk` sem teclas de
+  ação): para um `.sh`, o `<comm>` é o nome do primeiro arquivo com assinatura ELF da pasta do
+  jogo (qualquer extensão: o recompilador pode gerar outras, e o `.sh` decide como disparar o
+  binário) cortado em 15 caracteres (`Donkey Kong Cou`); um ELF passado direto roda pelo symlink `/tmp/r36-recomp-game`. O Select
+  chega ao jogo e o `es_input.cfg` não muda. Que o `comm` sai do nome do arquivo e que o ES
+  esconde o sistema vazio ou lista o `launch.sh` de dentro das pastas só se confirmam no
   aparelho (task 6.4 da change `recomp-sistemas-es`). O log do lançador fica em
   `roms/<console>-recomp/recomp.log` (100 KB, rotaciona em `.log.1`). A arte do tema do
   `gba-recomp` sai de `tools/gera_arte_gba_recomp.py` (a do GBA vem do tarball do tema

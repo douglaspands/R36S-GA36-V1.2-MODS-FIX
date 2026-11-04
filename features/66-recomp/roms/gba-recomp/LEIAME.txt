@@ -1,14 +1,17 @@
 === English ===
-Put your recompiled games here (files ending in .recomp), with the console turned off.
-Turn the console on: the games show up in the "GBA Recomp" system.
+Put your recompiled games here, with the console turned off. Each game is a script (.sh) in this folder
+that starts the game; the game's files (its binary, whatever its extension, and the saves) go in a folder next to it.
+Turn the console on: the .sh files show up in the "GBA Recomp" system.
 To leave a game: hold FN and press Start.
 
 === Português ===
-Coloque aqui os jogos recompilados (arquivos que terminam em .recomp), com o aparelho desligado.
-Ligue o aparelho: os jogos aparecem no sistema "GBA Recomp".
+Coloque aqui os jogos recompilados, com o aparelho desligado. Cada jogo é um script (.sh) nesta pasta
+que inicia o jogo; os arquivos dele (o binário, com qualquer extensão, e os saves) ficam numa pasta ao lado.
+Ligue o aparelho: os arquivos .sh aparecem no sistema "GBA Recomp".
 Para sair de um jogo: segure o FN e aperte o Start.
 
 === Español ===
-Pon aquí los juegos recompilados (archivos que terminan en .recomp), con la consola apagada.
-Enciende la consola: los juegos aparecen en el sistema "GBA Recomp".
+Pon aquí los juegos recompilados, con la consola apagada. Cada juego es un script (.sh) en esta carpeta
+que inicia el juego; sus archivos (el binario, con cualquier extensión, y los saves) van en una carpeta al lado.
+Enciende la consola: los archivos .sh aparecen en el sistema "GBA Recomp".
 Para salir de un juego: mantén pulsado FN y pulsa Start.

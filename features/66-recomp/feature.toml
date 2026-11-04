@@ -1,6 +1,6 @@
 # Consoles de jogos recompilados (ELF armhf nativo, sem core nem RetroArch).
 # Cada console é um sistema `<console>-recomp` do EmulationStation (pasta em /storage/roms,
-# extensão .recomp) que usa o mesmo lançador, /usr/bin/recomp.sh. A saída do jogo é por
+# extensão .sh) que usa o mesmo lançador, /usr/bin/recomp.sh. A saída do jogo é por
 # FN + Start (gptokeyb); os ELFs ganham cópia 0755 na p8 pelo serviço da feature 58-ports-exec.
 
 schema = 1

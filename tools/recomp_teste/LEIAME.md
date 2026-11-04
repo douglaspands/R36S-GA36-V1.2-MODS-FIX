@@ -1,19 +1,17 @@
 # ELF de teste do `gba-recomp`
 
-`teste.c` abre a tela (SDL2 + GLES2), toca 440 Hz e espera `SIGTERM`. Serve para validar
+`teste.c` (o `Teste.elf`) abre a tela (SDL2 + GLES2), toca 440 Hz e espera `SIGTERM`. Serve para validar
 no aparelho a lista, o `recomp.sh`, o som e o FN + Start sem o recompilador.
 
-**Estado:** o fonte **não foi compilado nem conferido** (o PC não tem sysroot armhf com
-glibc 2.36 e SDL2: sem `arm-linux-gnueabihf-gcc`, `crt1.o` nem cabeçalhos; só o `clang`
-sem alvo ARM completo). Quem tiver a toolchain compila assim, de um diretório com o
-sysroot da imagem (glibc 2.36, SDL2 do SYSTEM):
+**Estado:** compilado e conferido com `readelf` (ARMv7, VFPv4, hard-float, GLIBC até
+2.34, NEEDED `libSDL2-2.0.so.0` e `libGLESv2.so.2`), **mas nunca rodado no aparelho**.
+Compila em container Debian Bookworm (podman), a partir da raiz do projeto:
 
 ```
-arm-linux-gnueabihf-gcc -O2 -mfpu=neon-vfpv4 -mfloat-abi=hard \
-    --sysroot=<sysroot-armhf> teste.c -o Teste.recomp $(sdl2-config --cflags --libs) -lm
-readelf -A Teste.recomp   # Tag_CPU_arch: v7, Tag_ABI_VFP_args: VFP registers
-readelf -V Teste.recomp   # GLIBC_ até 2.36
+podman run --rm -v ./tools/recomp_teste:/src:Z docker.io/library/debian:bookworm sh /src/compila.sh
 ```
 
-Copie `Teste.recomp` para `roms/gba-recomp/` na p1. O nome do processo (`comm`) sai na
-primeira linha do `recomp.log` (`teste: processo=...`); esperado `r36-recomp-game`.
+O pacote segue o formato dos jogos recompilados: `pacote/Teste.sh` e `pacote/Teste/`
+(`launch.sh` e `Teste.elf`). Copie os dois para `roms/gba-recomp/` na p1 (o ES lista o `Teste.sh`).
+O nome do processo (`comm`) do ELF sai na primeira linha do `recomp.log` (`teste: processo=...`);
+esperado `Teste.elf`, o mesmo nome que o `recomp.log` mostra em "processo que o FN + Start encerra".

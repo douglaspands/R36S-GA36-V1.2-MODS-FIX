@@ -12,7 +12,7 @@ ROM="${1:-}"
 SISTEMA="${2:-}"
 
 if [ -z "$ROM" ]; then
-    echo "Uso: $0 <jogo.recomp> [sistema]" >&2
+    echo "Uso: $0 <jogo.sh> [sistema]" >&2
     exit 1
 fi
 
@@ -59,10 +59,39 @@ log "=== recomp: $(date) ==="
 log "jogo: $ROM"
 log "sistema: $SISTEMA"
 
-# Só um ELF roda: qualquer outra coisa vira erro no log e devolve o ES antes de mudar a tela.
-if [ "$(head -c 4 "$ROM" 2>/dev/null)" != "$(printf '\177ELF')" ]; then
-    log "ERRO: $ROM não é um ELF (assinatura 7f 45 4c 46 ausente ou arquivo ilegível)"
+# O jogo é um script (.sh, o caso do ES) ou um ELF direto; qualquer outra coisa vira erro no
+# log e devolve o ES antes de mudar a tela.
+TIPO=""
+if [ "$(head -c 4 "$ROM" 2>/dev/null)" = "$(printf '\177ELF')" ]; then
+    TIPO="elf"
+elif [ "$(head -c 2 "$ROM" 2>/dev/null)" = '#!' ]; then
+    TIPO="script"
+else
+    log "ERRO: $ROM não é um script (#!) nem um ELF (assinatura 7f 45 4c 46); arquivo ilegível ou de outro tipo"
     exit 1
+fi
+
+# Nome do processo que o gptokeyb mata (comm, 15 caracteres). Um ELF roda pelo symlink de nome
+# fixo. Um script roda como é, e é ele quem decide como disparar o binário do jogo, que pode ter
+# qualquer nome e extensão: o binário é o primeiro arquivo com assinatura ELF (que não seja
+# biblioteca .so) na pasta do jogo (a pasta com o nome do .sh) ou ao lado do .sh, e o comm dele é o
+# nome do arquivo cortado em 15 caracteres.
+eh_elf() {
+    [ "$(head -c 4 "$1" 2>/dev/null)" = "$(printf '\177ELF')" ]
+}
+
+ALVO="$NOME_PROCESSO"
+if [ "$TIPO" = "script" ]; then
+    ALVO=""
+    BASE="${ROM%.*}"
+    for cand in "$BASE"/* "$(dirname "$ROM")"/*; do
+        case "$cand" in *.so|*.so.*) continue ;; esac
+        if [ -f "$cand" ] && eh_elf "$cand"; then
+            ALVO="$(basename "$cand")"
+            ALVO="${ALVO:0:15}"
+            break
+        fi
+    done
 fi
 
 # Splash neutro do sistema na inicialização
@@ -191,10 +220,13 @@ fi
 
 echo "$CONSOLE_LANG" > "${R36_PREFIX}/tmp/console_lang" 2>/dev/null || true
 
-log "processo: $NOME_PROCESSO (symlink $LINK)"
+log "tipo: $TIPO"
+log "processo que o FN + Start encerra: ${ALVO:-nenhum}"
 log "CONSOLE_LANG=$CONSOLE_LANG"
-log "--- ldd $ROM ---"
-{ ldd "$ROM" 2>&1 || true; } >> "$LOG_OUT" 2>/dev/null
+if [ "$TIPO" = "elf" ]; then
+    log "--- ldd $ROM (symlink $LINK) ---"
+    { ldd "$ROM" 2>&1 || true; } >> "$LOG_OUT" 2>/dev/null
+fi
 
 if [ -f "$DIAG_CHAVE" ]; then
     log "--- diagnóstico ---"
@@ -210,19 +242,26 @@ fi
 # sistema: sem ele o gptokeyb injetaria teclas sobre os botões do jogo, então não sobe.
 if [ ! -f "$GPTK_CONF" ]; then
     log "ERRO: perfil $GPTK_CONF ausente; gptokeyb não iniciado (FN + Start não encerra o jogo)"
+elif [ -z "$ALVO" ]; then
+    log "ERRO: nenhum binário ELF na pasta do jogo nem ao lado do script; gptokeyb não iniciado (FN + Start não encerra o jogo)"
 elif command -v gptokeyb >/dev/null 2>&1; then
     killall -9 gptokeyb 2>/dev/null
-    gptokeyb 1 "$NOME_PROCESSO" -c "$GPTK_CONF" -killsignal 15 >/dev/null 2>&1 &
+    gptokeyb 1 "$ALVO" -c "$GPTK_CONF" -killsignal 15 >/dev/null 2>&1 &
     GPTK_PID=$!
     sleep 0.3
 else
     log "ERRO: gptokeyb não encontrado; FN + Start não encerra o jogo"
 fi
 
-ln -sf "$ROM" "$LINK" 2>/dev/null
 cd "$(dirname "$ROM")" 2>/dev/null || true
 log "--- execução ---"
-"$LINK" >> "$LOG_OUT" 2>&1
+if [ "$TIPO" = "script" ]; then
+    # bash explícito: o .sh da p1 pode estar sem bit de execução
+    bash "$ROM" >> "$LOG_OUT" 2>&1
+else
+    ln -sf "$ROM" "$LINK" 2>/dev/null
+    "$LINK" >> "$LOG_OUT" 2>&1
+fi
 RC=$?
 log "saída: $RC"
 exit "$RC"

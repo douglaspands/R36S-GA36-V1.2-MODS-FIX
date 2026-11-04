@@ -40,7 +40,7 @@
 - [x] 6.1 Rodar a suíte completa com `uv run python -I -m unittest discover -s tests` e confirmar que passa
 - [x] 6.2 Rodar `openspec validate recomp-sistemas-es --strict` e corrigir o que acusar
 - [x] 6.3 Gerar uma imagem de teste (`./build.sh --lang pt_BR`) e conferir, sem montar nada com `sudo`, o `es_systems.cfg`, o `recomp.sh`, o `ports-exec` e o tema, por `mcopy` e `unsquashfs -cat` (regra do projeto)
-- [ ] 6.4 Instrução para o usuário (você não roda `sudo`): gravar a imagem com `./flash.sh --device ... --part system`, copiar `Teste.recomp` para `gba-recomp/`, e conferir no aparelho: sistema aparece, jogo abre, som sai, FN + Start encerra, Select chega ao jogo, `r36-ports-exec.log` lista o ELF, sistema vazio some do menu, nome do processo no `recomp.log` é `r36-recomp-game`. Registrar o resultado no `design.md` (D3 e D9 confirmados ou plano B)
+- [ ] 6.4 Instrução para o usuário (você não roda `sudo`): gravar a imagem com `./flash.sh --device ... --part system`, copiar o pacote de teste (`Teste.sh` e a pasta `Teste/`, de `tools/recomp_teste/pacote/`) para `gba-recomp/`, e conferir no aparelho: sistema aparece, jogo abre, som sai, FN + Start encerra, Select chega ao jogo, `r36-ports-exec.log` lista o ELF, sistema vazio some do menu, nome do processo no `recomp.log` é `r36-recomp-game`. Registrar o resultado no `design.md` (D3 e D9 confirmados ou plano B)
 
 ## Workflow follow-up
 

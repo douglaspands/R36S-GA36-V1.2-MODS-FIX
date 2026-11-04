@@ -73,7 +73,7 @@ O que foi verificado neste aparelho:
 - **Save states com miniatura** visíveis no EmulationStation.
 - **Ports:** ClassiCube (recriação do Minecraft Classic), offline, como "Classic Craft".
 - **Jogos LÖVE (Love2D):** runtime LÖVE 11.5 standalone integrado ao EmulationStation com suporte a arquivos `.love` e `.zip` na partição de ROMs, aceleração OpenGL ES 2.0 nativa e o jogo *Mr. Rescue* incluído.
-- **Jogos recompilados (GBA Recomp):** um sistema pronto para jogos convertidos em programas nativos (arquivos `.recomp` na pasta `gba-recomp`), sem emulador. FN + Start fecha o jogo e volta ao EmulationStation. O conversor que cria esses jogos é um projeto futuro.
+- **Jogos recompilados (GBA Recomp):** um sistema pronto para jogos convertidos em programas nativos (um `.sh` por jogo na pasta `gba-recomp`), sem emulador. FN + Start fecha o jogo e volta ao EmulationStation. O conversor que cria esses jogos é um projeto futuro.
 
 ## Atalhos
 

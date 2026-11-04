@@ -7,14 +7,14 @@ Definir como jogos recompilados estaticamente (ROM convertida em executável nat
 ## ADDED Requirements
 
 ### Requirement: Sistema de recomp por console
-O EmulationStation SHALL listar cada console com recomp como um sistema próprio `<console>-recomp`, lendo a pasta `/storage/roms/<console>-recomp` e aceitando arquivos de extensão `.recomp` (em minúsculas ou maiúsculas). Nesta mudança SHALL existir apenas o sistema `gba-recomp`. Um sistema `*-recomp` sem nenhum jogo SHALL NOT aparecer no menu.
+O EmulationStation SHALL listar cada console com recomp como um sistema próprio `<console>-recomp`, lendo a pasta `/storage/roms/<console>-recomp` e aceitando arquivos de extensão `.sh` (em minúsculas ou maiúsculas): o jogo é o script da raiz da pasta. Nesta mudança SHALL existir apenas o sistema `gba-recomp`. Um sistema `*-recomp` sem nenhum jogo SHALL NOT aparecer no menu.
 
 #### Scenario: Jogo recompilado aparece na lista
-- **WHEN** o jogador copia `Jogo.recomp` para `/storage/roms/gba-recomp/` pelo PC e liga o aparelho
+- **WHEN** o jogador copia `Jogo.sh` e a pasta `Jogo/` (com o binário do jogo, o script de disparo e os saves) para `/storage/roms/gba-recomp/` pelo PC e liga o aparelho
 - **THEN** a lista de sistemas mostra "GBA Recomp" e a lista do sistema mostra "Jogo", sem a extensão
 
 #### Scenario: Sistema vazio fica escondido
-- **WHEN** `/storage/roms/gba-recomp/` não tem nenhum arquivo `.recomp`
+- **WHEN** `/storage/roms/gba-recomp/` não tem nenhum arquivo `.sh`
 - **THEN** o sistema não aparece na lista de sistemas
 
 #### Scenario: Outros consoles ainda não existem
@@ -22,14 +22,14 @@ O EmulationStation SHALL listar cada console com recomp como um sistema próprio
 - **THEN** não há sistema `snes-recomp`, `genesis-recomp` nem outro `*-recomp` além de `gba-recomp`
 
 ### Requirement: Formato do jogo recompilado
-Um arquivo `.recomp` SHALL ser um executável ELF armhf (ARMv7-A, hard-float) que usa só bibliotecas disponíveis na imagem (glibc até 2.36, libstdc++ até GLIBCXX 3.4.29) e abre a janela e o som pelas bibliotecas do sistema. O lançador SHALL executá-lo diretamente, sem core, sem RetroArch e sem passar a ROM original.
+O jogo SHALL ser um script (`.sh`, começa com `#!`) que dispara um binário ELF armhf (ARMv7-A, hard-float) com bibliotecas só da imagem (glibc até 2.36, libstdc++ até GLIBCXX 3.4.29). O script decide como disparar o binário, que SHALL poder ter qualquer nome e extensão: o formato é decidido pela assinatura ELF, nunca pela extensão. O lançador SHALL executar o script com `bash` explícito (a p1 não tem bit de execução), sem core nem RetroArch, e SHALL aceitar também um ELF passado direto.
 
-#### Scenario: Execução direta
+#### Scenario: Execução do script
 - **WHEN** o jogador abre um jogo da lista `gba-recomp`
-- **THEN** o processo executado é o próprio ELF do jogo, e nenhum processo `retroarch` é iniciado
+- **THEN** o lançador roda o `.sh` com `bash` na pasta dele, o ELF do jogo é executado pelo script, e nenhum processo `retroarch` é iniciado
 
-#### Scenario: Arquivo que não é ELF
-- **WHEN** o jogador abre um `.recomp` que não começa com a assinatura ELF
+#### Scenario: Arquivo que não é script nem ELF
+- **WHEN** o jogador abre um arquivo que não começa com `#!` nem com a assinatura ELF
 - **THEN** o lançador registra o erro no log, devolve o controle ao EmulationStation e não deixa o aparelho preso na tela de carga
 
 ### Requirement: Lançador único para todos os consoles
@@ -58,9 +58,21 @@ Durante um jogo recompilado, o pressionamento simultâneo de FN e Start SHALL en
 - **WHEN** o jogador aperta só o FN durante o jogo
 - **THEN** o jogo continua rodando
 
-#### Scenario: Nome do processo diferente do arquivo
-- **WHEN** o ELF abre outro processo ou se renomeia ao iniciar
-- **THEN** o lançador ainda encerra o jogo pelo mesmo atalho, e o log registra o nome de processo usado
+#### Scenario: Nome do processo de um jogo em script
+- **WHEN** o jogo é um `.sh` e um arquivo com assinatura ELF (que não seja biblioteca `.so`, com qualquer nome ou extensão) fica na pasta do jogo (a pasta com o nome do `.sh`) ou ao lado do `.sh`
+- **THEN** o `gptokeyb` é iniciado com o nome desse arquivo cortado em 15 caracteres (o `comm` do processo), e o log registra o nome usado
+
+#### Scenario: Binário com extensão qualquer
+- **WHEN** o recompilador gera o binário como `Jogo.bin`, `Jogo.gba.out` ou sem extensão, e o `.sh` o dispara
+- **THEN** o jogo é achado pela assinatura e o FN + Start o encerra
+
+#### Scenario: Script sem binário achado
+- **WHEN** o jogo é um `.sh` e nenhum arquivo ELF é achado
+- **THEN** o jogo roda, o `gptokeyb` não é iniciado e o log registra que o FN + Start não encerra o jogo
+
+#### Scenario: ELF passado direto
+- **WHEN** o lançador recebe um ELF
+- **THEN** ele roda pelo symlink `/tmp/r36-recomp-game` e o `gptokeyb` usa esse nome
 
 ### Requirement: Retorno limpo ao EmulationStation
 Ao fim do jogo, por saída normal, falha ou FN + Start, o lançador SHALL encerrar o `gptokeyb`, restaurar a rota analógica e o ganho de áudio do sistema, mostrar a tela neutra de saída e devolver o controle ao EmulationStation, sem deixar processo do jogo nem do `gptokeyb` vivo.
@@ -107,8 +119,8 @@ Nenhum sistema `*-recomp` SHALL alterar o `es_input.cfg`: o FN continua sem fun�
 - **THEN** o jogo recebe apenas o evento do botão do joystick, sem tecla de teclado simulada
 
 ### Requirement: Validação sem o recompilador
-A imagem SHALL poder ser validada com um ELF armhf de teste colocado em `/storage/roms/gba-recomp/` pelo PC, sem nenhum recompilador, cobrindo o aparecimento na lista, a execução, o som e a saída por FN + Start.
+A imagem SHALL poder ser validada com um pacote de teste (`Teste.sh` e a pasta `Teste/` com um ELF armhf) colocado em `/storage/roms/gba-recomp/` pelo PC, sem nenhum recompilador, cobrindo o aparecimento na lista, a execução, o som e a saída por FN + Start.
 
-#### Scenario: ELF de teste
-- **WHEN** um ELF armhf de teste que abre a tela, toca um tom e espera um sinal é copiado como `Teste.recomp` e aberto
+#### Scenario: Pacote de teste
+- **WHEN** o pacote de teste, cujo ELF abre a tela, toca um tom e espera um sinal, é copiado e `Teste` é aberto
 - **THEN** ele roda, o som sai pelo alto-falante e FN + Start o encerra com `SIGTERM`

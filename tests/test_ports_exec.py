@@ -415,6 +415,29 @@ class PortsExec(TempDirCase):
         self.roda()
         self.assertIn(f"ok /storage/roms/gba-recomp/Jogo.recomp {sha(elf('log'))}", self.log())
 
+    def test_scripts_e_elfs_do_jogo_em_recomp_viram_executaveis(self):
+        # Layout do jogo: Jogo.sh na raiz, pasta Jogo/ com launch.sh e o .elf
+        raiz = self.escreve_recomp("gba-recomp/Jogo.sh", b'#!/bin/bash\nexec "$D/Jogo/launch.sh"\n')
+        launch = self.escreve_recomp("gba-recomp/Jogo/launch.sh", b"#!/bin/bash\n./Jogo.elf\n")
+        binario = self.escreve_recomp("gba-recomp/Jogo/Jogo.elf", elf("jogo"))
+        self.escreve_recomp("gba-recomp/Jogo/saves/a.sav", b"dados")
+        self.escreve_recomp("gba-recomp/gamelist.xml", b"<gameList/>")
+        self.roda()
+        self.assertEqual(sorted(m[2] for m in self.montagens()), sorted(str(p) for p in (raiz, launch, binario)))
+        for p in (raiz, launch):
+            self.assertEqual(stat.S_IMODE((self.store / sha(p.read_bytes())).stat().st_mode), 0o755)
+
+    def test_script_fora_de_recomp_nao_e_tratado(self):
+        self.escreve("Port.sh", b"#!/bin/bash\necho oi\n")
+        self.escreve_recomp("gba/Outro.sh", b"#!/bin/bash\necho oi\n")
+        self.roda()
+        self.assertEqual(self.montagens(), [])
+
+    def test_texto_sem_shebang_em_recomp_nao_e_tratado(self):
+        self.escreve_recomp("gba-recomp/Nota.sh", b"echo sem shebang\n")
+        self.roda()
+        self.assertEqual(self.montagens(), [])
+
     def test_recomp_sem_pasta_ports_ainda_e_tratado(self):
         shutil.rmtree(self.ports)
         jogo = self.escreve_recomp("gba-recomp/Jogo.recomp", elf("a"))

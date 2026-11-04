@@ -46,6 +46,15 @@ eh_elf() {
     [ "$(head -c 4 "$1" 2>/dev/null)" = "$(printf '\177ELF')" ]
 }
 
+# Nas pastas *-recomp, o script de um jogo (#!) também vira executável: o .sh da raiz chama
+# o launch.sh da pasta do jogo por exec, e a p1 (FAT) não tem bit de execução.
+eh_script_recomp() {
+    case "$1" in
+        "$ROMS"/*-recomp/*) [ "$(head -c 2 "$1" 2>/dev/null)" = '#!' ] ;;
+        *) return 1 ;;
+    esac
+}
+
 # /proc/mounts escreve o espaço do caminho como \040.
 ja_montado() {
     cam=$(printf '%s' "${1#"$ROOT"}" | sed 's/ /\\040/g')
@@ -70,7 +79,7 @@ else
     while IFS= read -r f; do
         [ -n "$f" ] || continue
         case "${f##*/}" in recomp.log|recomp.log.1) continue ;; esac
-        eh_elf "$f" || continue
+        eh_elf "$f" || eh_script_recomp "$f" || continue
 
         soma=$(sha256sum < "$f" 2>/dev/null)
         soma=${soma%% *}

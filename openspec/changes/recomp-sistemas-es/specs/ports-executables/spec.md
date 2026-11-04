@@ -26,13 +26,13 @@ Para cada arquivo ELF ou biblioteca `.so` em `/storage/roms/ports/` e em `/stora
 - **THEN** nenhum deles é copiado nem montado
 
 #### Scenario: Jogo recompilado copiado pelo PC
-- **WHEN** o jogador copia `Jogo.recomp` (um ELF) para `/storage/roms/gba-recomp/` pelo PC e liga o aparelho
-- **THEN** o jogo abre e executa a partir de uma cópia `0755` fora da p1, sem permissão de execução dada pelo jogador e sem regravar a imagem
+- **WHEN** o jogador copia `Jogo.sh` e a pasta `Jogo/` (com `launch.sh` e o `.elf`) para `/storage/roms/gba-recomp/` pelo PC e liga o aparelho
+- **THEN** o `.sh`, o `launch.sh` e o ELF abrem e executam a partir de cópias `0755` fora da p1, sem permissão de execução dada pelo jogador e sem regravar a imagem
 
 ## ADDED Requirements
 
 ### Requirement: Pastas de recomp varridas por padrão de nome
-O serviço SHALL tratar como pasta de recomp todo diretório de primeiro nível em `/storage/roms/` cujo nome termine em `-recomp`, sem lista fixa de consoles, de modo que um sistema `*-recomp` novo funcione sem alterar o serviço. O serviço SHALL ignorar um arquivo de recomp que não seja ELF, e SHALL NOT tratar `recomp.log` nem `recomp.log.1` como executáveis.
+O serviço SHALL tratar como pasta de recomp todo diretório de primeiro nível em `/storage/roms/` cujo nome termine em `-recomp`, sem lista fixa de consoles. Nessas pastas SHALL tratar como executável todo ELF, de qualquer extensão, e todo script com `#!`; em `ports/` só o ELF vale. Os demais arquivos, `recomp.log` e `recomp.log.1` SHALL NOT ser tratados como executáveis.
 
 #### Scenario: Console novo sem mudança no serviço
 - **WHEN** uma imagem futura declara o sistema `snes-recomp` e o jogador copia um ELF para `/storage/roms/snes-recomp/`
@@ -50,11 +50,11 @@ O serviço SHALL tratar como pasta de recomp todo diretório de primeiro nível 
 Os executáveis de recomp SHALL usar o mesmo diretório de cópias e o mesmo log `r36-ports-exec.log` dos ports, com a regra de apagar a cada boot as cópias que nenhum arquivo da p1 usa. Uma falha ao tratar um recomp SHALL NOT impedir o tratamento dos ports nem dos outros recomps.
 
 #### Scenario: Log lista os recomps
-- **WHEN** o jogador lê `r36-ports-exec.log` depois de copiar um `.recomp`
+- **WHEN** o jogador lê `r36-ports-exec.log` depois de copiar um jogo recomp
 - **THEN** o log traz uma linha com o caminho em `gba-recomp/`, o sha256 e o resultado da montagem
 
 #### Scenario: Recomp removido
-- **WHEN** o jogador apaga `Jogo.recomp` pelo PC
+- **WHEN** o jogador apaga `Jogo.sh` e a pasta `Jogo/` pelo PC
 - **THEN** no boot seguinte a cópia dele some da p8, e as dos ports ficam intactas
 
 #### Scenario: Recomp com erro
