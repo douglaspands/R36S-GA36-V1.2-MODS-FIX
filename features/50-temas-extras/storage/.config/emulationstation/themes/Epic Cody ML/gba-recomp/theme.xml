@@ -10,6 +10,14 @@
     <text name="sys_line1" extra="true">
       <text>${gba-recomp.sys_line1}</text>
     </text>
+    <!-- selo amarelo RECOMP ao lado da primeira linha (empresa) -->
+    <image name="selo" extra="true">
+      <path>./selo.png</path>
+      <tile>false</tile>
+      <origin>0 0</origin>
+      <pos>0.155 0.121</pos>
+      <size>0 0.032</size>
+    </image>
     <text name="sys_line2" extra="true">
       <text>${gba-recomp.sys_line2}</text>
     </text>

@@ -4,9 +4,10 @@
 A arte do GBA vem do tarball do tema upstream já em work/cache/external (o repositório só
 guarda o que o build acrescenta). Gera, na pasta do tema da feature 50-temas-extras:
   gba-recomp/logo.png, gba-recomp/system.png   500x161, texto "GBA RECOMP"
-  gba-recomp/poster.png                         640x480, pôster do GBA com o selo
+  gba-recomp/selo.png                           selo amarelo "RECOMP" (ao lado da 1ª linha do título)
+  gba-recomp/poster.png                         640x480, pôster do GBA
   _art/posters/gba-recomp.png                   o mesmo pôster (o tema acha por ${system.theme})
-  _art/controllers/gba-recomp.png               530x400, controle do GBA com o selo
+  _art/controllers/gba-recomp.png               530x400, controle do GBA
 
 Uso: uv run --with pillow python -I tools/gera_arte_gba_recomp.py [tarball]
 """
@@ -71,16 +72,26 @@ def logo():
     return selo(img, (None, 112), 44)
 
 
+def selo_pequeno():
+    """Selo RECOMP sozinho (fundo transparente), colocado ao lado da primeira linha do título."""
+    altura = 44
+    f = fonte(int(altura * 0.62))
+    largura = int(ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength("RECOMP", font=f) + altura * 0.8)
+    return selo(Image.new("RGBA", (largura + 2, altura + 2), (0, 0, 0, 0)), (1, 1), altura)
+
+
 def main():
     tarball = Path(sys.argv[1]) if len(sys.argv) > 1 else TARBALL
-    poster = selo(le_do_tarball(tarball, "_art/posters/gba.jpg"), (24, 400), 56)
-    controle = selo(le_do_tarball(tarball, "_art/controllers/gba.png"), (20, 330), 56)
+    # Pôster e controle idênticos aos do GBA, sem selo: o selo fica ao lado do título (selo.png)
+    poster = le_do_tarball(tarball, "_art/posters/gba.jpg")
+    controle = le_do_tarball(tarball, "_art/controllers/gba.png")
     saidas = {
+        TEMA / "gba-recomp/selo.png": selo_pequeno(),
         TEMA / "gba-recomp/logo.png": logo(),
         TEMA / "gba-recomp/system.png": logo(),
         TEMA / "gba-recomp/poster.png": poster.convert("RGB"),
         TEMA / "_art/posters/gba-recomp.png": poster.convert("RGB"),
-        TEMA / "_art/controllers/gba-recomp.png": controle,
+        TEMA / "_art/controllers/gba-recomp.png": controle.convert("RGBA"),
     }
     for caminho, img in saidas.items():
         caminho.parent.mkdir(parents=True, exist_ok=True)
