@@ -27,6 +27,11 @@ do aparelho que não se deduzem do código.
 - **Python via uv:** `uv run`, `uv add`, `uv sync`. Nada de `pip`, venv manual ou
   `python3` direto (se `uv` não estiver acessível na sandbox, fallback para `python3 -I`).
   Testes: `uv run python -I -m unittest discover -s tests`.
+- **Ferramentas: podman, docker, depois local.** Para compilar, cross-compilar ou rodar
+  qualquer ferramenta que precise de toolchain ou dependências fora do projeto (gcc armhf,
+  sysroot, etc.), use primeiro `podman`, depois `docker` e só então as ferramentas
+  instaladas no PC. Sem root em nenhum dos três (a receita do LÖVE em `ports/love2d/`
+  já segue isso).
 - **Uma branch por change:** cada change OpenSpec ganha uma branch própria criada
   a partir da `main` no início do `/opsx:apply`, com o nome da change. Merge e
   push só a pedido.
