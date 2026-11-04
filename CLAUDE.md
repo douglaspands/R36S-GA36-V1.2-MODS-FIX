@@ -86,7 +86,10 @@ do aparelho que não se deduzem do código.
   ação): para um `.sh`, o `<comm>` é o nome do primeiro arquivo com assinatura ELF da pasta do
   jogo (qualquer extensão: o recompilador pode gerar outras, e o `.sh` decide como disparar o
   binário) cortado em 15 caracteres (`Donkey Kong Cou`); um ELF passado direto roda pelo symlink `/tmp/r36-recomp-game`. O Select
-  chega ao jogo e o `es_input.cfg` não muda. Que o `comm` sai do nome do arquivo e que o ES
+  chega ao jogo e o `es_input.cfg` não muda. O ES lista **todo** `.sh` da pasta: o script interno
+  do pacote (o que o `.sh` da raiz chama) não deve terminar em `.sh`, senão aparece uma linha
+  por jogo. O `recomp.sh` faz `sync` a cada 3 s enquanto o jogo roda (log da FAT sobrevive a
+  desligar o aparelho à força). Que o `comm` sai do nome do arquivo e que o ES
   esconde o sistema vazio ou lista o `launch.sh` de dentro das pastas só se confirmam no
   aparelho (task 6.4 da change `recomp-sistemas-es`). O log do lançador fica em
   `roms/<console>-recomp/recomp.log` (100 KB, rotaciona em `.log.1`). A arte do tema do

@@ -102,6 +102,7 @@ SPLASH_IMG="${R36_PREFIX}/usr/config/splash/loading-game.png"
 
 SPLASH_PID=""
 GPTK_PID=""
+SYNC_PID=""
 
 # Rota analógica conforme o fone (h2w/state 1 ou 2 = fone; os nomes do Speaker Function são trocados neste clone)
 rota_audio() {
@@ -119,6 +120,7 @@ rota_audio() {
 cleanup() {
     trap - EXIT INT TERM
     [ -n "$SPLASH_PID" ] && kill -9 "$SPLASH_PID" 2>/dev/null
+    [ -n "$SYNC_PID" ] && kill "$SYNC_PID" 2>/dev/null
     [ -n "$GPTK_PID" ] && kill -9 "$GPTK_PID" 2>/dev/null
     [ -n "$GPTK_PID" ] && killall -9 gptokeyb 2>/dev/null
     rm -f "$LINK" 2>/dev/null
@@ -255,6 +257,11 @@ fi
 
 cd "$(dirname "$ROM")" 2>/dev/null || true
 log "--- execução ---"
+# A p1 é FAT com cache: um jogo que trava e obriga a desligar o aparelho perderia o log. Grava no
+# disco agora e a cada 3 s enquanto o jogo roda.
+sync 2>/dev/null || true
+( while :; do sleep 3; sync 2>/dev/null; done ) >/dev/null 2>&1 &
+SYNC_PID=$!
 if [ "$TIPO" = "script" ]; then
     # bash explícito: o .sh da p1 pode estar sem bit de execução
     bash "$ROM" >> "$LOG_OUT" 2>&1
@@ -264,4 +271,6 @@ else
 fi
 RC=$?
 log "saída: $RC"
+kill "$SYNC_PID" 2>/dev/null
+sync 2>/dev/null || true
 exit "$RC"
