@@ -1,0 +1,31 @@
+<theme>
+  <formatVersion>7</formatVersion>
+  <include>./../theme.xml</include>
+  <view name="basic, detailed, video, grid">
+    <text name="nameLabel" extra="true">
+      <text>${gba-recomp.nameLabel}</text>
+    </text>
+  </view>
+  <view name="system">
+    <text name="sys_line1" extra="true">
+      <text>${gba-recomp.sys_line1}</text>
+    </text>
+    <!-- selo amarelo RECOMP ao lado da primeira linha (empresa) -->
+    <image name="selo" extra="true">
+      <path>./selo.png</path>
+      <tile>false</tile>
+      <origin>0 0</origin>
+      <pos>0.155 0.121</pos>
+      <size>0 0.032</size>
+    </image>
+    <text name="sys_line2" extra="true">
+      <text>${gba-recomp.sys_line2}</text>
+    </text>
+    <text name="shortdescription" extra="true">
+      <text>${gba-recomp.shortdescription}</text>
+    </text>
+    <text name="longdescription" extra="true">
+      <text>${gba-recomp.longdescription}</text>
+    </text>
+  </view>
+</theme>

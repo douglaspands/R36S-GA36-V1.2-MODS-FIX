@@ -1,8 +1,9 @@
 #!/bin/sh
-# Prepara os executáveis dos ports: para cada ELF (executável ou .so) em
-# /storage/roms/ports, guarda uma cópia 0755 em /storage/.config/r36-ports-exec,
+# Prepara os executáveis dos ports e dos jogos recompilados: para cada ELF
+# (executável ou .so) em /storage/roms/ports e em /storage/roms/*-recomp, guarda uma cópia 0755 em /storage/.config/r36-ports-exec,
 # nomeada pelo sha256, e monta a cópia por cima do arquivo da p1 (mount --bind).
-# O script do port segue chamando o caminho da p1, mas o processo roda da p8.
+# O script do port (ou o recomp.sh) segue chamando o caminho da p1, mas o processo roda da p8.
+# Pastas *-recomp são achadas por padrão de nome: console novo não muda este script.
 # Roda antes do ES e nunca falha: erro vira linha no ports/r36-ports-exec.log.
 # R36_ROOT fica vazio no aparelho; os testes apontam para um diretório temporário
 # e R36_MOUNT para um comando de montagem falso.
@@ -30,7 +31,7 @@ fi
 
 NL='
 '
-LOGTXT="r36-ports-exec: executáveis de ports/ montados de uma cópia na p8${NL}"
+LOGTXT="r36-ports-exec: executáveis de ports/ e *-recomp/ montados de uma cópia na p8${NL}"
 for dir in /storage /storage/roms; do
     LOGTXT="$LOGTXT# $(awk -v d="$dir" '$2 == d { print d ": " $3 " " $4 }' "$MOUNTS" 2>/dev/null)${NL}"
 done
@@ -43,6 +44,15 @@ registra() {
 # Um ELF começa com 0x7f 'E' 'L' 'F'; dados, textos e ROMs ficam de fora.
 eh_elf() {
     [ "$(head -c 4 "$1" 2>/dev/null)" = "$(printf '\177ELF')" ]
+}
+
+# Nas pastas *-recomp, o script de um jogo (#!) também vira executável: o .sh da raiz chama
+# o launch.sh da pasta do jogo por exec, e a p1 (FAT) não tem bit de execução.
+eh_script_recomp() {
+    case "$1" in
+        "$ROMS"/*-recomp/*) [ "$(head -c 2 "$1" 2>/dev/null)" = '#!' ] ;;
+        *) return 1 ;;
+    esac
 }
 
 # /proc/mounts escreve o espaço do caminho como \040.
@@ -60,11 +70,16 @@ if ! command -v sha256sum >/dev/null 2>&1; then
 elif ! mkdir -p "$STORE" 2>/dev/null; then
     LOGTXT="${LOGTXT}ERRO não foi possível criar ${STORE#"$ROOT"}${NL}"
     LIMPAR=0
-elif [ -d "$PORTS" ]; then
-    LISTA=$(find "$PORTS" -maxdepth 4 -type f 2>/dev/null)
+else
+    LISTA=""
+    for dir in "$PORTS" "$ROMS"/*-recomp; do
+        [ -d "$dir" ] || continue
+        LISTA="$LISTA$(find "$dir" -maxdepth 4 -type f 2>/dev/null)${NL}"
+    done
     while IFS= read -r f; do
         [ -n "$f" ] || continue
-        eh_elf "$f" || continue
+        case "${f##*/}" in recomp.log|recomp.log.1) continue ;; esac
+        eh_elf "$f" || eh_script_recomp "$f" || continue
 
         soma=$(sha256sum < "$f" 2>/dev/null)
         soma=${soma%% *}

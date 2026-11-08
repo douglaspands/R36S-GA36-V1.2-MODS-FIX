@@ -6,9 +6,9 @@ from pathlib import Path
 
 from context import ROOT
 
-F64 = ROOT / "features" / "64-love2d"
-ES_SYSTEM = F64 / "system" / "usr" / "config" / "emulationstation" / "es_systems.cfg"
-ES_STORAGE = F64 / "storage" / ".config" / "emulationstation" / "es_systems.cfg"
+F66 = ROOT / "features" / "66-recomp"
+ES_SYSTEM = F66 / "system" / "usr" / "config" / "emulationstation" / "es_systems.cfg"
+ES_STORAGE = F66 / "storage" / ".config" / "emulationstation" / "es_systems.cfg"
 
 
 class TestEsSystems(unittest.TestCase):
@@ -49,6 +49,16 @@ class TestEsSystems(unittest.TestCase):
         theme_elem = love_sys.find("theme")
         self.assertIsNotNone(theme_elem)
         self.assertEqual(theme_elem.text, "love2d")
+
+    def test_sistema_gba_recomp_e_nenhum_outro_recomp(self):
+        tree = ET.fromstring(ES_STORAGE.read_text(encoding="utf-8"))
+        sistemas = {s.findtext("name"): s for s in tree.findall("system")}
+        self.assertEqual([n for n in sistemas if n.endswith("-recomp")], ["gba-recomp"])
+        s = sistemas["gba-recomp"]
+        self.assertEqual(s.findtext("path"), "/storage/roms/gba-recomp")
+        self.assertEqual(s.findtext("extension").split(), [".sh", ".SH"])
+        self.assertEqual(s.findtext("command"), '/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"')
+        self.assertEqual(s.findtext("theme"), "gba-recomp")
 
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@
       "Read",
       "Glob",
       "Grep",
-
       "Edit(/openspec/**)",
       "Edit(/tools/**)",
       "Edit(/tests/**)",
@@ -25,7 +24,6 @@
       "Edit(/.claude/**)",
       "Edit(/cores/**)",
       "Edit(/ports/**)",
-
       "Bash(ls *)",
       "Bash(pwd)",
       "Bash(cat *)",
@@ -50,7 +48,6 @@
       "Bash(od *)",
       "Bash(sha256sum *)",
       "Bash(md5sum *)",
-
       "Bash(lsblk *)",
       "Bash(blkid *)",
       "Bash(fdisk -l *)",
@@ -60,7 +57,6 @@
       "Bash(parted -s * print*)",
       "Bash(udisksctl status)",
       "Bash(udisksctl info *)",
-
       "Bash(unsquashfs -l *)",
       "Bash(unsquashfs -ll *)",
       "Bash(unsquashfs -lln *)",
@@ -80,7 +76,6 @@
       "Bash(debugfs -R *)",
       "Bash(xz -l *)",
       "Bash(xz -t *)",
-
       "Bash(uv *)",
       "Bash(uv run *)",
       "Bash(uv add *)",
@@ -94,7 +89,6 @@
       "Bash(unsquashfs *)",
       "Bash(./build.sh*)",
       "Bash(./cores.sh*)",
-
       "Bash(openspec --version)",
       "Bash(openspec --help*)",
       "Bash(openspec list*)",
@@ -104,7 +98,6 @@
       "Bash(openspec instructions*)",
       "Bash(openspec context*)",
       "Bash(openspec new *)",
-
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
@@ -174,6 +167,19 @@
       "Bash(chmod -R 777 *)",
       "Bash(git push --force*)",
       "Bash(git push -f*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/scripts/venv-python\" \"$CLAUDE_PROJECT_DIR/scripts/guardrail.py\""
+          }
+        ]
+      }
     ]
   }
 }

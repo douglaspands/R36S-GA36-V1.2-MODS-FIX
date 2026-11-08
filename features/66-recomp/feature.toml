@@ -1,0 +1,20 @@
+# Consoles de jogos recompilados (ELF armhf nativo, sem core nem RetroArch).
+# Cada console é um sistema `<console>-recomp` do EmulationStation (pasta em /storage/roms,
+# extensão .sh) que usa o mesmo lançador, /usr/bin/recomp.sh. A saída do jogo é por
+# FN + Start (gptokeyb); os ELFs ganham cópia 0755 na p8 pelo serviço da feature 58-ports-exec.
+
+schema = 1
+name = "Consoles de jogos recompilados"
+description = "Sistema gba-recomp no EmulationStation e lançador recomp.sh: executa o ELF recompilado direto, sem core, e sai do jogo com FN + Start."
+order = 66
+enabled = true
+
+[[override]]
+layer = "system"
+path = "usr/config/emulationstation/es_systems.cfg"
+feature = "64-love2d"
+
+[[override]]
+layer = "storage"
+path = ".config/emulationstation/es_systems.cfg"
+feature = "64-love2d"

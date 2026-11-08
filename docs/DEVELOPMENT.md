@@ -250,13 +250,26 @@ truncate -s 15000M work/cartao-teste.img
 
 - **`56-retroarch-ajustes`**: sets EmulationStation "SHADER SET" via `shaderset-aplica` (`--set-shader`), synchronizes RetroArch language with EmuELEC via `idioma-aplica`, fixes directory paths for saving core overrides/presets (`rgui_config_directory`), and enables interframe blending in gpSP to eliminate ghosting (`gpsp_frame_mixing = "enabled"`, revert via `r36-gpsp-sem-ghost`).
 
-- **`58-ports-exec`**: automatically manages executable permissions for standalone ports on FAT32 by bind-mounting staged copies from p8.
+- **`58-ports-exec`**: automatically manages executable permissions for standalone ports on FAT32 by bind-mounting staged copies from p8. It also covers the `*-recomp` folders of recompiled games (matched by name, sharing the same cache and log).
 
 - **`60-port-classicube`**: native ClassiCube 1.3.9 port (C-based Minecraft Classic recreation) with hardware GLES2 acceleration, tuned analogue stick deadzones, and custom controller bindings.
 
 - **`62-brilho-fn`**: on-the-fly screen brightness control using `FN + D-pad Up/Down` (range 10 to 100, step 5), saved across boots in `r36-brilho.level`. Reset to default (80) with `FN + L3 click` or empty file `r36-brilho-original`.
 
-- **`64-love2d`**: official standalone **LÖVE 11.5** runtime for Allwinner A33 (ARMv7-A / NEON / GLES 2.0). Integrates Lua indie games as a first-class console in EmulationStation (`roms/love/` accepting `.love` and `.zip`). Full direct framebuffer GLES2 rendering (`/dev/fb0`), native SDL2 controller mapping, background `FN + Start` exit daemon, glitch-free OpenAL Soft audio (native 48000 Hz, int16, bsinc12), and language environment propagation (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`). Includes bundled *Mr. Rescue* demo.
+- **`64-love2d`**: official standalone **LÖVE 11.5** runtime for Allwinner A33 (ARMv7-A / NEON / GLES 2.0). Integrates Lua indie games as a first-class console in EmulationStation (`roms/love/` accepting `.love` and `.zip`). Full direct framebuffer GLES2 rendering (`/dev/fb0`), native SDL2 controller mapping, background `FN + Start` exit daemon, glitch-free OpenAL Soft audio (native 48000 Hz, int16, bsinc12), and language environment propagation (`CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG`, `LANGUAGE`). Includes bundled *Mr. Rescue* demo with D-pad isolated menu navigation (immune to analog drift/calibration issues) and analog gameplay movement.
+
+- **`66-recomp`**: consoles for recompiled games, i.e. a ROM converted into a native armhf executable, with no core and no RetroArch. Only `gba-recomp` exists today; the recompiler itself is a future change.
+  - **EmulationStation system:** `gba-recomp` reads `/storage/roms/gba-recomp/` (the `R36-ROMS` partition) and lists the `.sh` (or `.SH`) at the root of the folder (a game is `Game.sh` plus a `Game/` folder next to it with `launch.sh` and the `.elf`). A `*-recomp` system with no games does not show up in the menu. The folder ships a three-language `LEIAME.txt`.
+  - **Game format:** the `.sh` runs (with explicit `bash`) an armhf ELF (ARMv7-A, hard-float) that only uses libraries present in the image (glibc up to 2.36, libstdc++ up to `GLIBCXX_3.4.29`; newer C++ needs `-static-libstdc++`). It opens the window and sound through the system libraries (SDL2, GLES2, ALSA).
+  - **Execution:** `r36-ports-exec` (feature `58-ports-exec`) keeps a `0755` copy on p8 and bind-mounts it over the p1 file. `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, the same for every console, checks the ELF signature and runs the game directly, with no `emuelecRunEmu.sh` or `--core`, through a `/tmp/r36-recomp-game` symlink (15 characters: the process name `gptokeyb` looks for, even when the ELF has a long or arbitrary name).
+  - **Leaving a game:** `FN + Start` ends the game with `SIGTERM` through `gptokeyb` (profile `/usr/config/gptokeyb/recomp.gptk`: only `hotkey`, `start` and `back`, no keyboard action keys over the game buttons). `Select` reaches the game and FN alone does nothing. There is no new `es_input.cfg`: FN stays unbound in ES.
+  - **Audio, language and log:** as in LÖVE (`Speaker Function` route, `audio-ganho aplica` before and after; `CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG` and `LANGUAGE`). The log lives at `R36-ROMS/<console>-recomp/recomp.log` (rotates to `recomp.log.1` past 100 KB) with the game, the system, the `ldd` output (a missing library shows as `not found`) and the exit code; extra records only appear with the `r36-diagnostico` key.
+  - **Theme:** `gba-recomp/` in the Epic Cody ML theme (`theme.xml`, `logo.png`, `poster.png`, `system.png`, plus the art in `_art/posters` and `_art/controllers`), derived from the GBA art with a RECOMP badge by `tools/gera_arte_gba_recomp.py`, with the `gba-recomp.*` variables in the three languages.
+  - **Adding a console:** declare the `<console>-recomp` system (both copies of `es_systems.cfg`, command `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, extension `.sh`), the folder under `roms/` and the theme folder. Neither the launcher nor `r36-ports-exec` changes. The test ELF (`tools/recomp_teste/`) validates it on the device.
+
+### Note on Wi-Fi Adapters and OTG Port
+
+Unlike the original R36S (Rockchip RK3326), this GA36-MB V1.2 clone (Allwinner A33) lacks a 5V Step-Up Boost circuit on battery to power USB peripherals through the OTG port. Passive USB Wi-Fi dongles receive no electrical power (LED remains unlit) and do not respond to USB enumeration (`lsusb` empty) on battery power. The OTG port only works with self-powered devices (such as a smartphone in USB tethering) or when powered externally via a Y-cable.
 
 ### Diagnostics
 
