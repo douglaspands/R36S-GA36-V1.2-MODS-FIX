@@ -267,6 +267,10 @@ truncate -s 15000M work/cartao-teste.img
   - **Theme:** `gba-recomp/` in the Epic Cody ML theme (`theme.xml`, `logo.png`, `poster.png`, `system.png`, plus the art in `_art/posters` and `_art/controllers`), derived from the GBA art with a RECOMP badge by `tools/gera_arte_gba_recomp.py`, with the `gba-recomp.*` variables in the three languages.
   - **Adding a console:** declare the `<console>-recomp` system (both copies of `es_systems.cfg`, command `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, extension `.sh`), the folder under `roms/` and the theme folder. Neither the launcher nor `r36-ports-exec` changes. The test ELF (`tools/recomp_teste/`) validates it on the device.
 
+### Note on Wi-Fi Adapters and OTG Port
+
+Unlike the original R36S (Rockchip RK3326), this GA36-MB V1.2 clone (Allwinner A33) lacks a 5V Step-Up Boost circuit on battery to power USB peripherals through the OTG port. Passive USB Wi-Fi dongles receive no electrical power (LED remains unlit) and do not respond to USB enumeration (`lsusb` empty) on battery power. The OTG port only works with self-powered devices (such as a smartphone in USB tethering) or when powered externally via a Y-cable.
+
 ### Diagnostics
 
 Diagnostic logging is disabled by default to prevent unnecessary SD card writes. To activate diagnostics, create an empty file named `r36-diagnostico` on the root of `R36-ROMS`:

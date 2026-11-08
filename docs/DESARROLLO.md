@@ -262,7 +262,11 @@ truncate -s 15000M work/cartao-teste.img
   - **Salir del juego:** `FN + Start` termina el juego con `SIGTERM` mediante `gptokeyb` (perfil `/usr/config/gptokeyb/recomp.gptk`: solo `hotkey`, `start` y `back`, ninguna tecla de acción del teclado sobre los botones del juego). `Select` llega al juego y FN solo no hace nada. No hay `es_input.cfg` nuevo: FN sigue sin función en ES.
   - **Audio, idioma y registro:** como en LÖVE (ruta `Speaker Function`, `audio-ganho aplica` antes y después; `CONSOLE_LANG`, `CONSOLE_LANG_SHORT`, `LANG` y `LANGUAGE`). El registro queda en `R36-ROMS/<consola>-recomp/recomp.log` (rota a `recomp.log.1` al pasar de 100 KB) con el juego, el sistema, el `ldd` (una biblioteca faltante aparece como `not found`) y el código de salida; los registros extra solo salen con la clave `r36-diagnostico`.
   - **Tema:** `gba-recomp/` en el tema Epic Cody ML (`theme.xml`, `logo.png`, `poster.png`, `system.png` y el arte en `_art/posters` y `_art/controllers`), derivado del arte del GBA con un sello RECOMP por `tools/gera_arte_gba_recomp.py`, con las variables `gba-recomp.*` en los tres idiomas.
-  - **Añadir una consola:** declara el sistema `<consola>-recomp` (las dos copias de `es_systems.cfg`, comando `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, extensión `.sh`), la carpeta en `roms/` y la carpeta del tema. Ni el lanzador ni `r36-ports-exec` cambian. El ELF de prueba (`tools/recomp_teste/`) sirve para validar en el aparato.
+  - **Añadir una consola:** declara el sistema `<consola>-recomp` (las dos copias de `es_systems.cfg`, comando `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, extensão `.sh`), la carpeta en `roms/` y la carpeta del tema. Ni el lanzador ni `r36-ports-exec` cambian. El ELF de prueba (`tools/recomp_teste/`) sirve para validar en el aparato.
+
+### Nota sobre Adaptadores Wi-Fi y Puerto OTG
+
+A diferencia del R36S original (Rockchip RK3326), este clon GA36-MB V1.2 (Allwinner A33) carece de circuito elevador de 5V (Step-Up Boost) en batería para alimentar periféricos USB en el puerto OTG. Los adaptadores USB Wi-Fi pasivos no reciben energía eléctrica (LED apagado) y no responden a la enumeración USB (`lsusb` vacío) cuando la consola opera con batería. El puerto OTG solo funciona con periféricos autoalimentados (como teléfonos móviles en modo anclaje USB) o si se alimenta externamente mediante un cable en Y.
 
 ### Diagnóstico
 

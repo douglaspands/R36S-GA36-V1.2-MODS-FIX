@@ -8,3 +8,12 @@ dependencies = []
 [tool.uv]
 # O pacote vive em tools/ e é carregado pelos wrappers; não há o que instalar.
 package = false
+
+[tool.uv.sources]
+agent-harness-hub = { git = "https://github.com/douglaspands/agent-harness-hub", rev = "main" }
+
+[dependency-groups]
+dev = [
+    "agent-harness-hub",
+    "pillow>=13.0.0",
+]

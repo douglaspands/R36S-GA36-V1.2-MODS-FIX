@@ -960,6 +960,10 @@ Para conferir no aparelho: `cat /proc/swaps` (só `/dev/zram0`),
   - **Tema:** `gba-recomp/` no tema Epic Cody ML (`theme.xml`, `logo.png`, `poster.png`, `system.png` e a arte em `_art/posters` e `_art/controllers`), derivado da arte do GBA com um selo RECOMP por `tools/gera_arte_gba_recomp.py`, com as variáveis `gba-recomp.*` nos três idiomas.
   - **Acrescentar um console:** declare o sistema `<console>-recomp` (as duas cópias do `es_systems.cfg`, comando `/usr/bin/recomp.sh "%ROM%" "%SYSTEM%"`, extensão `.sh`), a pasta em `roms/` e a pasta do tema. Nem o lançador nem o `r36-ports-exec` mudam. O ELF de teste (`tools/recomp_teste/`) serve para validar no aparelho.
 
+### Nota sobre Adaptadores Wi-Fi e Porta OTG
+
+Diferente do R36S original (Rockchip RK3326), este clone GA36-MB V1.2 (Allwinner A33) não possui circuito elevador de 5V (Step-Up Boost) na bateria para alimentar periféricos USB na porta OTG. Adaptadores USB Wi-Fi passivos não recebem energia elétrica (LED apagado) e não respondem à enumeração USB (`lsusb` vazio) quando o console opera em bateria. A porta OTG só opera com periféricos com alimentação própria (como celular com bateria interna em tethering) ou se alimentada externamente via cabo Y.
+
 Para desligar uma feature, ponha `enabled = false` no `feature.toml` e gere a
 imagem de novo.
 

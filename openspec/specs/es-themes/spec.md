@@ -119,3 +119,40 @@ O diálogo de gerenciamento de Save State (`GuiSaveState`) e os menus do tema Ep
 #### Scenario: Exibição do modal de Save State com cards calibrados
 - **WHEN** o usuário abre a interface de Save State com múltiplos slots ocupados
 - **THEN** o diálogo ocupa a largura útil de 608px respeitando as margens de 16px da tela, e as datas e horas dos estados salvos são perfeitamente legíveis dentro dos limites dos cards
+
+### Requirement: Tema do sistema gba-recomp
+O tema Epic Cody ML SHALL trazer uma pasta `gba-recomp/` com `theme.xml`, `logo.png`, `poster.png` e `system.png`, de modo que o sistema `gba-recomp` não caia no visual genérico. A arte SHALL ser derivada da do GBA com um selo "RECOMP" visível, para distinguir a lista dos jogos do core GBA.
+
+#### Scenario: Sistema com arte própria
+- **WHEN** o EmulationStation mostra a lista de sistemas com `gba-recomp` presente
+- **THEN** o sistema aparece com logo, poster e imagem de sistema próprios, e o selo RECOMP o distingue do sistema `gba`
+
+#### Scenario: Arquivos do tema presentes
+- **WHEN** a pasta do tema na p8 da imagem gerada é inspecionada
+- **THEN** `gba-recomp/` contém `theme.xml`, `logo.png`, `poster.png` e `system.png`
+
+### Requirement: Textos de gba-recomp nos três idiomas
+Os arquivos `_languages/pt-br.xml`, `es-latam.xml` e `en.xml` SHALL declarar as variáveis `gba-recomp.nameLabel`, `sys_line1`, `sys_line2`, `shortdescription` e `longdescription`, e o `theme.xml` do sistema SHALL consumi-las. Os textos SHALL ser idênticos aos do sistema `gba`; a marca recomp SHALL ser um selo amarelo pequeno ("RECOMP") ao lado da primeira linha. Nenhum texto SHALL ficar em inglês em `pt-br` e `es-latam`.
+
+#### Scenario: Idioma português
+- **WHEN** o tema está em `pt-br` e o jogador vê a lista de sistemas
+- **THEN** a descrição de `gba-recomp` está em português
+
+#### Scenario: Primeira linha com a marca recomp
+- **WHEN** o jogador vê a lista de sistemas com o tema em qualquer idioma
+- **THEN** `gba-recomp` mostra "Nintendo" na primeira linha com um selo amarelo pequeno "RECOMP" ao lado, o resto do texto e o pôster e o controle iguais aos do `gba`, e nenhum selo no rodapé
+
+#### Scenario: Variável ausente
+- **WHEN** os três arquivos de idioma são conferidos
+- **THEN** cada um declara as cinco variáveis `gba-recomp.*`, sem nenhuma faltando
+
+### Requirement: gba-recomp legível em 640x480
+Os textos de `gba-recomp` SHALL caber na tela de 640x480, com `sys_line1` e `sys_line2` sem truncamento por reticências, na lista de sistemas e no cabeçalho da lista de jogos, respeitando as margens e o layout unificado do tema.
+
+#### Scenario: Título sem truncamento
+- **WHEN** a lista de sistemas mostra `gba-recomp` em qualquer um dos três idiomas
+- **THEN** `sys_line1` e `sys_line2` aparecem inteiros, sem reticências
+
+#### Scenario: Lista de jogos com o layout do tema
+- **WHEN** o jogador abre a lista de `gba-recomp`
+- **THEN** a lista usa o mesmo layout unificado dos demais sistemas, sem elemento cortado nem sobreposto à barra de atalhos

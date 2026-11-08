@@ -53,6 +53,9 @@ def _squashfs_problems(path):
     if exe is not None:
         out = subprocess.run([exe, "-help"], capture_output=True, text=True)
         text = out.stdout + out.stderr
+        if "Compressors available" not in text:
+            out = subprocess.run([exe, "-help-section", "compression"], capture_output=True, text=True)
+            text = out.stdout + out.stderr
         section = text.split("Compressors available", 1)[-1] if "Compressors available" in text else ""
         if not re.search(r"^\s+lzo\b", section, re.M):
             problems.append("mksquashfs: sem suporte a compressão LZO")

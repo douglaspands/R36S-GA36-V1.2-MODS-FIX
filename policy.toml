@@ -1,0 +1,198 @@
+# Fonte única declarativa: sincroniza Antigravity (.agents/hooks.json, GEMINI.md) e Claude Code (.claude/settings.json, CLAUDE.md)
+# Após editar: execute `.venv/bin/ctx rule sync`.
+
+[project]
+name = "r36img"
+version = "0.1.0"
+
+[ctx]
+runner = ".venv/bin/ctx"
+
+[commands]
+# Comandos aprovados automaticamente (allow) para autonomia ágil dentro do repositório
+allow = [
+    "git status",
+    "git diff",
+    "git log",
+    "git branch",
+    "git show",
+    "git ls-files",
+    "openspec",
+    "uv run",
+    "uv sync",
+    "uv venv",
+    "python3 -m venv .venv",
+    "scripts/venv-python",
+    ".venv/bin/ctx",
+    ".venv/bin/python",
+    "ctx",
+    "bin/ctx",
+    "./bin/ctx",
+    "./build.sh",
+    "./flash.sh",
+    "./cores.sh",
+    "pytest",
+    "rg",
+    "fd",
+    "tree -L",
+    "jq",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "pwd",
+    "which",
+    "mcopy",
+    "mdir",
+    "unsquashfs",
+    "lsattr",
+]
+
+# "Ask forte": operações sensíveis que sempre exigem confirmação explícita do usuário
+ask = [
+    "git push",
+    "git commit",
+    "git checkout",
+    "git reset",
+    "git rebase",
+    "git clean",
+    "rm",
+    "chattr",
+    "dnf install",
+    "apt install",
+    "pip install",
+    "uv pip install",
+    "systemctl start",
+    "systemctl stop",
+    "systemctl restart",
+]
+
+# Wrappers que ocultam o comando real (sempre ask forte)
+wrappers = ["env", "xargs", "sh", "bash", "zsh", "nohup", "timeout", "nice", "exec", "eval", "command", "busybox"]
+
+# Comandos proibidos e bloqueados imediatamente
+deny = [
+    "rm -rf /",
+    "mkfs",
+    ":(){ :|:& };:",
+    "curl | bash",
+    "wget | bash",
+    "curl | sh",
+    "wget | sh",
+    "sudo",
+    "dd of=/dev",
+    "wipefs",
+    "shred",
+    "blkdiscard",
+]
+
+# Filtros seguros aprovados automaticamente em pipes simples (ex: cmd | rg termo)
+safe_pipe_filters = [
+    "head",
+    "tail",
+    "rg",
+    "grep",
+    "wc",
+    "sort",
+    "uniq",
+    "jq",
+    "cut",
+    "tr",
+]
+
+# Receitas One-Shot: comandos parametrizados que acertam na 1ª tentativa (injetadas no Turno 0)
+[commands.one_shot_recipes]
+ctx_status = ".venv/bin/ctx status"
+ctx_map = ".venv/bin/ctx map [subcaminhos...]"
+ctx_search = ".venv/bin/ctx search \"<q1>\" [\"<q2>\" ...] --lines 25"
+rg_context = "rg -n --heading -C 2 \"<padrao>\" [caminho]"
+fd_scoped = "fd --max-depth 3 --exclude archive \"<padrao>\" [caminho]"
+tree_compact = "tree -L 2 --dirsfirst -I \".venv|__pycache__|.git|.ctx|archive\""
+git_status_short = "git status -s -b"
+git_log_compact = "git log --oneline --decorate -n 10"
+
+# Coaching de Eficiência: variantes ineficientes recebem `deny` instrutivo com a Receita One-Shot
+[commands.inefficient_variants]
+"grep -r" = "Use a Receita One-Shot: rg -n --heading -C 2 \"<padrao>\" [caminho] (ou .venv/bin/ctx search \"<termo>\" --lines 25)"
+"grep -R" = "Use a Receita One-Shot: rg -n --heading -C 2 \"<padrao>\" [caminho] (ou .venv/bin/ctx search \"<termo>\" --lines 25)"
+"grep --recursive" = "Use a Receita One-Shot: rg -n --heading -C 2 \"<padrao>\" [caminho] (ou .venv/bin/ctx search \"<termo>\" --lines 25)"
+"find ." = "Use a Receita One-Shot: fd --max-depth 3 --exclude archive \"<padrao>\" [caminho] (ou .venv/bin/ctx map [subcaminhos...])"
+"ls -R" = "Use a Receita One-Shot: tree -L 2 --dirsfirst -I \".venv|__pycache__|.git|.ctx|archive\" (ou .venv/bin/ctx map)"
+tree_unbounded = "Sempre passe -L <nivel> no tree. Receita One-Shot: tree -L 2 --dirsfirst -I \".venv|__pycache__|.git|.ctx|archive\""
+git_log_unbounded = "Sempre limite o git log com -n <N>. Receita One-Shot: git log --oneline --decorate -n 10"
+
+[harnesses]
+enabled = ["claude", "gemini", "antigravity"]
+
+[file_tools]
+mode = "off"
+harnesses = ["claude", "gemini", "antigravity"]
+
+[paths]
+# Arquivos que o agente nunca pode ler ou expor
+deny = [
+    "~/.ssh",
+    "~/.aws",
+    "~/.gnupg",
+    ".env",
+    "/etc/shadow",
+]
+
+# Arquivos críticos do repositório que exigem aprovação para alteração
+protected = [
+    "policy.toml",
+    "scripts/guardrail.py",
+    ".agents/hooks.json",
+    ".claude/settings.json",
+    "base/**",
+]
+
+# Caminhos do sistema permitidos para leitura segura
+readonly_system = [
+    "/etc/os-release",
+    "/proc/cpuinfo",
+    "/proc/meminfo",
+]
+
+[toolchains.python]
+canonical_runner = ".venv/bin/python"
+sandbox_runners = [
+    ".venv/bin/python",
+    ".venv/bin/ctx",
+    "bin/ctx",
+    "./bin/ctx",
+]
+bootstrap_allowed = ["python3 -m venv .venv", "python -m venv .venv"]
+manager = "uv"
+venv_path = ".venv"
+forbidden_direct = [
+    "python",
+    "python3",
+    "/usr/bin/python",
+    "/usr/bin/python3",
+    ".venv/bin/python3",
+]
+reason = "Python e RAG devem ser executados via '.venv/bin/python' (ou '.venv/bin/ctx')."
+
+[toolchains.nodejs]
+canonical_runner = "asdf exec"
+manager = "asdf"
+shims_dir = "~/.asdf/shims"
+forbidden_direct = [
+    "/usr/bin/node",
+    "/usr/bin/npm",
+    "/usr/bin/npx",
+    "/usr/local/bin/node",
+]
+reason = "Node.js/npm/npx devem usar a versão gerenciada pelo asdf (~/.asdf/shims ou 'asdf exec')."
+
+[containers]
+prefer = "podman"
+fallback = "docker"
+policy = "container_first"
+
+[storage.btrfs_nocow]
+path = "~/data"
+action = "ask"
+reason = "Volumes pesados e bancos de dados devem consultar o usuário para uso de ~/data (No-COW)."
