@@ -36,7 +36,7 @@ that name. What was verified on this device:
 | Item | Value |
 |------|-------|
 | SoC | Allwinner A33 (4x Cortex-A7), relabeled as RK3326 |
-| RAM | 1 GB |
+| RAM | 512 MB + ZRAM |
 | GPU | Mali-400 MP2 |
 | Screen | 3.5", 640x480 |
 | System | EmuELEC 4.7 "Nexus" (sunxi kernel 3.4.39) |
